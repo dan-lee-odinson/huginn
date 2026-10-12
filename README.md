@@ -1,19 +1,24 @@
 # HUGINN: CubeSat Mission Operations Simulator
 
-HUGINN is a mission operations simulator for a fictional 6U CubeSat. The spacecraft is
-simulated in Python and operated by written procedure through a mission campaign, against
-real ground software: OpenC3 COSMOS. The repository holds the complete systems-engineering
-record behind it, from stakeholder needs through requirements, FMEA and procedures to the
-reports of the passes flown.
+A mission operations simulator for a fictional 6U CubeSat, by **Dan Lee-Odinson**.
+
+The spacecraft is simulated in Python, and I operate it by written procedure through a
+mission campaign, against real ground software: OpenC3 COSMOS. This repository holds the
+complete systems-engineering record behind it, from stakeholder needs through requirements,
+FMEA and procedures to the reports of the passes I flew.
 
 The spacecraft and its mission are fictional, and its model is simplified. This release is a
 training simulator, and the starting point for HUGINN's flight version under Project AESIR.
 
+In Norse myth, Odin flies two ravens over the world: **Huginn** (thought) and **Muninn**
+(memory). [MUNINN](https://github.com/dan-lee-odinson/muninn), my mission-ops vocabulary
+trainer, is the memory raven. HUGINN is the thought raven, where that vocabulary goes to work
+at a console: flying a spacecraft by procedure through nominal and anomaly passes.
+
 ## Status
 
 Version 0.1. The design record went through the HUG-G001 adversarial review series, which
-Dan Lee-Odinson closed as Director, and the four-pass campaign was flown between August and
-October 2026.
+I closed as Director, and I flew the four-pass campaign between August and October 2026.
 
 | Pass | Record | Fault | Outcome |
 |---|---|---|---|
@@ -22,7 +27,7 @@ October 2026.
 | PASS-3 | `2026-10-11-P3` | stuck-on load | payload shed; anomaly report AR-002 |
 | PASS-4 | `2026-10-11-P4` | housekeeping telemetry generation halt | telemetry restored; anomaly report AR-003 |
 
-`2026-08-03-P1` is the first PASS-1 attempt, kept with its recorded omission;
+`2026-08-03-P1` is my first PASS-1 attempt, kept with its recorded omission;
 `2026-09-13-P1` re-executes it. Pass reports are in `docs/pass_reports/`, anomaly reports
 in `docs/anomalies/`, and `tools/pass_report.py --validate` checks any of them against its
 procedure.
@@ -62,15 +67,15 @@ Then open http://localhost:2910. `python tools/run_checks.py` runs the full chec
 
 ## How it was made
 
-Dan Lee-Odinson directed HUGINN. He set its scope, ratified its design values, flew its
-passes and dispositioned every review finding. `DECISIONS.md` records each ruling and who
+I directed HUGINN. I set its scope, ratified its design values, flew its passes and
+dispositioned every review finding. `DECISIONS.md` records each ruling and who
 made it.
 
 Claude (Anthropic), working through Claude Code and Cowork, wrote the code, tests and
-documents under his direction. GPT (OpenAI) reviewed the design record adversarially.
+documents under my direction. GPT (OpenAI) reviewed the design record adversarially.
 
-Commit IDs cited in the records refer to the private development archive this repository
-was published from.
+Commit IDs cited in the records refer to my private development archive, which this
+repository was published from.
 
 ## License
 
