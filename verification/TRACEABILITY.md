@@ -13,12 +13,12 @@ the same whether or not anything ran.
 
 | Field | Value |
 |---|---|
-| Commit | `7c8c2c1082b81cb726360a0e799a61ffc0f326a3` |
-| Subject | Maintenance log opened: 2026-08-31 Docker disk recovery, pass telemetry committed, acquisition figure corrected. Records actions, not decisions; four items left for the owner |
-| Tree clean at run | False |
-| Executed (UTC) | 2026-09-13T03:47:03Z |
+| Commit | `822c87453db1222feed3aa2a52d4b021f990ccba` |
+| Subject | Regenerate the verification report and evidence chain |
+| Tree clean at run | True |
+| Executed (UTC) | 2026-10-12T17:02:34Z |
 | Python / platform | 3.14.4 / Windows-11-10.0.26200-SP0 |
-| Cases executed | 427 tests, 34 checks, 168 red/green mutation cases |
+| Cases executed | 492 tests, 34 checks, 168 red/green mutation cases |
 | Archived demonstrations read | 8 |
 
 ## Matrix
@@ -30,9 +30,9 @@ order is not sorted, and sorting it here would silently reorder the record.
 |---|---|---|---|---|---|
 | `HUG-SYS-001` | T | NEED-02, NEED-03 | 9 case(s) | 1 | PASS |
 | `HUG-SYS-002` | T | NEED-01 | 17 case(s) | 3 | PASS |
-| `HUG-SYS-003` | T | NEED-04 | 15 case(s) | 2 | PASS |
+| `HUG-SYS-003` | T | NEED-04 | 25 case(s) | 2 | PASS |
 | `HUG-SYS-004` | T | NEED-02 | 2 case(s) | 1 | PASS |
-| `HUG-SYS-005` | I/T | NEED-04 | 21 case(s) | 20 | PASS |
+| `HUG-SYS-005` | I/T | NEED-04 | 50 case(s) | 40 | PASS |
 | `HUG-SYS-006` | D | NEED-04 | 21 case(s) + 2 demo(s) | 16 | PASS |
 | `HUG-EPS-001` | T | NEED-02 | 7 case(s) | 1 | PASS |
 | `HUG-EPS-002` | T | NEED-02 | 6 case(s) | 1 | PASS |
@@ -53,7 +53,7 @@ order is not sorted, and sorting it here would silently reorder the record.
 | `HUG-CMD-006` | T | NEED-03 | 7 case(s) | 1 | PASS |
 | `HUG-CMD-007` | T | NEED-03 | 10 case(s) | 1 | PASS |
 | `HUG-OPS-001` | I | NEED-02 | 29 case(s) | 14 | PASS |
-| `HUG-OPS-002` | I | NEED-04 | 55 case(s) | 41 | PASS |
+| `HUG-OPS-002` | I | NEED-04 | 96 case(s) | 72 | PASS |
 | `HUG-OPS-003` | D | NEED-04 | — | — | **NO_RECORD** |
 | `HUG-OPS-004` | I | NEED-04 | — | — | **NO_RECORD** |
 | `HUG-UI-001` | I | NEED-04 | 3 case(s) | — | PASS |
@@ -113,7 +113,12 @@ The case identifiers themselves, so a reader can re-run any single row.
 
 - Trace cell: `NEED-04; ASM-01`
 - Reaches a NEED: True
-- Executed cases (15):
+- Executed cases (25):
+  - `test_gen_pass_plan.TestTheConstraints.test_a_fault_that_survives_the_rule_is_refused_not_emitted`
+  - `test_gen_pass_plan.TestTheConstraints.test_no_scenario_file_is_modified`
+  - `test_gen_pass_plan.TestTheConstraints.test_same_inputs_give_byte_identical_output`
+  - `test_gen_pass_plan.TestTheConstraints.test_the_artefact_carries_every_section_the_operator_needs`
+  - `test_gen_pass_plan.TestTheConstraints.test_the_tool_never_reads_anything_under_pass_reports`
   - `test_orbit.TestReproducibilityAcrossRuns.test_a_different_epoch_gives_a_different_result`
   - `test_orbit.TestReproducibilityAcrossRuns.test_interval_computation_reproduces_exactly`
   - `test_orbit.TestReproducibilityAcrossRuns.test_two_orbits_from_the_same_pin_and_epoch_agree_exactly`
@@ -129,6 +134,11 @@ The case identifiers themselves, so a reader can re-run any single row.
   - `test_reproducibility.TestNoWallClockOrUnseededRandomnessStatically.test_the_exempt_module_is_still_held_to_the_clock_and_entropy_rules`
   - `test_reproducibility.TestNoWallClockOrUnseededRandomnessStatically.test_the_math_exemption_is_exactly_the_orbit_module`
   - `test_reproducibility.TestNoWallClockOrUnseededRandomnessStatically.test_the_scan_would_catch_a_violation`
+  - `test_serve_sim_start_offset.TestTheDefaultIsUnchanged.test_no_offset_leaves_the_model_at_met_zero`
+  - `test_serve_sim_start_offset.TestTheDefaultIsUnchanged.test_no_offset_takes_no_steps`
+  - `test_serve_sim_start_offset.TestThePreRollIsTheSameRun.test_frames_continue_from_the_offset_not_from_zero`
+  - `test_serve_sim_start_offset.TestThePreRollIsTheSameRun.test_pre_roll_equals_stepping_from_zero`
+  - `test_serve_sim_start_offset.TestThePreRollIsTheSameRun.test_scripted_commands_inside_the_pre_roll_are_applied`
 
 ### `HUG-SYS-004` — T — PASS
 
@@ -142,7 +152,7 @@ The case identifiers themselves, so a reader can re-run any single row.
 
 - Trace cell: `NEED-04`
 - Reaches a NEED: True
-- Executed cases (21):
+- Executed cases (50):
   - `design_record_consistency:C15`
   - `design_record_consistency:C15.m1`
   - `design_record_consistency:C15.m10`
@@ -164,6 +174,35 @@ The case identifiers themselves, so a reader can re-run any single row.
   - `design_record_consistency:C15.m7`
   - `design_record_consistency:C15.m8`
   - `design_record_consistency:C15.m9`
+  - `test_gen_pass_plan.TestFrameAbsence.test_exactly_120_expected_frames_never_arrive`
+  - `test_gen_pass_plan.TestFrameAbsence.test_state_of_charge_does_not_diverge`
+  - `test_gen_pass_plan.TestFrameAbsence.test_the_artefact_states_the_expected_frame_count`
+  - `test_gen_pass_plan.TestFrameAbsence.test_the_plan_expects_every_frame`
+  - `test_gen_pass_plan.TestTheConstraints.test_a_fault_that_survives_the_rule_is_refused_not_emitted`
+  - `test_gen_pass_plan.TestTheConstraints.test_no_scenario_file_is_modified`
+  - `test_gen_pass_plan.TestTheConstraints.test_same_inputs_give_byte_identical_output`
+  - `test_gen_pass_plan.TestTheConstraints.test_the_artefact_carries_every_section_the_operator_needs`
+  - `test_gen_pass_plan.TestTheConstraints.test_the_tool_never_reads_anything_under_pass_reports`
+  - `test_gen_pass_plan.TestTheControl.test_p1_nominal_has_no_faults_and_does_have_commands`
+  - `test_gen_pass_plan.TestTheControl.test_p1_nominal_predicts_itself_identically`
+  - `test_gen_pass_plan.TestTheDivergence.test_no_divergence_before_the_fault`
+  - `test_gen_pass_plan.TestTheDivergence.test_predicted_battery_current_at_los`
+  - `test_gen_pass_plan.TestTheDivergence.test_predicted_load_is_the_unfaulted_load_across_the_whole_contact`
+  - `test_gen_pass_plan.TestTheDivergence.test_predicted_state_of_charge_at_los`
+  - `test_gen_pass_plan.TestTheDivergence.test_the_fault_shows_as_divergence_at_los`
+  - `test_gen_pass_plan.TestTheDivergence.test_the_truth_side_is_what_the_measurements_say`
+  - `test_serve_sim_start_offset.TestALimitAtOrBelowTheStartIsRefused.test_a_contact_length_typed_as_the_limit_is_named`
+  - `test_serve_sim_start_offset.TestALimitAtOrBelowTheStartIsRefused.test_a_limit_below_the_start_is_refused_naming_both_values`
+  - `test_serve_sim_start_offset.TestALimitAtOrBelowTheStartIsRefused.test_a_limit_exactly_at_the_start_is_refused`
+  - `test_serve_sim_start_offset.TestARunThatCanTransmitIsNotRefused.test_a_limit_above_the_start_is_accepted`
+  - `test_serve_sim_start_offset.TestARunThatCanTransmitIsNotRefused.test_limit_zero_keeps_its_meaning_of_no_limit`
+  - `test_serve_sim_start_offset.TestARunThatCanTransmitIsNotRefused.test_no_limit_is_accepted`
+  - `test_serve_sim_start_offset.TestARunThatCanTransmitIsNotRefused.test_the_default_run_is_accepted`
+  - `test_serve_sim_start_offset.TestTheOffsetReachesAFaultTheContactCouldNot.test_a_pre_rolled_run_observes_the_asymmetry`
+  - `test_serve_sim_start_offset.TestTheOffsetReachesAFaultTheContactCouldNot.test_the_fault_onset_lies_beyond_the_assigned_contact`
+  - `test_serve_sim_start_offset.TestTheOffsetReachesAFaultTheContactCouldNot.test_the_window_reachable_without_the_offset_shows_no_asymmetry`
+  - `test_serve_sim_start_offset.TestTheOffsetRefusesWhatItCannotServe.test_a_start_beyond_the_scenario_duration_is_refused`
+  - `test_serve_sim_start_offset.TestTheOffsetRefusesWhatItCannotServe.test_a_start_exactly_at_the_duration_is_refused`
 
 ### `HUG-SYS-006` — D — PASS
 
@@ -609,7 +648,37 @@ The case identifiers themselves, so a reader can re-run any single row.
 
 - Trace cell: `NEED-04; G001-06 F-01; G001-07 F-01; G001-07 F-02; G001-08 F-01; G001-09 F-01; G001-10 F-01`
 - Reaches a NEED: True
-- Executed cases (55):
+- Executed cases (96):
+  - `test_gen_pass_plan.TestFrameAbsence.test_exactly_120_expected_frames_never_arrive`
+  - `test_gen_pass_plan.TestFrameAbsence.test_state_of_charge_does_not_diverge`
+  - `test_gen_pass_plan.TestFrameAbsence.test_the_artefact_states_the_expected_frame_count`
+  - `test_gen_pass_plan.TestFrameAbsence.test_the_plan_expects_every_frame`
+  - `test_gen_pass_plan.TestRefusal.test_a_contact_running_past_the_scenario_end_is_refused`
+  - `test_gen_pass_plan.TestRefusal.test_start_beyond_the_scenario_is_refused`
+  - `test_gen_pass_plan.TestRefusal.test_start_exactly_at_the_scenario_end_is_refused`
+  - `test_gen_pass_plan.TestRefusal.test_the_command_line_refuses_and_writes_nothing`
+  - `test_gen_pass_plan.TestTheContactGuard.test_a_contact_past_the_end_of_the_week_is_refused`
+  - `test_gen_pass_plan.TestTheContactGuard.test_a_duration_that_is_not_the_contacts_length_is_refused`
+  - `test_gen_pass_plan.TestTheContactGuard.test_contact_zero_is_refused`
+  - `test_gen_pass_plan.TestTheContactGuard.test_the_command_line_refuses_a_mismatched_duration_and_writes_nothing`
+  - `test_gen_pass_plan.TestTheContactGuardAccepts.test_pass_3s_real_invocation_is_accepted`
+  - `test_gen_pass_plan.TestTheContactGuardAccepts.test_the_guard_never_reads_the_campaign_plan`
+  - `test_gen_pass_plan.TestTheContactGuardAccepts.test_the_lengths_are_numbered_as_the_campaign_plan_numbers_them`
+  - `test_gen_pass_plan.TestTheContactGuardAccepts.test_the_lengths_are_the_computed_weeks`
+  - `test_gen_pass_plan.TestTheDivergence.test_no_divergence_before_the_fault`
+  - `test_gen_pass_plan.TestTheDivergence.test_predicted_battery_current_at_los`
+  - `test_gen_pass_plan.TestTheDivergence.test_predicted_load_is_the_unfaulted_load_across_the_whole_contact`
+  - `test_gen_pass_plan.TestTheDivergence.test_predicted_state_of_charge_at_los`
+  - `test_gen_pass_plan.TestTheDivergence.test_the_fault_shows_as_divergence_at_los`
+  - `test_gen_pass_plan.TestTheDivergence.test_the_truth_side_is_what_the_measurements_say`
+  - `test_pass_report.TestABranchEarnedByTheRecordItRequiresIsAccepted.test_the_pass3_shape_raises_no_finding`
+  - `test_pass_report.TestABranchEarnedByTheRecordItRequiresIsAccepted.test_the_rule_is_declared_in_the_procedure`
+  - `test_pass_report.TestABranchEarnedByTheRecordItRequiresIsAccepted.test_with_the_rule_changed_in_the_source_the_state_of_charge_shape_passes`
+  - `test_pass_report.TestABranchMustBeEarnedByTheRecordItRequires.test_load_alarm_after_a_state_of_charge_alarm_is_refused`
+  - `test_pass_report.TestABranchMustBeEarnedByTheRecordItRequires.test_load_alarm_with_no_s01_entry_is_refused`
+  - `test_pass_report.TestABranchMustBeEarnedByTheRecordItRequires.test_load_alarm_with_s01_omitted_is_refused`
+  - `test_pass_report.TestABranchMustBeEarnedByTheRecordItRequires.test_the_validator_names_no_step_or_mnemonic_of_the_rule`
+  - `test_pass_report.TestABranchMustBeEarnedByTheRecordItRequires.test_with_the_rule_changed_in_the_source_the_pass3_shape_is_refused`
   - `test_pass_report.TestAPassThatInvokesAContingencyProcedure.test_green_a_contingency_procedure_run_from_its_branch`
   - `test_pass_report.TestAPassThatInvokesAContingencyProcedure.test_red_an_unknown_contingency_procedure`
   - `test_pass_report.TestAPassThatInvokesAContingencyProcedure.test_red_invoked_from_a_step_that_does_not_exist`
@@ -617,6 +686,17 @@ The case identifiers themselves, so a reader can re-run any single row.
   - `test_pass_report.TestAPassThatInvokesAContingencyProcedure.test_red_the_contingency_record_is_held_to_the_same_rules`
   - `test_pass_report.TestAPassThatInvokesAContingencyProcedure.test_red_the_invoking_step_took_a_different_branch`
   - `test_pass_report.TestAPassThatInvokesAContingencyProcedure.test_the_handoff_branches_exist`
+  - `test_pass_report.TestAnAnnunciationEntryMustBeDeclaredAndShown.test_a_green_staleness_level_is_refused`
+  - `test_pass_report.TestAnAnnunciationEntryMustBeDeclaredAndShown.test_a_missing_resumed_at_is_refused`
+  - `test_pass_report.TestAnAnnunciationEntryMustBeDeclaredAndShown.test_a_resumed_at_outside_the_governing_procedure_is_refused`
+  - `test_pass_report.TestAnAnnunciationEntryMustBeDeclaredAndShown.test_an_s01_that_was_not_completed_is_refused`
+  - `test_pass_report.TestAnAnnunciationEntryMustBeDeclaredAndShown.test_invoked_on_a_procedure_that_declares_no_entry_is_refused`
+  - `test_pass_report.TestAnAnnunciationEntryMustBeDeclaredAndShown.test_invoked_on_and_invoked_from_together_are_refused`
+  - `test_pass_report.TestAnAnnunciationEntryMustBeDeclaredAndShown.test_the_validator_names_no_step_field_or_level_of_the_entry`
+  - `test_pass_report.TestAnAnnunciationEntryMustBeDeclaredAndShown.test_with_the_entry_changed_in_the_source_the_pass4_shape_is_refused`
+  - `test_pass_report.TestAnAnnunciationEntryThatIsDeclaredAndShownIsAccepted.test_the_entry_is_declared_in_the_procedure`
+  - `test_pass_report.TestAnAnnunciationEntryThatIsDeclaredAndShownIsAccepted.test_the_pass4_shape_passes`
+  - `test_pass_report.TestAnAnnunciationEntryThatIsDeclaredAndShownIsAccepted.test_with_the_entry_changed_in_the_source_a_green_level_passes`
   - `test_pass_report.TestCompletedMeansSomethingWasObserved.test_a_completed_step_missing_one_declared_value`
   - `test_pass_report.TestCompletedMeansSomethingWasObserved.test_a_completed_step_that_records_none_of_its_declared_values`
   - `test_pass_report.TestCompletedMeansSomethingWasObserved.test_a_completed_step_with_a_blank_value`
