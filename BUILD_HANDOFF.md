@@ -218,7 +218,7 @@ demonstration. This is your checklist.
 | B11 | Replay package per schema — full contract incl. pass_id grammar and malicious-markup test; VÉ path only | HUG-UI-002/003/004/005/007 | Phase 4 |
 | B12 | Bit-for-bit scenario reproducibility; faults by scenario file only | HUG-SYS-003/005 | Phase 2 |
 | B13 | Stable step IDs + every-step completion record with state-conditional decision evidence | HUG-OPS-001/002; CONOPS §4.2 | Phase 5 |
-| B14 | Ground-system-native log record and playback — **the path that discharges HUG-SYS-006**; the replay package does not | HUG-SYS-006; HUG-GND-004; CONOPS §3.2; FM-GND-06 | Phase 3 |
+| B14 | Ground-system-native log record and playback — **the path that discharges HUG-SYS-006**; the replay package does not. *HUG-SYS-006 is struck in place by D-019; the August demonstration stays as evidence of the path* | HUG-SYS-006 (struck, D-019); HUG-GND-004; CONOPS §3.2; FM-GND-06 | Phase 3 |
 
 ## 6. Ratified debt — what retires, and how (owner rulings; do not blur these)
 

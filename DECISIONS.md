@@ -353,6 +353,7 @@ under D-004 and find a different ruling.
 | **D-016** | *(none — two selections from options put to the Director, and one ruling in the Director's own words)* | Contact designation, two-contact filing, and cross-contact inference | 2026-09-20 (recorded 2026-10-11) |
 | **D-017** | *(none — three selections from options put to the Director)* | PASS-3: the predicted profile first, a load alarm routed to S03, and the change red-lined | 2026-10-11 |
 | **D-018** | *(none — three selections from options put to the Director)* | PASS-4: the staleness annunciator located and red-lined, PROC-003 entered on the alarm, the scripted reset kept | 2026-10-11 |
+| **D-019** | *(none — "Rulings: First, … 2. … 3. …", then selections from options put to the Director, and on the draft a further ruling and a constraint in his own words)* | HUG-G002 scope: the v0.1 release criteria revised, HUG-SYS-006 struck in place, the gaps and register ruled, the target set | 2026-10-12 |
 
 Two of these self-labels — `D-010:` and `D-012:` — happen to equal their own register key
 rather than naming a prior entry. That is a coincidence of those two rulings arriving after
@@ -1482,3 +1483,118 @@ Put to him: `P4_hk_generation_halt` scripts its own CMD_SYS_RESET at MET 1320, 1
 halt, so the spacecraft recovers without the operator if his reset is late. He selected the
 option labeled "Leave it, beat the clock": the scenario is unchanged and the operator sends his
 reset before the scripted one. If the scripted reset fires first, the record says so.
+
+---
+
+## D-019 — HUG-G002 scope: the v0.1 release criteria revised, HUG-SYS-006 struck in place, the gaps and register ruled, the target set
+
+| Field | Value |
+|---|---|
+| Date | 2026-10-12 |
+| Ruled by | Dan Lee-Odinson (Director) |
+| Prompted by | Planning HUG-G002: the evidence index of 2026-10-12 against `BUILD_HANDOFF.md` §5 and §6, and the v0.1 definition of done (concept brief §10) |
+| Status | Ruled. Acted on by the changes that follow this entry |
+| Form | Three rulings in the Director's own words, then selections from options put to him; on the draft of this entry, a ninth selection, a further ruling and a constraint, in his own words |
+
+The private development archive's D-019 is a different ruling, the public-release ruling.
+
+### The rulings — the Director's own words
+
+> Rulings: First, I am striking the "replayable from the replay package" design requirement - the
+> simulation produced findings that showed significant changes were needed to resolve
+> procedure issues that had to be flown to be encountered, and so could not be replayed as
+> originally designed.  Some of these issues will need to be resolved and proven by flying
+> the G002 build-out. 2. The screen recording requirement is changed to the screenshots
+> included in the README. 3. VE has been repositioned in the system operations structure and
+> will be built out to be a functional UI, rather than a rendering.
+
+### Selections — put to him as options, recorded by the labels he chose
+
+**1. HUG-SYS-006 — "Strike it too".** Put to him: the first ruling strikes the
+replay-package line; does it also strike HUG-SYS-006, which requires every campaign session
+to play back in the ground system from the ground system's own logs? He selected the option
+labeled "Strike it too": ground-system playback of campaign sessions leaves v0.1, and B14's
+August demonstration stays in the record as evidence that the path works.
+
+**2. How HUG-SYS-006 is struck — "Struck in place (Recommended)".** Put to him: nothing in
+`defs/requirements.yaml` can mark a requirement struck, and 21 test cases and B14's evidence
+cite it. He selected the option labeled "Struck in place (Recommended)", offered as the
+recommended option: the ID and its text are kept, marked struck by this ruling, and the
+traceability matrix shows it as struck.
+
+**3. The mode ladder — "Model-level for v0.1".** Put to him: the autonomous mode ladder never
+fired in any campaign pass (B9, OF-022). He selected the option labeled "Model-level for
+v0.1": the model-level tests count for this gate, and the flown exercise stays a proposed
+v0.2 goal.
+
+**4. Gaps closed before the freeze.** Put to him: which gaps are closed before HUG-G002 is
+frozen. He selected all four options offered:
+
+- "B7 and B10 result checks": the hazardous two-step and the configuration no-go results are
+  recomputed from their saved evidence, and the generated commands are tested for the
+  hazardous flag.
+- "Campaign record tests": executed cases tie the flown passes and anomaly reports to
+  HUG-OPS-003 and HUG-OPS-004.
+- "Failing-side tests": red cases for check G2 (generation is deterministic) and for
+  FM-EPS-06 (charge taper at full battery).
+- "D-012's FMEA row": the row for silent monitor read-path failure, queued by D-012 for this
+  gate, is written into the FMEA.
+
+**5. AR-003's unregistered findings — "Register all five".** Put to him: AR-003 §5 lists five
+findings not in the register. He selected the option labeled "Register all five": they are
+registered as OF-029 to OF-033, open, for this gate.
+
+**6. The register.** Put to him: findings that still read open although the record shows each
+fixed or addressed. He selected "OF-002", "OF-004", "OF-005" and "OF-008 and OF-009": all
+five are closed as fixed. For OF-013's two open rows he selected "Update now, close with
+tests": their reason is restated now, and they close when the campaign record tests land.
+For OF-024 he selected "Leave the plan as flown": the campaign plan stays as PASS-3 flew it,
+and OF-024 stands as the record of the error.
+
+**7. What the build-out flies.** Put to him: which issues the HUG-G002 build-out fixes and
+then flies, per the first ruling. He selected "AR-003 console issues", "Stuck-load S06
+(OF-023)" and "PASS-4 reset evidence". The fourth option, re-flying the D-017 and D-018
+red-lines, was not selected; D-017 ruling 3 still sends those red-lines to Sol in this gate.
+
+**8. The target — "December".** Put to him: the month HUG-G002 closes. He selected
+"December": December 2026.
+
+**9. VÉ for v0.1 — "Keep VÉ as built for v0.1, and make the functional UI v0.2 scope".**
+Selected on the draft of this entry. He stated the selection and its effect in his own words:
+
+> VÉ for v0.1, by my selection "Keep VÉ as built for v0.1, and make the functional UI v0.2
+> scope": §3 inclusion 11 and HUG-UI-001 to 007 stand for v0.1 as built and verified (B11).
+> Definition-of-done item 7 is struck because rendering the four campaign passes is no longer
+> a v0.1 condition. The functional UI of ruling 3 is v0.2 scope and comes with its own
+> ratified requirements. Those requirements replace HUG-UI-001 and the §3 exclusion of
+> commanding from the viewer, which stand until then.
+
+### A further ruling — the Director's own words
+
+> Also add the decision to specify VÉ is the operator's command console.
+
+### A constraint on the build-out — the Director's own words
+
+> The G002 build-out's changes to `defs/tlm_cmd.yaml` stay description-only, like the OF-031
+> fix. A change to any command name, ID, hazardous flag or limit needs a note on its effect on
+> the AES authority layer, whose specification is built on dictionary v0.2.
+
+### Below the seam
+
+Above this heading: the Director's words, and the selections he made from options put to him.
+Below it: notes made in drafting this entry. They are not his ruling.
+
+**On the further ruling.** It is v0.2 scope. Under Project AESIR, the operator console's
+commands are HUMAN-origin requests through BALDUR (AESIR Constitutional Layer v0.5).
+
+### Consequences in the repository
+
+| Change | Where |
+|---|---|
+| HUG-SYS-006 marked struck in place, citing D-019; the generated requirements view and the traceability matrix show it struck | `defs/requirements.yaml`, the requirements generator, `tools/gen_traceability.py`, `docs/requirements.md` |
+| Inclusion 9 struck; definition-of-done items 1 and 5 lose their replay clauses, item 2 notes inclusion 9's strike, item 6 becomes the screenshots included in the README, item 7 struck by selection 9; HUG-G002's target set to December 2026; the status line names CONOPS v0.10. Struck text kept and marked | `docs/concept_brief.md` §3, §10, §9 and the status line, as v0.26 |
+| The replay clauses of O4, NEED-04 and §3.2 struck, kept and marked | `docs/conops.md`, as v0.10 |
+| B14's row: HUG-SYS-006 marked struck; the August demonstration kept as evidence of the path | `BUILD_HANDOFF.md` §5 |
+| OF-002, OF-004, OF-005, OF-008 and OF-009 closed as fixed; OF-013's reason restated; OF-024 ruled and left as flown; OF-029 to OF-033 registered from AR-003 §5 | `verification/OPEN_FINDINGS.md` |
+| AR-003 §5's five "Not yet in the register" notes point to their new entries | `docs/anomalies/AR-003-hk-generation-halt.md` |
+| Register row for D-019 | the numbering map in this file |

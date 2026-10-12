@@ -1,12 +1,12 @@
 # HUGINN: CubeSat Mission Operations Simulator
-## Concept of Operations (CONOPS), v0.9
+## Concept of Operations (CONOPS), v0.10
 
 | Field | Value |
 |---|---|
 | Effort prefix | `HUG-` |
 | Owner / design authority | Dan Lee-Odinson |
 | Date | 2026-07-25 |
-| Status | v0.9, build-phase revision per owner ruling D-004 (2026-07-29): §3.3's representative orbit and contact values are replaced with values computed from the pinned surrogate reference element set and the pinned GS-RAVENSROOST site coordinates. This replacement was pre-authorized by HUG-SYS-002 and stated in v0.8's own §3.3 — "computed values from the pinned orbit replace them at build" — so it discharges a build obligation rather than reopening a dispositioned value; §5's preamble is swept to match. No objective, limit, procedure or ops-organization content changes. Prior revision v0.8, HUG-G001-16 fix revision per Director disposition 2026-07-29 (accept, G001-16 F-04): the v0.7 revision references corrected — the two-path recording statement added at v0.7 lives in the §3.2 ground-segment description, not §5 (the representative pass timeline); the substantive two-path text is unchanged. The v0.7 change stands as ratified: §3.2 separates the two recording paths — ground-system native logs for ground-system replay (HUG-SYS-006), and the replay package for the ODIN (now VÉ) viewer (HUG-UI-002/003). All prior ratifications (framing, O1/O3 targets, ops organization, §4.4 limit-response coverage, per-step completion record, state-conditional pass-report form) unchanged. |
+| Status | v0.10, revision per owner ruling D-019 (2026-10-12): the replay clauses of O4, NEED-04 and §3.2 are struck, kept and marked. Prior revision v0.9, build-phase revision per owner ruling D-004 (2026-07-29): §3.3's representative orbit and contact values are replaced with values computed from the pinned surrogate reference element set and the pinned GS-RAVENSROOST site coordinates. This replacement was pre-authorized by HUG-SYS-002 and stated in v0.8's own §3.3 — "computed values from the pinned orbit replace them at build" — so it discharges a build obligation rather than reopening a dispositioned value; §5's preamble is swept to match. No objective, limit, procedure or ops-organization content changes. Prior revision v0.8, HUG-G001-16 fix revision per Director disposition 2026-07-29 (accept, G001-16 F-04): the v0.7 revision references corrected — the two-path recording statement added at v0.7 lives in the §3.2 ground-segment description, not §5 (the representative pass timeline); the substantive two-path text is unchanged. The v0.7 change stands as ratified: §3.2 separates the two recording paths — ground-system native logs for ground-system replay (HUG-SYS-006), and the replay package for the ODIN (now VÉ) viewer (HUG-UI-002/003). All prior ratifications (framing, O1/O3 targets, ops organization, §4.4 limit-response coverage, per-step completion record, state-conditional pass-report form) unchanged. |
 | Drafting assistance | Claude (claude-fable-5). Drafting assistance only; the owner holds design authority and makes all dispositions. |
 
 ---
@@ -24,7 +24,7 @@ Objectives O1–O3 are stated for the full mission; v0.1 does not exercise them 
 1. **O1 — SAA coverage (full mission):** map particle flux over the South Atlantic Anomaly on at least 20 SAA transits per week with the payload active.
 2. **O2 — High-latitude coverage (full mission):** sample both auroral regions (poleward of 60° geographic latitude) on every orbit in which the payload is active.
 3. **O3 — Data product (full mission):** deliver a weekly radiation-environment map with documented coverage and gap accounting, recovering at least 90% of collected, time-tagged science frames to the ground.
-4. **O4 — Safe operations (exercised in v0.1):** conduct pass operations by written procedure such that every limit violation is detected and annunciated, and responded to per the limit-response coverage of §4.4 — demonstrated over a campaign of at least one nominal and three anomaly passes, each replayable from its recorded package.
+4. **O4 — Safe operations (exercised in v0.1):** conduct pass operations by written procedure such that every limit violation is detected and annunciated, and responded to per the limit-response coverage of §4.4 — demonstrated over a campaign of at least one nominal and three anomaly passes~~, each replayable from its recorded package~~ (replay clause struck by D-019).
 
 ### 1.3 Exercise frame
 
@@ -37,7 +37,7 @@ HUGINN is a fictional spacecraft operated through a simulated mission campaign f
 | NEED-01 | LEO operator (data customer) | Radiation-environment data with known, documented coverage of the SAA and high-latitude regions — which requires faithful orbit propagation, eclipse state, and ground-visibility geometry from the reference orbit. |
 | NEED-02 | Mission operations team | Displays, limits, commands, and written procedures sufficient for one operator on console to conduct a pass safely, in real or accelerated time, with the modeled spacecraft behaving consistently at 1 s resolution or finer. |
 | NEED-03 | Spacecraft (asset preservation) | Protection from deep discharge and unsafe configurations: autonomous power-mode protection when the ground cannot act, and onboard validation that rejects unknown, out-of-range, or inhibited commands. |
-| NEED-04 | Systems engineering / review authority | A reproducible, reviewable record from need through verification: deterministic scenarios, faults injected by scenario file, every pass recorded and replayable without live systems, reports and verification results generated from evidence. |
+| NEED-04 | Systems engineering / review authority | A reproducible, reviewable record from need through verification: deterministic scenarios, faults injected by scenario file, ~~every pass recorded and replayable without live systems,~~ reports and verification results generated from evidence (replay clause struck by D-019). |
 
 ## 3. System overview
 
@@ -47,7 +47,7 @@ HUGINN is a 6U CubeSat whose electrical power subsystem is modeled end-to-end: t
 
 ### 3.2 Ground segment
 
-One ground terminal, GS-RAVENSROOST, at a fixed site in central Florida. OpenC3 COSMOS is the command-and-control system: telemetry displays and limit monitoring generated from the dictionary of record, command sending with two-step confirmation on hazardous commands, and timestamped logging of all telemetry and commands. Every pass is recorded on two separate paths (G001-15 F-01): the ground system's native timestamped telemetry and command logs support replaying any pass in the ground system without the simulator running (HUG-SYS-006), and a replay package — renderable without the simulator or ground system running — feeds the VÉ display-only mission viewer as the presentation layer over the operational record (HUG-UI-002/003).
+One ground terminal, GS-RAVENSROOST, at a fixed site in central Florida. OpenC3 COSMOS is the command-and-control system: telemetry displays and limit monitoring generated from the dictionary of record, command sending with two-step confirmation on hazardous commands, and timestamped logging of all telemetry and commands. Every pass is recorded on two separate paths (G001-15 F-01): the ground system's native timestamped telemetry and command logs ~~support replaying any pass in the ground system without the simulator running (HUG-SYS-006)~~ (replay clause struck by D-019), and a replay package — renderable without the simulator or ground system running — feeds the VÉ display-only mission viewer as the presentation layer over the operational record (HUG-UI-002/003).
 
 ### 3.3 Orbit and contact geometry
 
@@ -148,6 +148,7 @@ Needs carry NEED-nn IDs (§2) and constraints CON-nn / ASM-nn IDs (§7); require
 
 ## 9. Changelog
 
+- **v0.10 (2026-10-12):** Revision per Director ruling D-019: the replay clauses of O4, NEED-04 and §3.2 are struck, kept and marked.
 - **v0.9 (2026-07-29):** Build-phase revision per owner ruling D-004. §3.3's representative orbit and contact values replaced with values computed from the pinned surrogate reference element set (CELTEE 1, NORAD 41850) and the pinned GS-RAVENSROOST site coordinates, per HUG-SYS-002 and v0.8 §3.3's own statement that computed values would replace them at build. §5's preamble swept to match, its times unchanged. The material change is the usable contact count, 4–6 per day representative → two to three per day computed; the two daily pass clusters are confirmed by computation. No change to objectives, limits, procedures, the fault set, or ops organization.
 - **v0.8 (2026-07-29):** HUG-G001-16 fix revision per Director disposition (accept, G001-16 F-04): the v0.7 revision references corrected from §5 to §3.2 in the status row and the changelog entry below — the two-path recording statement lives in the §3.2 ground-segment description; §5 is the representative pass timeline. Substantive text unchanged; no change to objectives, orbit values, or ops organization.
 - **v0.7 (2026-07-29):** HUG-G001-15 fix revision per Director disposition (accept/product, G001-15 F-01): §3.2 ground-segment description separates the two recording paths — native ground-system logs for HUG-SYS-006 replay, the replay package for ODIN (HUG-UI-002/003). No change to objectives, orbit values, or ops organization. *(This entry originally cited §5; corrected to §3.2 at v0.8 per G001-16 F-04.)*

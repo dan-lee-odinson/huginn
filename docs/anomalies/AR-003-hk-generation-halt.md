@@ -98,31 +98,31 @@ The spacecraft was handed over at **SoC 75.875 %, EPS_MODE NOMINAL, charging**, 
 1. **The in-pass instructions cost the race against the scripted reset.** They were a
    736-word step list, two pages long, kept open beside the console. The operator's
    account is in section 3. The instructions are an operator aid outside the repository.
-   Not yet in the register.
+   Registered as OF-029 (D-019).
 
 2. **Command Sender reopened on a hazardous packet.** It held `CMD_MODE_SET` from an
    earlier session, the packet sent by mistake on `2026-08-03-P1` (ANOM-001). The operator
-   caught it this time, with the clock running. Not yet in the register.
+   caught it this time, with the clock running. Registered as OF-030 (D-019).
 
 3. **Command Sender shows two hazardous commands' descriptions as raw bytes.** The
    descriptions of `CMD_SYS_RESET` and `CMD_MODE_SET` displayed as
    `{"json_class":"String","raw":[...]}` arrays of numbers. The generated `cmd.txt`
    descriptions of both, and of `CMD_SAFE_ENTER`, contain non-ASCII characters, an em dash
-   and a right arrow. The HK packet's description is plain ASCII and displays as text. Not
-   yet in the register.
+   and a right arrow. The HK packet's description is plain ASCII and displays as text.
+   Registered as OF-031 (D-019).
 
 4. **OF-028 confirmed on flown data.** The post-reset epoch matched the counters before the
    halt, and this pass had two resets, both invisible to the epoch check.
 
 5. **Two record keys name times the step no longer runs at.** D-018 ruling 2 returns the
    operator to PROC-001-S06 after PROC-003, so S06's `*_at_aos2` values were taken 357 s
-   after AOS. S15 was taken 13 s before LOS against its LOS minus 2 minutes. Not yet
-   in the register.
+   after AOS. S15 was taken 13 s before LOS against its LOS minus 2 minutes. Registered
+   as OF-032 (D-019).
 
 6. **PROC-003-S10 says the anomaly report is part of the pass report, not a separate
    document.** The campaign files its anomaly reports separately, as AR-001 and AR-002. This
-   pass does both: a summary under `anomalies:` in the report, and this document. Not yet
-   in the register.
+   pass does both: a summary under `anomalies:` in the report, and this document. Registered
+   as OF-033 (D-019).
 
 ## 6. Evidence
 

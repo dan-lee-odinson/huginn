@@ -1,13 +1,13 @@
 # HUGINN: CubeSat Mission Operations Simulator
 
-**Concept Brief, v0.25 (dispositioned)**
+**Concept Brief, v0.26 (dispositioned)**
 
 | Field | Value |
 |---|---|
 | Effort prefix | `HUG-` (per workspace charter gate-ID rule) |
 | Owner / design authority | Dan Lee-Odinson |
 | Date | 2026-07-24 |
-| Status | Dispositioned. All eight open decisions ratified by owner 2026-07-24; FMEA dispositioned 2026-07-25 with REC-01 resolved as a fifth command (CMD_MODE_SET) and REC-02 as a broadened PROC-003. Ground station GS-RAVENSROOST. The HUG-G001 gate series is CLOSED by the owner's §5.4 determination of 2026-07-29: seventeen adversarial review rounds complete (HUG-G001 through HUG-G001-17), all 97 findings dispositioned by the owner — implemented, or carried as ratified verification-apparatus debt under the owner's HUG-G001-13 and HUG-G001-14 rulings; the seventeenth review returned the product record clean, and the single apparatus finding is fixed in this revision. Current companion baseline — CONOPS v0.9, Requirements v0.12, TLM/CMD Dictionary v0.5, FMEA v0.15, Replay Schema v0.9. |
+| Status | Dispositioned. All eight open decisions ratified by owner 2026-07-24; FMEA dispositioned 2026-07-25 with REC-01 resolved as a fifth command (CMD_MODE_SET) and REC-02 as a broadened PROC-003. Ground station GS-RAVENSROOST. The HUG-G001 gate series is CLOSED by the owner's §5.4 determination of 2026-07-29: seventeen adversarial review rounds complete (HUG-G001 through HUG-G001-17), all 97 findings dispositioned by the owner — implemented, or carried as ratified verification-apparatus debt under the owner's HUG-G001-13 and HUG-G001-14 rulings; the seventeenth review returned the product record clean, and the single apparatus finding is fixed in this revision. Current companion baseline — CONOPS v0.10, Requirements v0.12, TLM/CMD Dictionary v0.5, FMEA v0.15, Replay Schema v0.9. |
 | Drafting assistance | Claude (claude-fable-5). Drafting assistance only; the owner holds design authority and makes all dispositions. |
 
 ---
@@ -52,7 +52,7 @@ The orbit and instrument must follow from a mission rationale, never from a defa
 6. **Procedures (three):** PROC-001 nominal activation pass; PROC-002 low-battery response; PROC-003 loss-of-telemetry-or-command response (broadened from stale-telemetry-only by FMEA REC-02 disposition, 2026-07-25).
 7. **Fault injections (three):** solar-array string failure; stuck-on load (unexpected power draw); stale telemetry (frame counter stops advancing). Faults are defined in scenario files, never code edits.
 8. **Campaign:** at least one nominal pass and three anomaly passes, executed human-in-the-loop, each producing a pass report. Documented interactive passes are the evidence; there is no unattended multi-day campaign in v0.1.
-9. **Recorded replay:** every pass is recorded and replayable in the ground system without the simulator running, so a reviewer never needs a live setup.
+9. ~~**Recorded replay:** every pass is recorded and replayable in the ground system without the simulator running, so a reviewer never needs a live setup.~~ Struck by D-019.
 10. **SE record:** thin CONOPS + stakeholder needs, numbered requirements, telemetry/command dictionary, FMEA, tool-generated traceability matrix, verification report, anomaly reports, post-campaign report. The replay package format is documented as an interface definition (see §5.1).
 11. **Mission viewer (VÉ):** a polished, game-quality, display-only web viewer that renders recorded replay packages. Requirements HUG-UI-001 through HUG-UI-007. Boundaries in §5.1 are part of this inclusion: display-only, replay-driven, static hosting, limits derived from the dictionary source, text-only rendering of package content.
 
@@ -154,18 +154,18 @@ Packets are assembled per `PACKAGING_RULE.md`, with the machine verification run
 
 - v0.1 build window target: August-September 2026, spanning the PHY 1001 module (2026-08-03 to 2026-08-30; the EPS energy-balance model is directly reusable physics practice) and the Fall A module.
 - HUG-G001 (design record) target: mid-to-late August 2026, before the bulk of ground-system integration.
-- HUG-G002 (verification and campaign) target: end of September 2026.
+- HUG-G002 (verification and campaign) target: ~~end of September 2026~~ December 2026 (D-019).
 - Cadence rule: one phase per 4-week module, matching the standing portfolio commitment. Dates are targets, not commitments; the release rule is "frozen and gated," never "it's the end of the month."
 
 ## 10. Definition of done (v0.1 release criteria)
 
-1. Four passes executed and documented per §6, each replayable from the recorded package.
-2. All eleven inclusion items in §3 present; zero exclusion items present.
+1. Four passes executed and documented per §6~~, each replayable from the recorded package~~ (replay clause struck by D-019).
+2. All eleven inclusion items in §3 present, except inclusion 9, struck by D-019; zero exclusion items present.
 3. Traceability matrix and verification report generated by tool; every checker negative-tested.
 4. HUG-G001 and HUG-G002 dispositioned; accepted findings implemented.
-5. README presents the project in one screen: what it is, what it is not (terminology rules honored), how to replay a pass, where the SE record and review record live.
-6. A short screen recording of one nominal and one anomaly pass.
-7. VÉ renders all four campaign passes from their replay packages, in the ratified aesthetic, from static hosting or local files, honoring every §5.1 boundary including text-only rendering (HUG-UI-001..007). This is the minimum viewer of the §5.1 priority rule: a release condition, not deferrable polish.
+5. README presents the project in one screen: what it is, what it is not (terminology rules honored), ~~how to replay a pass,~~ where the SE record and review record live (replay clause struck by D-019).
+6. ~~A short screen recording of one nominal and one anomaly pass.~~ The screenshots included in the README (D-019 ruling 2).
+7. ~~VÉ renders all four campaign passes from their replay packages, in the ratified aesthetic, from static hosting or local files, honoring every §5.1 boundary including text-only rendering (HUG-UI-001..007). This is the minimum viewer of the §5.1 priority rule: a release condition, not deferrable polish.~~ Struck by D-019 selection 9.
 
 ## 11. Risks and mitigations
 
@@ -235,6 +235,7 @@ huginn/
 - **v0.16 (2026-07-28):** HUG-G001-12 fix-revision status sync: twelve completed rounds, 79 dispositioned findings, companion versions unchanged (all five round-12 findings were apparatus — the six-document record itself drew none). No scope change; §3 inclusions and exclusions unchanged.
 - **v0.17 (2026-07-29):** HUG-G001-13 fix-revision status sync: thirteen completed rounds, 86 dispositioned findings; Replay Schema v0.7 (F-06: pass_id grammar and filename binding); the owner's ruling narrows the consistency checks' claims to the record's defined table grammar and carries the six remaining apparatus findings as ratified debt with two retirement paths: items 1–4 and 6 of the D0-17 register retire at build when defs/ generation supersedes Markdown parsing (HUG-G002); item 5 — suite-traceable residual execution — retires only through its amended claim-to-executed-case-and-result criterion with required polarity at HUG-G002 (D0-17 as amended per G001-14 F-04). No scope change; §3 inclusions and exclusions unchanged. *(This entry originally assigned all six items to defs/-generation retirement — accurate under the original D0-17, superseded by the amendment one round later; corrected to the two-path statement at v0.21 per G001-17 F-01.)*
 - **v0.18 (2026-07-29):** HUG-G001-14 fix-revision status sync: fourteen completed rounds, 90 dispositioned findings; Replay Schema v0.8 (F-01: canonical lowercase pass_id form, reserved-basename exclusion, recorder reuse refusal); the checks complete the claim narrowing at the five remaining sites (F-02/F-03), and D0-17's item-5 retirement criterion is amended per the owner's F-04 disposition. No scope change; §3 inclusions and exclusions unchanged.
+- **v0.26 (2026-10-12):** Release criteria and schedule revised per Director ruling D-019: §3 inclusion 9 struck; §10 items 1 and 5 lose their replay clauses, item 2 notes inclusion 9's strike, item 6 becomes the screenshots included in the README, and item 7 is struck (selection 9); §9's HUG-G002 target moves to December 2026; the status line names CONOPS v0.10. Struck text is kept and marked.
 - **v0.25 (2026-10-11):** The §1 one-sentence version for a recruiter is recast in the Director's directed wording, per Director direction, to match the README of the public release. Its first-person claims of having built the simulator and written the systems-engineering record are replaced with what the Director did: directed the build, set its scope, ratified its design values, dispositioned every review finding and operated the passes. The sentence also names this release as a training simulator and the starting point for HUGINN's flight version under Project AESIR. No scope change; §3 inclusions and exclusions unchanged.
 - **v0.24 (2026-09-13):** Mission viewer renamed ODIN → **VÉ** (ASCII identifier `VE`) per Director direction. ODIN now names the operational intelligence of Project AESIR — the component that runs the mission and holds a rung on the authority ladder — and could not also name a display-only viewer in a programme whose architecture turns on command authority. VÉ is Odin's brother, whose gift to the first humans is sight. Naming convention follows the RAGNAROK precedent: **VÉ** as the display form in prose, headings and UI text; `VE` as the ASCII identifier in filenames, paths, code identifiers and repo names — so the package is `ve/` and the browser globals are `VE_PACKAGE` / `VE_LIMITS`. HUG-UI-001 through HUG-UI-007 are unchanged in substance and apply to the viewer under its new name; in particular HUG-UI-001's display-only property — no code path from the viewer to the simulator, the ground system or any command interface, verified by inspection and never a configuration flag — is unaffected. The rename is recorded forward, not backward: changelog entries, revision history, dated notes and every artifact under `verification/evidence/` keep ODIN as written, annotated “(now VÉ)” only where a reader would otherwise be lost. No scope change; §3 inclusions and exclusions unchanged.
 - **v0.23 (2026-07-29):** Companion-baseline sync per owner ruling D-006. The status row's current companion baseline advances FMEA v0.14 → v0.15, following the FMEA build-phase revision ruled at D-006 in which ground rule GR-02's limit basis was restated as a ratification anchor with its currency condition. This revision changes the companion version citation and nothing else: no scope change, §3 inclusions and exclusions unchanged, review-record status unchanged. The sync is not a separate decision — check G15 enforces companion-baseline currency, so advancing the FMEA without it would leave the record inconsistent by construction.

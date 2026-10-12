@@ -80,7 +80,7 @@ the divergence as live in the instance at the time it ran.
 
 ## OF-002 — the staleness monitor cannot tell "watching, nothing advanced" from "never able to look"
 
-**Status:** open, defect. Blocks B6.
+**Status:** CLOSED as fixed under **D-019** (2026-10-12). The monitor tells "never read" apart from "not advancing" (evidence chain EX-2), and B6 passed on attempt-003.
 
 `gnd/openc3/plugins/openc3-cosmos-huginn/microservices/STALENESS/frame_staleness.py`:
 
@@ -135,7 +135,7 @@ this is about nothing *acting* on it.
 
 ## OF-004 — scenario-scripted commands contaminate command-path assertions
 
-**Status:** open, affects B7 demonstration design.
+**Status:** CLOSED as fixed under **D-019** (2026-10-12). B7's demonstration checks the refusal's error type and asserts the NOMINAL → SAFE transition.
 
 Every scenario in `sim/scenarios/` scripts its own commands, applied through
 `cdh.receive()` inside `step()`. `CDH_CMD_ACC_CNT` therefore advances on its own schedule,
@@ -153,7 +153,7 @@ interface. But the counter delta alone would not have carried it.)*
 
 ## OF-005 — "playback" may never touch the logs
 
-**Status:** open, affects B14 demonstration design.
+**Status:** CLOSED as fixed under **D-019** (2026-10-12). B14's verdict requires proof that playback read the native log (evidence chain EX-4).
 
 COSMOS 7 chooses its historical-streaming source at runtime: decommutated items come from
 QuestDB, and raw packets switch to a Valkey stream when the requested start time is recent
@@ -244,8 +244,8 @@ evidence inherits both problems.
 
 ## OF-008 — both of B14's negative controls were satisfied by a SyntaxError
 
-**Status:** open, defect in the demonstration apparatus. Found and fixed while running
-B14 under D-012; recorded because it shipped, not because it is still live.
+**Status:** CLOSED as fixed under **D-019** (2026-10-12). Found and fixed while running
+B14 under D-012; the fix is covered by evidence chain EX-4.
 
 **Claim.** B14's two negative controls built their `python -c` body by concatenating
 semicolon-joined statements with a compound one:
@@ -297,9 +297,8 @@ demonstrations' controls. B7's and B10's controls were not audited for this shap
 
 ## OF-009 — every evidence digest had stopped verifying, and nothing recomputed them
 
-**Status:** open, defect in the evidence apparatus. Found and fixed while migrating
-attempts to the append-only layout; recorded because it shipped, not because it is still
-live.
+**Status:** CLOSED as fixed under **D-019** (2026-10-12). Found and fixed while migrating
+attempts to the append-only layout; the fix is covered by evidence chain EX-5.
 
 **Claim.** Each evidence manifest carries a sha256 per artifact so that what the gate reads
 can be shown to be what the demonstration produced (D-008). On a fresh clone of the
@@ -457,15 +456,15 @@ evidence harness was capturing, so the defect itself is described but not archiv
 
 ## OF-013 — requirements the matrix reports as not established
 
-**Status: PARTLY CLOSED under D-013 items 2 and 3.** Six of the eight rows closed; two
-remain and are Phase 7 by their own content. These are the standing findings
+**Status: PARTLY CLOSED under D-013 items 2 and 3.** Six of the eight rows closed; the two
+that remain close when the campaign record tests land (D-019). These are the standing findings
 `verification/TRACEABILITY.md` carries, listed here so the register and the generated
 matrix cannot drift apart about what is outstanding.
 
 | Condition | Requirement | Status | Why |
 |---|---|---|---|
-| F2 | `HUG-OPS-003` | **OPEN** | The v0.1 campaign has not run. Phase 7. Nothing can close this but executed passes. |
-| F2 | `HUG-OPS-004` | **OPEN** | Anomaly reports come from the campaign. Phase 7. |
+| F2 | `HUG-OPS-003` | **OPEN** | The campaign was flown, 2026-08-29 to 2026-10-11; no executed case yet ties the pass records to this requirement. Closes when the campaign record tests land (D-019). |
+| F2 | `HUG-OPS-004` | **OPEN** | AR-001 to AR-003 are filed; no executed case yet checks them against this requirement. Closes when the campaign record tests land (D-019). |
 | F2 | `HUG-GND-004` | CLOSED | B14 demonstrates timestamped logging and export; its frozen manifest declared only `HUG-SYS-006`. Corrected by `ERR-001` and attributed by an executed case (`tests/test_b14_verdict.py::TestTheArchivedEvidencePasses`), with the archive untouched. |
 | F6 | `HUG-SYS-001` | CLOSED | `tests/test_model_red_cases.py::TestTheTwoStringsCatchTheirViolation` |
 | F6 | `HUG-EPS-001` | CLOSED | `TestEnergyBalanceCatchesItsViolation` |
@@ -965,7 +964,7 @@ in the campaign can show.
 
 ## OF-024 — the campaign plan's PASS-3 section cites the wrong FMEA row and the wrong expected trend
 
-**Status:** open, defect in the generated campaign plan. Raised from flying PASS-3 on 2026-10-11.
+**Status:** RULED at **D-019** (2026-10-12): the campaign plan is left as PASS-3 flew it, and this entry stands as the record of the error. Raised from flying PASS-3 on 2026-10-11.
 
 **Claim.** `campaign/CAMPAIGN_PLAN.md`, PASS-3, gives its FMEA row as `FM-EPS-02`, generated from
 `defs/campaign.yaml` (`fmea_rows: [FM-EPS-02]`). FM-EPS-02 is total array output loss. The fault
@@ -1085,6 +1084,64 @@ MET 1260   ACC 1   REJ 0   CDH_FRAME_CNT 1201   first frame after the reset
 The epoch check passes whether or not a reset happened. The reset's real evidence in this pass is
 frames resuming (PROC-003-S05) and the ground command log. The scenario's own scripted reset at
 MET 1320 then resets the counters again, to the same values.
+
+---
+
+## OF-029 — the in-pass step list was too long to use at the pace of the pass
+
+**Status:** open. Raised from PASS-4 on 2026-10-11 (AR-003 §5, finding 1); registered under
+D-019 on 2026-10-12.
+
+**Claim.** The in-pass instructions for PASS-4 were a 736-word step list, two pages long,
+kept open beside the console. The scenario's scripted reset restored telemetry 21.1 s before
+the operator's reset left the ground (AR-003 §3). The instructions are an operator aid
+outside the repository.
+
+---
+
+## OF-030 — Command Sender reopens on the last packet selected, including a hazardous one
+
+**Status:** open. Raised from PASS-4 on 2026-10-11 (AR-003 §5, finding 2); registered under
+D-019 on 2026-10-12. Fixed and flown in the HUG-G002 build-out (D-019 selection 7).
+
+**Claim.** On PASS-4 Command Sender opened on `CMD_MODE_SET`, held from an earlier session:
+the packet sent by mistake on `2026-08-03-P1` (ANOM-001). The operator caught it with the
+clock running and changed it to `CMD_SYS_RESET` by 20:06:05Z. No procedure step checks which
+packet Command Sender holds before a hazardous command is sent.
+
+---
+
+## OF-031 — two hazardous commands' descriptions display as raw bytes in Command Sender
+
+**Status:** open. Raised from PASS-4 on 2026-10-11 (AR-003 §5, finding 3); registered under
+D-019 on 2026-10-12. Fixed and flown in the HUG-G002 build-out (D-019 selection 7).
+
+**Claim.** Command Sender displayed the descriptions of `CMD_SYS_RESET` and `CMD_MODE_SET`
+as `{"json_class":"String","raw":[...]}` arrays of numbers. The generated `cmd.txt`
+descriptions of both, and of `CMD_SAFE_ENTER`, contain non-ASCII characters, an em dash and
+a right arrow. The HK packet's description is plain ASCII and displays as text.
+
+---
+
+## OF-032 — two record keys name times their step no longer runs at
+
+**Status:** open. Raised from PASS-4 on 2026-10-11 (AR-003 §5, finding 5); registered under
+D-019 on 2026-10-12.
+
+**Claim.** D-018 ruling 2 returns the operator to PROC-001-S06 after PROC-003, so on PASS-4
+S06's `*_at_aos2` values were taken 357 s after AOS. S15 was taken 13 s before LOS, against
+its "LOS minus 2 minutes".
+
+---
+
+## OF-033 — PROC-003-S10 places the anomaly report inside the pass report
+
+**Status:** open. Raised from PASS-4 on 2026-10-11 (AR-003 §5, finding 6); registered under
+D-019 on 2026-10-12.
+
+**Claim.** PROC-003-S10 says the anomaly report is part of the pass report, not a separate
+document. The campaign files its anomaly reports separately, as AR-001 to AR-003. PASS-4 did
+both: a summary under `anomalies:` in its report, and AR-003.
 
 ---
 

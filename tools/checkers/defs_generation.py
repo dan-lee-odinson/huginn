@@ -1475,15 +1475,15 @@ MUTATIONS = {
     # document and not another. One case per site, so no single site can be the only one
     # the check actually reads.
     "G14": [
-        ("docs/conops.md", _sub("## Concept of Operations (CONOPS), v0.9",
-                                "## Concept of Operations (CONOPS), v0.8"), "red"),
-        ("docs/conops.md", _sub("| Status | v0.9,", "| Status | v0.8,"), "red"),
-        ("docs/conops.md", _sub("- **v0.9 (2026-07-29):** Build-phase revision",
-                                "- **v1.9 (2026-07-29):** Build-phase revision"), "red"),
+        ("docs/conops.md", _sub("## Concept of Operations (CONOPS), v0.10",
+                                "## Concept of Operations (CONOPS), v0.9"), "red"),
+        ("docs/conops.md", _sub("| Status | v0.10,", "| Status | v0.9,"), "red"),
+        ("docs/conops.md", _sub("- **v0.10 (2026-10-12):** Revision per Director ruling",
+                                "- **v1.10 (2026-10-12):** Revision per Director ruling"), "red"),
         ("defs/replay_schema.md", _sub("| Status | v0.9,", "| Status | v0.8,"), "red"),
         # A version advanced everywhere except the changelog - the mirror of the miss.
-        ("docs/conops.md", _sub("- **v0.9 (2026-07-29):** Build-phase revision",
-                                "- **v0.7b (2026-07-29):** Build-phase revision"), "red"),
+        ("docs/conops.md", _sub("- **v0.10 (2026-10-12):** Revision per Director ruling",
+                                "- **v0.7b (2026-10-12):** Revision per Director ruling"), "red"),
         # The concept brief: version in a bold line, changelog in ASCENDING order.
         # Both shapes differ from every other document, so it gets its own case.
         ("docs/concept_brief.md", _alter_version_after("**Concept Brief,"), "red"),
@@ -1500,7 +1500,7 @@ MUTATIONS = {
         ("docs/concept_brief.md",
          _alter_version_after("Current companion baseline — CONOPS"), "red"),
         ("docs/concept_brief.md",
-         _alter_version_after("Current companion baseline — CONOPS v0.9, "
+         _alter_version_after("Current companion baseline — CONOPS v0.10, "
                               "Requirements v0.12, TLM/CMD Dictionary"), "red"),
         ("docs/concept_brief.md",
          _alter_version_after("Replay Schema"), "red"),
