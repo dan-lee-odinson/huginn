@@ -1,0 +1,10 @@
+the bucket stores the native log gzipped; the ground system's reader does not decompress.
+
+gunzip -kf /tmp/b14-native-telemetry.bin.gz
+
+stdout:
+ef4e5f545b66936c989610f932329d82d6edef06b1083a42154f88263963d5a1  /tmp/b14-native-telemetry.bin.gz
+3a3aab37948fad83516edafee63016e523983b2a6522e90674091344ecfa90af  /tmp/b14-native-telemetry.bin
+COSMOS5_
+stderr:
+

@@ -1,0 +1,38 @@
+result: OK
+tests_run: 16
+hostile_payloads: 16
+exit_code: 0
+
+# transcript
+test_the_oracle_asks_about_structure_not_vocabulary (test_malicious_markup.TestTheOracleItself.test_the_oracle_asks_about_structure_not_vocabulary)
+The first oracle searched rendered output for `onerror=` and `javascript:` ... ok
+test_the_payload_list_is_not_empty (test_malicious_markup.TestTheOracleItself.test_the_payload_list_is_not_empty) ... ok
+test_unrendered_hostile_text_is_not_inert (test_malicious_markup.TestTheOracleItself.test_unrendered_hostile_text_is_not_inert)
+RED for the oracle: a raw payload carrying a structural character must be ... ok
+test_every_hostile_payload_is_refused_in_event_text (test_malicious_markup.TestTheProducerSideRefusesMarkup.test_every_hostile_payload_is_refused_in_event_text) ... ok
+test_plain_event_text_is_not_refused (test_malicious_markup.TestTheProducerSideRefusesMarkup.test_plain_event_text_is_not_refused)
+GREEN. A producer-side filter that flagged ordinary operational text would ... ok
+test_the_refusal_names_the_rule (test_malicious_markup.TestTheProducerSideRefusesMarkup.test_the_refusal_names_the_rule) ... ok
+test_benign_text_passes_through_readably (test_malicious_markup.TestTheSinkRendersHostileTextInert.test_benign_text_passes_through_readably)
+GREEN. An encoder that mangled ordinary text would make the display worse ... ok
+test_every_hostile_payload_renders_inert (test_malicious_markup.TestTheSinkRendersHostileTextInert.test_every_hostile_payload_renders_inert) ... ok
+test_no_structural_character_survives_unencoded (test_malicious_markup.TestTheSinkRendersHostileTextInert.test_no_structural_character_survives_unencoded) ... ok
+test_nothing_is_stripped_or_replaced (test_malicious_markup.TestTheSinkRendersHostileTextInert.test_nothing_is_stripped_or_replaced)
+Every payload's alphanumeric content survives intact. A sanitiser would ... ok
+test_the_hostile_text_is_still_visible (test_malicious_markup.TestTheSinkRendersHostileTextInert.test_the_hostile_text_is_still_visible)
+INERT, NOT ABSENT. An operator must see what the package said. ... ok
+test_the_plain_text_surface_does_not_encode (test_malicious_markup.TestTheSinkRendersHostileTextInert.test_the_plain_text_surface_does_not_encode)
+The sink is chosen by the OUTPUT surface, never by the content. On a console ... ok
+test_the_sink_refuses_a_non_string (test_malicious_markup.TestTheSinkRendersHostileTextInert.test_the_sink_refuses_a_non_string)
+A non-string reaching the sink means a package was rendered without ... ok
+test_the_encoding_is_reversible (test_malicious_markup.TestTheTwoGuaranteesAreIndependent.test_the_encoding_is_reversible)
+Nothing is lost. Unescaping the rendered form returns the original exactly, ... ok
+test_the_sink_does_not_import_the_conformance_filter (test_malicious_markup.TestTheTwoGuaranteesAreIndependent.test_the_sink_does_not_import_the_conformance_filter)
+If the sink depended on the producer-side filter, one hole would be two. ... ok
+test_the_sink_makes_no_decision_about_content (test_malicious_markup.TestTheTwoGuaranteesAreIndependent.test_the_sink_makes_no_decision_about_content)
+BEHAVIOURAL. The encoder defers entirely to the standard library, so hostile ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 1.602s
+
+OK

@@ -1,0 +1,14 @@
+# B6 verdict inputs. The verdict is computed from THIS file and the
+# archived operator-log slice, and from nothing live.
+monitor_restarted_at: 2026-08-07T01:31:07.319090Z
+counter_before_hold: 95
+counter_after_hold: 496
+hold_s: 38.0
+red_s: 30
+hold_ended_at: 2026-08-07T01:31:54.423936Z
+archive_caught_up: True (after 1 s)
+counter_froze: True
+interface_state_at_halt: CONNECTED
+interface_state_at_alarm: CONNECTED
+rxcnt: 8645
+txcnt: 0

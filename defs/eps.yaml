@@ -1,0 +1,127 @@
+# =============================================================================
+# HUGINN v0.1 - EPS design envelope and power-model parameters
+#
+# HUG-EPS-005: "EPS design envelope values (battery capacity 38 Wh, bus voltage
+# 5.0 V, array peak generation 17 W, nominal bus load 4 W, payload load 3 W) shall
+# be recorded in `defs/` and used consistently by model, dictionary limits, and
+# FMEA." This is that record.
+#
+# TWO KINDS OF VALUE LIVE HERE, AND THEY ARE NOT INTERCHANGEABLE.
+#
+#   `envelope` and `mode_ladder` are OWNER-DISPOSITIONED values from the frozen
+#   record (HUG-EPS-005, HUG-EPS-003, HUG-CMD-006, FMEA GR-02). They change only by
+#   an owner ruling. Check G13 of tools/checkers/defs_generation.py binds each of
+#   them to the requirement text that states it, so neither can drift from the record.
+#
+#   `model` holds parameters the record does NOT disposition, authored here because
+#   a simulator cannot run without them. Each carries why it is what it is. They are
+#   model parameters, never thresholds, and no document may cite them as
+#   dispositioned values.
+# =============================================================================
+
+# --------------------------------------------------------------- dispositioned
+envelope:
+  battery_capacity_wh: 38          # HUG-EPS-005; FMEA GR-02 (2S Li-ion)
+  bus_voltage_v: 5.0               # HUG-EPS-005, regulated
+  array_peak_w: 17                 # HUG-EPS-005, two strings combined
+  array_string_count: 2            # CONOPS 3.1; FMEA GR-02 ("two 8.5 W strings")
+  array_string_peak_w: 8.5         # array_peak_w / array_string_count
+  bus_load_w: 4                    # HUG-EPS-005, nominal
+  payload_load_w: 3                # HUG-EPS-005, switchable
+  charge_efficiency: 0.95          # HUG-EPS-001
+  discharge_efficiency: 0.95       # HUG-EPS-001
+
+mode_ladder:
+  # HUG-EPS-003. Autonomous transitions are DOWNWARD ONLY; every transition to a
+  # higher mode is a deliberate ground act via CMD_MODE_SET (HUG-CMD-006, CON-02).
+  order: ['NOMINAL', 'LOW_POWER', 'SAFE']       # descending, index = depth
+  autonomous_entry_soc_pct:
+    LOW_POWER: 30                  # HUG-EPS-003
+    SAFE: 20                       # HUG-EPS-003
+  # Ground-commanded recovery floors, 5 points above the autonomous entry points so
+  # a commanded recovery cannot immediately re-trip the ladder (Dictionary Sec. 2
+  # mode-authority rule; HUG-CMD-006).
+  recovery_floor_soc_pct:
+    NOMINAL: 35
+    LOW_POWER: 25
+  payload_activation_inhibit_soc_pct: 40        # HUG-CMD-002, CON-04
+  sheds_payload_on_autonomous_entry: true       # HUG-EPS-003
+
+faults:
+  # HUG-EPS-004. Injectable by scenario file only; no source change (HUG-SYS-005).
+  array_string_zero:
+    description: single array-string output forced to zero
+  stuck_load:
+    description: stuck-on load, unsheddable
+    power_w: 2.0                   # HUG-EPS-004(b)
+  hk_generation_halt:
+    description: >-
+      From fault onset no housekeeping frames are generated or transmitted; the
+      spacecraft truth state continues to evolve. Latches until cleared by
+      CMD_SYS_RESET, after which frame generation resumes with counters per
+      HUG-CMD-005.
+    latched_until: CMD_SYS_RESET   # HUG-EPS-004(c)
+
+# ------------------------------------------------------- authored model parameters
+#
+# NOT dispositioned. Authored to make the model runnable; each states its basis.
+model:
+  time_step_s: 1.0
+  # HUG-SYS-001 requires 1 s or finer. 1 s matches the housekeeping cadence, so one
+  # model step produces exactly one frame and no sub-frame state is unobservable.
+
+  eclipse_ramp_s: 10
+  # HUG-EPS-002 bounds the ramp at "no more than 10 s". Taking the bound itself is
+  # the conservative reading: any shorter ramp is a strictly easier case, and this
+  # value is the one the requirement actually names.
+
+  generation_profile: flat
+  # HUG-EPS-002 says only that generation is zero in eclipse and ramps across the
+  # transition; it says nothing about an illumination profile within sunlight. The
+  # plain reading of "17 W peak combined" with no profile stated is a flat sunlit
+  # value, which is what this models.
+  #
+  # OPEN QUESTION TO THE OWNER, raised with the orbit options: FMEA FM-EPS-08 states
+  # that with the stuck load the "energy-negative trend persists even after payload
+  # shed". Under a flat profile at the representative ~64% sunlit fraction it does
+  # not - the orbit average stays positive, and only the depth of discharge worsens.
+  # A cosine-incidence profile lowers average generation and changes that. Both the
+  # profile and the sunlit fraction it multiplies depend on the orbit being pinned,
+  # so the two decisions belong together. `cosine` is implemented and selectable
+  # here; nothing else in the model changes if the owner rules for it.
+
+  ocv_curve_soc_pct_to_v:
+    # Open-circuit terminal voltage of the 2S Li-ion pack against state of charge,
+    # piecewise-linear between these anchors. Shaped to the dictionary's own limits
+    # rather than to a datasheet: 20% SoC (the SAFE entry point and SoC red) lands at
+    # 7.1 V, between EPS_BATT_V red-low 6.8 and yellow-low 7.2, which is what makes
+    # CONOPS Sec. 4.4 true when it calls the low-voltage alarm "the low-voltage
+    # presentation of the low-battery condition". Full charge lands at 8.2 V, BELOW
+    # yellow-high 8.3, so a nominal full battery does not annunciate and the
+    # voltage-high alarm means what FM-EPS-06 says it means - a charge-control
+    # failure, not a full battery.
+    - [0, 6.0]
+    - [10, 6.9]
+    - [20, 7.1]
+    - [50, 7.45]
+    - [80, 7.85]
+    - [100, 8.2]
+
+  internal_resistance_ohm: 0.0
+  # Deliberately zero. The record disposition no internal-resistance value, and every
+  # dictionary limit is reachable without one. Terminal voltage is therefore
+  # open-circuit voltage, which is exactly what CONOPS Sec. 4.4 describes when it
+  # treats the low-voltage alarm as a presentation of low state of charge. Adding a
+  # load-dependent drop would invent a number and change which alarm trips first.
+
+  charge_taper_start_soc_pct: 99
+  # Dictionary note 2: "charge taper at full charge is the modeled design
+  # protection". Charge power scales linearly to zero between this point and 100%,
+  # so the pack cannot be driven past full and the overcharge path stays what
+  # FM-EPS-06 says it is - a failure of this protection, not a nominal condition.
+
+  initial_pld_rate_hz: 1.0
+  # replay_schema.md Sec. 5 payload-rate domain: the rate register always holds a
+  # dictionary-valid rate, and "its initial value lies in the dictionary range"
+  # (0.1-10 Hz). A frame recorded with the payload OFF reports this resting value,
+  # never a sentinel or a null.

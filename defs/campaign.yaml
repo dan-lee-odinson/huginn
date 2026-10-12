@@ -1,0 +1,144 @@
+# =============================================================================
+# HUGINN v0.1 CAMPAIGN — the pass plan (HUG-OPS-003)
+#
+# campaign/CAMPAIGN_PLAN.md is a GENERATED VIEW of this file:
+#   tools/gen_campaign.py -> campaign/CAMPAIGN_PLAN.md
+#
+# HUG-OPS-003: "at least one nominal pass and three anomaly passes (one per fault
+# class), executed human-in-the-loop on the operator's console." The Director
+# operates; his execution is the evidence. This file is what he operates FROM.
+#
+# WHAT IS NOT IN THIS FILE. No contact time, no duration, no usability verdict.
+# Those are computed from the pinned orbit and the D-014 definition by the
+# generator, because a schedule typed in beside the geometry is a second source
+# and would be wrong the first time either changed. A pass names the contact it
+# wants by INDEX into the computed week; the generator resolves it and refuses
+# the plan if a commanded pass lands on a contact D-014 does not admit.
+#
+# The fault classes are the three the record already carries as scenarios, one
+# per EPS fault in HUG-EPS-004: (a) array-string loss, (b) stuck-on load,
+# (c) housekeeping generation halt.
+# =============================================================================
+
+campaign_version: '0.1'
+
+#: The week the passes are drawn from. Same epoch as the P1 scenario, so the
+#: geometry an operator plans against is the geometry the simulator runs.
+week:
+  start_epoch_utc: '2026-07-29T14:00:00Z'
+  duration_days: 7
+
+passes:
+
+  - id: PASS-1
+    title: Nominal activation pass
+    procedure: PROC-001
+    scenario: P1_nominal
+    contact_index: 13          # the longest contact in the week
+    commanded: true
+    fault_class: none
+    induces: >-
+      Nothing. P1_nominal carries no faults; this is the pass that establishes what
+      normal looks like, and without it the three anomaly passes have no baseline to
+      be abnormal against.
+    activities:
+      - Payload activation (CMD_PLD_SET_STATE ON) per PROC-001-S10, subject to the
+        S08/S09 activation inhibit at 40 % state of charge.
+      - Payload sampling rate (CMD_PLD_SET_RATE) per PROC-001-S13.
+    observe:
+      - CDH_FRAME_CNT advancing across consecutive frames, staleness annunciator GREEN.
+      - EPS_BATT_SOC above the 40 % activation inhibit at PROC-001-S08, so S09 takes
+        the authorized branch.
+      - CDH_CMD_ACC_CNT incrementing by exactly one per command, PLD_STATE reading ON
+        no later than the next housekeeping frame.
+      - No limit annunciation of any colour for the whole contact.
+    why_this_contact: >-
+      The longest contact in the week. A nominal pass carries the most commanding of
+      the four, and the baseline is the one pass that should not be fighting the clock.
+
+  - id: PASS-2
+    title: Array-string loss
+    procedure: PROC-002
+    scenario: P2_array_string_loss
+    contact_index: 16
+    commanded: false
+    fault_class: 'HUG-EPS-004(a) — single array-string output forced to zero'
+    fmea_rows: [FM-EPS-01]
+    induces: >-
+      By scenario file only, per HUG-SYS-005: P2_array_string_loss sets
+      faults.strings_zeroed to string 1 at its scheduled time. No source change and no
+      operator action induces it — the operator's job is to detect it, which is the
+      whole point of the pass.
+    activities: []
+    observe:
+      - EPS_SA1_I collapsing to zero while EPS_SA2_I holds — the string ASYMMETRY that
+        is FM-EPS-01's stated detection, and the reason the two strings are separately
+        reported.
+      - EPS_BATT_SOC trending below the plan's predicted value, crossing the 35 %
+        yellow limit if the contact runs long enough.
+      - PROC-001-S07 taking the limit-response branch, handing off to PROC-002 — which
+        the pass report records under invoked_procedures.
+      - PROC-002's cause-discrimination steps distinguishing string loss from the other
+        causes that present as low state of charge.
+    why_this_contact: >-
+      Long enough to watch a trend rather than take a single reading; not commanded,
+      so it does not need the commanding margin.
+
+  - id: PASS-3
+    title: Stuck-on load
+    procedure: PROC-002
+    scenario: P3_stuck_load
+    contact_index: 9
+    commanded: true
+    fault_class: 'HUG-EPS-004(b) — stuck-on load of 2.0 W'
+    fmea_rows: [FM-EPS-02]
+    induces: >-
+      By scenario file only: P3_stuck_load sets faults.stuck_load, adding the
+      dispositioned 2.0 W to the bus load. Again no operator action — inducing a fault
+      by hand would make the pass a demonstration of the operator rather than of the
+      detection path.
+    activities:
+      - A commanded load-shed response per PROC-002, if the mode ladder has not already
+        acted. This is the pass that puts the command path on recorded data under an
+        anomaly rather than under nominal conditions.
+    observe:
+      - EPS_LOAD_I crossing its YELLOW limit BEFORE its RED — the dictionary's
+        disposition ledger item 1 asserts this ordering, and this is where an operator
+        sees it hold on live telemetry.
+      - EPS_BATT_SOC falling faster than the pass plan predicted.
+      - The commanded response accounted exactly once (CDH_CMD_ACC_CNT +1) with its
+        effect visible in PLD_STATE or EPS_MODE by the next housekeeping frame.
+    why_this_contact: >-
+      Long enough to carry commanding under D-014 AND to show the yellow-before-red
+      ordering, which needs the trend to develop inside the contact.
+
+  - id: PASS-4
+    title: Housekeeping generation halt
+    procedure: PROC-003
+    scenario: P4_hk_generation_halt
+    contact_index: 2
+    commanded: true
+    fault_class: 'HUG-EPS-004(c) — housekeeping telemetry generation halt, latched until CMD_SYS_RESET'
+    fmea_rows: [FM-CDH-01]
+    induces: >-
+      By scenario file only: P4_hk_generation_halt halts housekeeping frame generation
+      at its scheduled time and LATCHES it. This is the same fault the B6 demonstration
+      used, and the reason PROC-003 exists.
+    activities:
+      - CMD_SYS_RESET, which is the only thing that clears the latched halt. It is a
+        hazardous command and takes the two-step confirmation of B7.
+    observe:
+      - CDH_FRAME_CNT ceasing to advance while the interface stays CONNECTED — a halt
+        on a live link, not a link drop.
+      - The staleness annunciator going YELLOW at 10 s and RED at 30 s of no advance,
+        and NOT annunciating NO_READ or READ_FAULT, which would mean the ground segment
+        is the problem rather than the spacecraft (D-012).
+      - PROC-003's branch selector distinguishing the spacecraft-side condition from
+        the ground-side one and from a monitor read fault.
+      - >-
+        After CMD_SYS_RESET, the post-reset counter epoch ACC = 1, REJ = 0 — the sole
+        exception to delta arithmetic (HUG-CMD-005) — and CDH_FRAME_CNT advancing again.
+    why_this_contact: >-
+      Long enough for the 30 s RED threshold to be reached AND for a reset and its
+      recovery to be observed afterwards, which is the longest sequence any pass in
+      this campaign has to fit.

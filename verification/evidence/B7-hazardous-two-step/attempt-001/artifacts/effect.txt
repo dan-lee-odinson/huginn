@@ -1,0 +1,6 @@
+EPS_MODE before        : NOMINAL
+EPS_MODE after step one: NOMINAL   (must be unchanged)
+EPS_MODE after step two: SAFE   (must be SAFE)
+transition observed    : NOMINAL -> SAFE
+interface before       : CONNECTED txcnt=1
+interface after        : CONNECTED txcnt=3

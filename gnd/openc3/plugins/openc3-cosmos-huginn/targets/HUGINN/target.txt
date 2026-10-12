@@ -1,0 +1,5 @@
+# HUGINN target declaration.
+# GENERATED FILE — DO NOT EDIT. Source: defs/tlm_cmd.yaml
+
+LANGUAGE python
+

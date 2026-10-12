@@ -1,0 +1,83 @@
+# HUGINN telemetry — 1 Hz housekeeping packet
+#
+# GENERATED FILE — DO NOT EDIT.
+# Source: defs/tlm_cmd.yaml   Generator: tools/gen_openc3_config.py
+# Dictionary version: 0.5
+# Source sha256: 5e1c2750ef9e0d5463f8b2fcb27abeb1dbde63c1b749717ed170cc2bacd60679
+#
+# HUG-GND-001 prohibits hand-edited packet definitions. Edit the source and
+# regenerate; an edit here is overwritten and, per HUG-GND-006, would make the
+# displayed configuration digest disagree with the dictionary of record — a
+# no-go for commanding at pass setup.
+
+TELEMETRY HUGINN HK BIG_ENDIAN "Housekeeping telemetry, 1 Hz, 16 points in dictionary order"
+  APPEND_ID_ITEM SYNC 16 UINT 0x4855 "Frame sync marker"
+  APPEND_ITEM LENGTH 16 UINT "Octets following this field"
+  APPEND_ITEM CDH_MET 32 UINT "Mission elapsed time"
+    UNITS Seconds s
+    # The record defines no limits for this point.
+  APPEND_ITEM EPS_BATT_V 32 FLOAT "Battery voltage (2S Li-ion)"
+    UNITS Volts V
+    LIMITS DEFAULT 1 ENABLED 6.8 7.2 8.3 8.5
+  APPEND_ITEM EPS_BATT_I 32 FLOAT "Battery current (+charge / −discharge)"
+    UNITS Amps A
+    LIMITS DEFAULT 1 ENABLED -2.5 -2 2 2.5
+  APPEND_ITEM EPS_BATT_SOC 32 FLOAT "Battery state of charge"
+    UNITS Percent %
+    # The record defines no yh/rh limit for this point (Dictionary v0.5: 20 / 35 / n/a / n/a).
+    # The unreachable magnitudes below stand for absent; they are not thresholds.
+    LIMITS DEFAULT 1 ENABLED 20 35 1e+30 1e+30
+  APPEND_ITEM EPS_SA1_I 32 FLOAT "Solar-array string 1 current"
+    UNITS Amps A
+    # Monitored, not alarmed: the record defines no limits for this point
+    # (Dictionary v0.5: context-dependent).
+  APPEND_ITEM EPS_SA2_I 32 FLOAT "Solar-array string 2 current"
+    UNITS Amps A
+    # Monitored, not alarmed: the record defines no limits for this point
+    # (Dictionary v0.5: context-dependent).
+  APPEND_ITEM EPS_BUS_V 32 FLOAT "Regulated bus voltage"
+    UNITS Volts V
+    LIMITS DEFAULT 1 ENABLED 4.75 4.9 5.1 5.25
+  APPEND_ITEM EPS_LOAD_I 32 FLOAT "Total load current"
+    UNITS Amps A
+    # The record defines no rl/yl limit for this point (Dictionary v0.5: n/a / n/a / 1.5 / 2.0).
+    # The unreachable magnitudes below stand for absent; they are not thresholds.
+    LIMITS DEFAULT 1 ENABLED -1e+30 -1e+30 1.5 2
+  APPEND_ITEM EPS_MODE 8 UINT "EPS mode"
+    STATE NOMINAL 0
+    STATE LOW_POWER 1
+    STATE SAFE 2 RED
+    # Annunciation here is state-based — the STATE ... RED above — not a
+    # numeric limit.
+  APPEND_ITEM ADM_ECLIPSE 8 UINT "Illumination state"
+    STATE SUNLIT 0
+    STATE ECLIPSE 1
+    # The record defines no limits for this point.
+  APPEND_ITEM PLD_STATE 8 UINT "Payload power state"
+    STATE OFF 0
+    STATE ON 1
+    # The record defines no limits for this point.
+  APPEND_ITEM PLD_RATE 32 FLOAT "Payload sampling rate"
+    UNITS Hertz Hz
+    # 'valid range 0.1-10' is a validity DOMAIN, not an alarm. CMD_PLD_SET_RATE
+    # rejects an out-of-range rate (ARG_RANGE) and the register therefore always
+    # holds a dictionary-valid value, so there is nothing to annunciate
+    # (replay_schema.md Sec. 5, payload-rate domain).
+  APPEND_ITEM CDH_FRAME_CNT 16 UINT "Telemetry frame counter"
+    # Staleness is a GROUND-SIDE monitor (10 s yellow / 30 s red;
+    # B6, HUG-GND-002), not an onboard limit: a halted counter cannot alarm
+    # itself (Dictionary note 1). Emitted as the STALENESS microservice
+    # declared in plugin.txt, which runs on its own clock so the alarm
+    # fires during an outage - the only time it matters.
+  APPEND_ITEM CDH_CMD_ACC_CNT 16 UINT "Commands accepted counter"
+    # The record defines no limits for this point.
+  APPEND_ITEM CDH_CMD_REJ_CNT 16 UINT "Commands rejected counter"
+    # 'delta > 0 annunciates yellow' is a ground-computed counter delta, not an
+    # onboard limit. Emitted in Phase 3 with the ground segment.
+  APPEND_ITEM CDH_REJ_REASON 8 UINT "Last reject reason"
+    STATE NONE 0
+    STATE UNKNOWN_OPCODE 1
+    STATE ARG_RANGE 2
+    STATE MODE_INHIBIT 3
+    # The record defines no limits for this point.
+

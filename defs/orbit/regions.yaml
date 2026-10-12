@@ -1,0 +1,31 @@
+# =============================================================================
+# Geographic regions the mission counts transits of.
+#
+# AUTHORED MODEL PARAMETERS, not dispositioned values. The record names both regions
+# and sets objective targets over them, but defines neither boundary:
+#   O1: "map particle flux over the South Atlantic Anomaly on at least 20 SAA transits
+#        per week with the payload active" (CONOPS Sec. 1.2)
+#   O2: "sample both auroral regions (poleward of 60 deg geographic latitude)"
+# O2 states its own boundary. O1 does not, so the SAA footprint below is authored and
+# carries its basis. It is a bounding box, deliberately: a contour model would imply a
+# field precision this mission has no sensor for (payload sensor physics is excluded
+# from v0.1 by concept brief Sec. 3).
+# =============================================================================
+
+south_atlantic_anomaly:
+  kind: bounding_box
+  latitude_deg: [-50.0, 0.0]
+  longitude_deg: [-90.0, 40.0]
+  # The conventional low-Earth-orbit SAA footprint: southern hemisphere, centred over
+  # the South Atlantic and reaching from South America across to southern Africa. The
+  # box is generous rather than tight, so a transit count is not sensitive to a few
+  # degrees of boundary placement - which is the right trade when the objective counts
+  # transits rather than measuring flux.
+  minimum_transit_s: 60
+  # A crossing shorter than this is a clip of a corner, not a transit. Without a floor,
+  # a single grazing pass near a box edge could be counted as several transits as the
+  # ground track re-entered, inflating the O1 count.
+
+high_latitude_auroral:
+  kind: latitude_threshold
+  poleward_of_deg: 60.0          # CONOPS Sec. 1.2, objective O2 - stated by the record

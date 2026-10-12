@@ -1,0 +1,19 @@
+{
+  "result": {
+    "target_name": "HUGINN",
+    "cmd_name": "CMD_PLD_SET_RATE",
+    "cmd_params": {
+      "RATE": 2.0
+    },
+    "range_check": "true",
+    "hazardous_check": "true",
+    "raw": "false",
+    "cmd_string": "cmd(\"HUGINN CMD_PLD_SET_RATE with RATE 2.0\")",
+    "username": "anonymous",
+    "validate": "true",
+    "manual": "false",
+    "log_message": "true",
+    "obfuscated_items": "[]"
+  },
+  "error": null
+}

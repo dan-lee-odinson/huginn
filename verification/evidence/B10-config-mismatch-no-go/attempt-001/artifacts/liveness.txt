@@ -1,0 +1,3 @@
+services running before: ['openc3-buckets', 'openc3-cosmos-cmd-tlm-api', 'openc3-cosmos-script-runner-api', 'openc3-operator', 'openc3-redis', 'openc3-redis-ephemeral', 'openc3-traefik', 'openc3-tsdb']
+services running during NO-GO: ['openc3-buckets', 'openc3-cosmos-cmd-tlm-api', 'openc3-cosmos-script-runner-api', 'openc3-operator', 'openc3-redis', 'openc3-redis-ephemeral', 'openc3-traefik', 'openc3-tsdb']
+interface state during NO-GO: ATTEMPTING

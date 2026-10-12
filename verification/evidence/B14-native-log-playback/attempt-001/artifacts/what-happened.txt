@@ -1,0 +1,40 @@
+A B14 FAIL ON 2026-08-06 THAT IS NOT A FAIL
+===========================================
+
+   command  : python tools/demonstrate.py b6 b14
+   finished : local 2026-08-06 21:29:33
+   reported : FAIL  -- NOT EVIDENCE ABOUT B14
+
+WHY IT IS NOT A FAIL
+   B14 proves the simulator is off by two independent observables: TCP 7801 refuses
+   connections, and the ground system's own interface is no longer CONNECTED. The
+   first of those failed because ANOTHER RUN'S SIMULATOR WAS HOLDING THE PORT OPEN.
+
+   A second demonstration run was started at 21:27:27 while this one was still alive,
+   after the machine woke from sleep and before anyone checked whether the interrupted
+   run had died. The two overlapped for roughly two minutes. This run's B14 phase ran
+   against a port that a different run's simulator owned.
+
+   FAIL is a statement about the subject: the native log could not be played back.
+   That is not what happened. The playback was never fairly attempted, because a
+   control that the demonstration depends on was answered by the wrong process.
+
+WHAT WAS ALSO TRUE OF THIS RUN, AND IS SEPARATE
+   The gzip finding is real and independent of the contamination: PacketLogReader does
+   not decompress, and pointed at a `.bin.gz` it raises
+   `ValueError: OpenC3 file header not found`. That was measured directly against the
+   reader in the operator container, both ways on the same object, outside any
+   demonstration run. It is recorded in the passing B14 evidence, not here.
+
+WHAT IS NOT RECOVERABLE
+   The run's artifacts were overwritten by the re-run that followed. The runner's own
+   output survives and is preserved here; everything else is this labelled account.
+
+WHERE IT STANDS
+   CONTAMINATED -- retained, verdict void, discharges nothing and refutes nothing.
+   B14 is discharged by the clean serial run of 2026-08-07T01:40:37Z, in
+   verification/evidence/B14-native-log-playback/.
+
+   The operating lesson is recorded in gnd/RUNBOOK.md: demonstrations bind to a fixed
+   TCP port and to one ground system, so they must be run one at a time, and an
+   interrupted run must be confirmed dead before another is started.

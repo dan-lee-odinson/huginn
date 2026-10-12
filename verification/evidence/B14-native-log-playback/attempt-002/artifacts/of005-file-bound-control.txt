@@ -1,0 +1,10 @@
+the same reader, same container, pointed at a path that does not exist:
+  /tmp/b14-native-telemetry.NOT-A-REAL-LOG.bin.gz
+
+stdout:
+REFUSED FileNotFoundError [Errno 2] No such file or directory: '/tmp/b14-native-telemetry.NOT-A-REAL-LOG.bin.gz'
+
+stderr:
+
+
+packets returned: 0 (must be 0)

@@ -1,0 +1,227 @@
+# Pass report — PROC-001 Nominal activation pass
+#
+# Every step is listed. Fill in each entry. A step that did not happen is
+# `omitted` with an anomaly reference -- never deleted, and never rewritten to
+# completed later (HUG-OPS-002).
+
+pass_id: 2026-08-03-P1
+# The pass identifier carries the SIMULATED contact date: contact 13 of the computed week
+# begins 2026-08-03T02:33:50Z in the campaign epoch. The pass was EXECUTED on 2026-08-29
+# (executed_utc below); the contact's 450 s length was applied from the operator's AOS.
+procedure: PROC-001
+executed_utc: '2026-08-29T18:47:26Z'
+
+pass_plan:
+  window_aos_utc: '2026-08-03T02:33:50Z'
+  window_los_utc: '2026-08-03T02:41:20Z'
+  predicted_soc_pct: 70
+  planned_commands: [CMD_PLD_SET_STATE ON, CMD_PLD_SET_RATE 2.0]
+
+event_timeline:
+  - {utc: '2026-08-29T18:33:22Z', event: 'pre-pass configuration verification GO (tools/pass_setup.py)'}
+  - {utc: '2026-08-29T18:47:26Z', event: 'AOS: simulator started by operator (python tools/serve_sim.py P1_nominal), MET 0'}
+  - {utc: '2026-08-29T18:47:30Z', event: 'ground interface connected, first frame received: CDH_MET 5, CDH_FRAME_CNT 6, RECEIVED_COUNT 8982 at 18:47:30.799Z (recorded telemetry, telemetry_hk.csv; not observed live). Supersedes the estimate of MET ~10 at 18:47:36Z derived from RECEIVED_COUNT arithmetic'}
+  - {utc: '2026-08-29T18:49:06Z', event: 'first live frame observed on the console, MET 100'}
+  - {utc: '2026-08-29T18:50:10Z', event: 'state-of-health capture, MET 164: SoC 71.49, load 0.80 A, payload not yet on'}
+  - {utc: '2026-08-29T18:50:26Z', event: 'scenario-scripted CMD_PLD_SET_STATE ON accepted at MET 180 (scenario file, not operator); CDH_CMD_ACC_CNT 0 -> 1'}
+  - {utc: '2026-08-29T18:50:51Z', event: 'full HK capture, MET 205: frame 206, ACC 1, PLD_STATE ON, PLD_RATE 1.0, SoC 71.81, NOMINAL, SUNLIT'}
+  - {utc: '2026-08-29T18:51:06Z', event: 'HK capture, MET 220: frame 221, SoC 71.90'}
+  - {utc: '2026-08-29T18:51:26Z', event: 'scenario-scripted CMD_PLD_SET_RATE 2.0 accepted at MET 240 (scenario file, not operator); ACC 1 -> 2'}
+  - {utc: '2026-08-29T18:52:12Z', event: 'Command Sender open on CMD_MODE_SET (hazardous), two-step confirmation dialog shown'}
+  - {utc: '2026-08-29T18:53:45Z', event: 'operator sent CMD_MODE_SET TARGET NOMINAL (not in procedure); accepted, ACC 2 -> 3, EPS_MODE unchanged'}
+  - {utc: '2026-08-29T18:54:19Z', event: 'HK capture, MET 413: frame 414, ACC 3, PLD ON, rate 2.0, SoC 73.25, load 1.30 A, NOMINAL'}
+  - {utc: '2026-08-29T18:54:56Z', event: 'computed LOS (AOS + 450 s) - not enacted; telemetry continued'}
+  - {utc: '2026-08-29T18:57:24Z', event: 'HK capture, MET 598: frame 599, SoC 74.53'}
+  - {utc: '2026-08-29T18:57:25Z', event: 'observed LOS: simulator stopped by operator (Ctrl-C) at MET 599; 599 frames sent, 0 suppressed, 1 command uplinked'}
+limit_violations: []
+actions:
+  - {step: PROC-001-S02, action: 'ran tools/pass_setup.py --pass-id 2026-08-03-P1: GO on the first run, all conditions PASS'}
+  - {step: PROC-001-S02, action: 'the Run line joined with && was rejected by Windows PowerShell (ParserError); ran cd gnd/openc3, docker compose up -d, cd ../.. as three lines'}
+  - {step: none, action: 'undocumented operator action at 18:53:45Z: sent CMD_MODE_SET TARGET NOMINAL (hazardous, two-step confirmed) in place of PROC-001-S10 CMD_PLD_SET_STATE ON; accepted, CDH_CMD_ACC_CNT 2 -> 3, EPS_MODE unchanged (NOMINAL). See ANOM-001'}
+  - {step: PROC-001-S16, action: 'stopped the simulator (Ctrl-C) at MET 599 to end the contact; computed LOS was MET 450'}
+
+deviations:
+  - {planned: 'S04 two consecutive CDH_FRAME_CNT reads at AOS', actual: 'counter read from captures at MET 205 and 220 (206 -> 221)', cause: 'operator could not record and execute simultaneously; switched to screenshots', impact: 'frame lock shown by advancing counter, not at AOS'}
+  - {planned: 'S06 state-of-health at AOS + 2 min', actual: 'capture at AOS + 205 s (a partial capture at AOS + 164 s)', cause: 'same', impact: 'none on the values; timing only'}
+  - {planned: 'S10 CMD_PLD_SET_STATE ON and S13 CMD_PLD_SET_RATE by the operator', actual: 'neither sent by the operator; CMD_MODE_SET NOMINAL sent instead; payload ON and rate 2.0 were set by the scenario file at MET 180 and 240', cause: 'wrong packet selected in Command Sender; the scenario file pre-empts the operator', impact: 'the planned commanded activities were not performed by the operator on this pass (ANOM-001)'}
+  - {planned: 'S15 final snapshot at LOS - 2 min (MET 330)', actual: 'capture at MET 413 (LOS - 37 s)', cause: 'operator behind the timeline', impact: 'snapshot exists but 83 s late'}
+  - {planned: 'LOS at MET 450 (18:54:56Z)', actual: 'simulator stopped at MET 599 (18:57:25Z)', cause: 'nothing in the procedure tells the operator to end the contact or how; the simulator does not stop on its own', impact: '149 s of telemetry after computed LOS; pass ran over'}
+  - {planned: 'pass report filled during the pass', actual: 'record kept as ordered screenshots, transcribed after LOS', cause: 'one operator holding PLAN, EPS and FD roles on a 450 s contact', impact: 'values are from timestamped captures, not contemporaneous entries'}
+
+completion_record:
+  - step: PROC-001-S01
+    role: PLAN
+    operator: Dan Lee-Odinson
+    state: completed
+    records:
+      predicted_soc_pct: 70
+      window_aos_utc: '2026-08-03T02:33:50Z'
+      window_los_utc: '2026-08-03T02:41:20Z'
+    note: >-
+      The campaign plan states no predicted state of charge for contact 13; 70 is the
+      scenario file's stated initial SoC (sim/scenarios/P1_nominal.yaml initial.soc_pct).
+  - step: PROC-001-S02
+    role: EPS
+    operator: Dan Lee-Odinson
+    state: completed
+    records:
+      pass_setup_verdict: GO
+      identity_vs_dictionary_result: PASS
+      loaded_vs_repository_result: PASS
+      target_inventory_result: PASS
+  - step: PROC-001-S03
+    role: FD
+    operator: Dan Lee-Odinson
+    state: completed
+    branch: GO
+    observation: >-
+      pass_setup.py printed Verdict: GO; identity vs dictionary PASS (v0.5,
+      5e1c2750), loaded vs repository PASS (6 artifacts byte-identical), target
+      inventory PASS (HUGINN, UNKNOWN). All four conditions held.
+  - step: PROC-001-S04
+    role: EPS
+    operator: Dan Lee-Odinson
+    state: completed
+    records:
+      first_frame_utc: '2026-08-29T18:49:06Z'
+      cdh_frame_cnt_first: 206
+      cdh_frame_cnt_second: 221
+      staleness_annunciator_state: NOT_OBSERVED
+    note: >-
+      No read was made at AOS. first_frame_utc is the earliest frame observed live on the
+      console (MET 100). The ground connected at MET 5; the first frame in the recorded
+      telemetry is CDH_MET 5, CDH_FRAME_CNT 6, RECEIVED_COUNT 8982 at 18:47:30.799Z
+      (telemetry_hk.csv, extracted and committed after the pass). This supersedes the
+      earlier figure of about MET 10, which was derived from RECEIVED_COUNT arithmetic and
+      not observed. 594 frames were received of the 599 sent, CDH_FRAME_CNT 6 through 599;
+      frames 1 to 5, MET 0 through 4, were transmitted before the ground interface came up
+      and never reached the ground. The two counter values are from captures at MET 205 and
+      MET 220, 15 s apart. No STALENESS target exists in Packet Viewer (targets: HUGINN,
+      UNKNOWN); the log was not read during the pass, so the annunciator state was not
+      observed.
+  - step: PROC-001-S05
+    role: EPS
+    operator: Dan Lee-Odinson
+    state: completed
+    branch: acquired
+    observation: >-
+      CDH_FRAME_CNT read 206 at MET 205 and 221 at MET 220, advancing one per second;
+      packet timestamps updating every second. The staleness annunciator was not observed
+      (no STALENESS target in Packet Viewer).
+  - step: PROC-001-S06
+    role: EPS
+    operator: Dan Lee-Odinson
+    state: completed
+    records:
+      eps_batt_v_at_aos2: 7.74
+      soc_pct_at_aos2: 71.81
+      soc_delta_vs_plan_pct: 1.81
+      eps_sa1_i_at_aos2: 1.70
+      eps_sa2_i_at_aos2: 1.70
+      adm_eclipse_at_aos2: SUNLIT
+    note: >-
+      Taken from the full-packet capture at MET 205 (18:50:51Z), not at AOS + 2 min. An
+      earlier partial capture at MET 164 read EPS_BATT_V 7.74, EPS_BATT_SOC 71.49,
+      EPS_LOAD_I 0.80 A (payload not yet on).
+  - step: PROC-001-S07
+    role: FD
+    operator: Dan Lee-Odinson
+    state: completed
+    branch: nominal
+    observation: >-
+      No point shown yellow or red; EPS_BATT_SOC 71.81 above 35; EPS_BATT_V 7.74 above 7.2;
+      EPS_LOAD_I 1.30 A below 1.5; EPS_BATT_I +1.29 A while ADM_ECLIPSE read SUNLIT;
+      EPS_MODE NOMINAL.
+  - step: PROC-001-S08
+    role: EPS
+    operator: Dan Lee-Odinson
+    state: completed
+    records:
+      soc_pct_at_activation_check: 71.90
+    note: >-
+      Fresh reading from the capture at MET 220 (18:51:06Z), the last before Command Sender
+      was opened.
+  - step: PROC-001-S09
+    role: FD
+    operator: Dan Lee-Odinson
+    state: completed
+    branch: authorized
+    observation: 'EPS_BATT_SOC 71.90 at the S08 check, above the 40 % activation inhibit.'
+  - step: PROC-001-S10
+    role: EPS
+    operator: Dan Lee-Odinson
+    state: omitted
+    anomaly: ANOM-001
+  - step: PROC-001-S11
+    role: EPS
+    operator: Dan Lee-Odinson
+    state: omitted
+    anomaly: ANOM-001
+  - step: PROC-001-S12
+    role: EPS
+    operator: Dan Lee-Odinson
+    state: omitted
+    anomaly: ANOM-001
+    no_observation_made: true
+  - step: PROC-001-S13
+    role: EPS
+    operator: Dan Lee-Odinson
+    state: not_applicable
+    basis: 'PROC-001-S12 was omitted and selected no branch (ANOM-001); no accepted activation to set a rate for.'
+  - step: PROC-001-S14
+    role: EPS
+    operator: Dan Lee-Odinson
+    state: not_applicable
+    basis: 'PROC-001-S13 was not executed.'
+  - step: PROC-001-S15
+    role: EPS
+    operator: Dan Lee-Odinson
+    state: completed
+    records:
+      soc_pct_at_los: 73.25
+      mode_at_los: NOMINAL
+    note: >-
+      From the capture at MET 413 (18:54:19Z), 37 s before computed LOS rather than 120 s.
+      EPS_LOAD_I 1.30 A, EPS_BATT_V 7.76 in the same capture.
+  - step: PROC-001-S16
+    role: PLAN
+    operator: Dan Lee-Odinson
+    state: completed
+    records:
+      observed_los_utc: '2026-08-29T18:57:25Z'
+      computed_los_utc: '2026-08-29T18:54:56Z'
+      last_cdh_frame_cnt: 599
+    note: >-
+      Telemetry stopped when the operator stopped the simulator at MET 599; computed LOS is
+      the operator's AOS (18:47:26Z) plus the contact's 450 s. The plan's absolute window
+      (2026-08-03T02:33:50Z to 02:41:20Z) is in the campaign epoch and was applied as a
+      duration. The contact ran 149 s over.
+  - step: PROC-001-S17
+    role: PLAN
+    operator: CHANGE-ME
+    state: CHANGE-ME        # completed | not_applicable | omitted
+  - step: PROC-001-S18
+    role: PLAN
+    operator: CHANGE-ME
+    state: CHANGE-ME        # completed | not_applicable | omitted
+    branch: CHANGE-ME       # complete|omission finding
+    observation: CHANGE-ME  # what you saw that selected that branch
+
+anomalies:
+  - id: ANOM-001
+    step: PROC-001-S10
+    finding: >-
+      CMD_PLD_SET_STATE ON was not sent. At 18:53:45Z the operator sent CMD_MODE_SET with
+      TARGET NOMINAL - a hazardous command, two-step confirmed - having selected the wrong
+      packet in Command Sender. It was accepted (CDH_CMD_ACC_CNT 2 -> 3) and changed nothing
+      (EPS_MODE already NOMINAL). The payload was ON at 2.0 Hz by the end of the pass because
+      the scenario file commanded it at MET 180 and MET 240, not because the operator did.
+      S11 and S12 are omitted in consequence; S13 and S14 do not apply.
+    operator_account: >-
+      on S10: there was no way to switch anything "on" and there was no Send button in
+      the packet viewer. IT merely showed as ON already.
+    feasibility: 'Yes I could fly PROC-001 again if the instructions were clearer.'
+    disposition: re_execution
+    re_executed_as: {step: PROC-001-S10}   # pass_id: to be named when the re-fly is planned
+
+

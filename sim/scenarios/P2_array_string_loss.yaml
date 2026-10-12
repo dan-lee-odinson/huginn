@@ -1,0 +1,30 @@
+# Campaign pass P2 - array string output loss, fault (a) of HUG-EPS-004.
+#
+# FMEA FM-EPS-01: generation halves, the spacecraft trends energy-negative with the
+# payload on, the ground sees asymmetric string currents, and SoC declines through
+# the 35% yellow ahead of plan. PROC-002 governs. Four orbits so the decline is
+# visible as a trend rather than a single sample.
+scenario_id: p2-array-string-loss
+description: Array string 1 forced to zero with the payload active; energy-negative trend.
+seed: 20260730
+start_epoch_utc: '2026-07-29T15:36:00Z'
+duration_s: 23040
+initial:
+  soc_pct: 55.0
+  mode: NOMINAL
+  payload_on: false
+illumination:
+  source: schedule
+  eclipse_intervals_s:
+    - [3660, 5760]
+    - [9420, 11520]
+    - [15180, 17280]
+    - [20940, 23040]
+faults:
+  - t_s: 600
+    fault: array_string_zero
+    string: 1
+commands:
+  - t_s: 120
+    mnemonic: CMD_PLD_SET_STATE
+    args: {state: 'ON'}

@@ -1,0 +1,48 @@
+# HUGINN plugin declaration
+#
+# GENERATED FILE — DO NOT EDIT.
+# Source: defs/tlm_cmd.yaml   Generator: tools/gen_openc3_config.py
+# Dictionary version: 0.5
+# Source sha256: 5e1c2750ef9e0d5463f8b2fcb27abeb1dbde63c1b749717ed170cc2bacd60679
+#
+# HUG-GND-001 prohibits hand-edited packet definitions. Edit the source and
+# regenerate; an edit here is overwritten and, per HUG-GND-006, would make the
+# displayed configuration digest disagree with the dictionary of record — a
+# no-go for commanding at pass setup.
+
+VARIABLE huginn_sim_host host.docker.internal
+  VARIABLE_DESCRIPTION "Host running the HUGINN simulator, as seen from inside the container"
+VARIABLE huginn_sim_port 7801
+  VARIABLE_DESCRIPTION "TCP port the simulator serves housekeeping frames on"
+VARIABLE log_retain_time 2592000
+  VARIABLE_DESCRIPTION "Margin covering the window between a pass ending and its evidence being archived (default 30 days). NOT the evidence mechanism - see ruling D-008."
+
+TARGET HUGINN HUGINN
+  # B14 / HUG-SYS-006: the ground system's native timestamped telemetry and
+  # command logs ARE the demonstration evidence.
+  #
+  # RETENTION IS A MARGIN, NOT THE MECHANISM (owner ruling D-008). Evidence is
+  # preserved by archiving it into verification/evidence/ at execution time,
+  # digested and committed. This setting only has to cover the window between
+  # a pass ending and its capture - seconds, not days. Relying on it instead
+  # would leave the evidence in a Docker volume that `down -v` destroys and
+  # that expires on a timer, and an empty volume months later cannot be told
+  # apart from a demonstration that never ran.
+  LOG_RETAIN_TIME <%= log_retain_time %>
+  TLM_LOG_CYCLE_TIME 300
+
+INTERFACE HUGINN_INT openc3/interfaces/tcpip_client_interface.py <%= huginn_sim_host %> <%= huginn_sim_port %> <%= huginn_sim_port %> 10.0 None LENGTH 16 16 4 1 BIG_ENDIAN 0 0x4855 None False
+  # LENGTH protocol arguments, all derived from the frame header in
+  # defs/tlm_cmd.yaml: length field at bit 16, 16 bits wide,
+  # counting octets after itself (offset 4), sync marker 0x4855.
+  # fill_fields=False: the record declares no command frame, so outgoing
+  # commands are the bare opcode and arguments the simulator's CommandCodec reads.
+  MAP_TARGET HUGINN
+
+MICROSERVICE STALENESS openc3-huginn-staleness
+  # B6 / HUG-GND-002. On its own clock, not driven by packet arrival - under
+  # HUG-EPS-004(c) no packets arrive, and an outage is the only time this
+  # monitor matters (Dictionary note 1: a halted counter cannot alarm itself).
+  CMD python frame_staleness.py
+  TARGET_NAME HUGINN
+

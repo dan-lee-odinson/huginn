@@ -1,0 +1,71 @@
+THREE B6 ATTEMPTS ON 2026-08-06 THAT ESTABLISH NOTHING, AND WHY EACH ONE DOES NOT
+================================================================================
+
+All three ran after the D-012 monitor fix and after the plugin was reloaded, so the
+subject was the final monitor in every case. None of them is evidence about it.
+
+The passing run of record is the CLEAN SERIAL run that follows these, finished
+2026-08-07T01:39:17Z, in verification/evidence/B6-staleness-halted-counter/.
+
+--------------------------------------------------------------------------------
+RUN 1 -- INSTRUMENT_FAULT. The verdict raced the source it reads.
+   command  : python tools/demonstrate.py b6 b14
+   finished : 2026-08-07T00:33:32Z   (local 2026-08-06 21:05)
+   manifest : INSTRUMENT_FAULT       (the runner's summary line printed FAIL)
+
+   The verdict reads the ground system's PERSISTED bucket log, which COSMOS flushes
+   on a cycle. The run reached its verdict before this run's annunciations had been
+   flushed, so the archived slice carried none of them and the transcript was empty.
+
+   That is exactly what INSTRUMENT_FAULT is for: the monitor's behaviour was not
+   observed, so the run says nothing about the monitor. It is not a FAIL, because
+   FAIL would assert something false about a subject that was working.
+
+   The earlier PASS of the same code was therefore LUCK -- the flush had happened to
+   land in time. Measured afterwards, the flush took 47 s on one run and 1 s on
+   another. The fix was to wait for the durable record to be complete before reading
+   it; that wait is pacing, and what the record then says remains the verdict's.
+
+--------------------------------------------------------------------------------
+RUN 2 -- CONTAMINATED. Overlapped with run 3.
+   command  : python tools/demonstrate.py b6 b14
+   finished : local 2026-08-06 21:29:33
+   reported : B6 PASS, B14 FAIL  -- NEITHER IS EVIDENCE
+
+   This run was still alive when the machine woke from sleep. A second run (run 3)
+   was started at 21:27:27 without first checking that this one was dead, so the two
+   drove the same ground system for roughly two minutes.
+
+   Its B14 FAIL is an artifact of that overlap, not a defect: B14 proves the
+   simulator is off by checking TCP 7801 refuses connections, and run 3's simulator
+   was holding that port open. Its B6 PASS is equally unusable -- run 3 was starting
+   and stopping a simulator underneath it.
+
+--------------------------------------------------------------------------------
+RUN 3 -- CONTAMINATED, then killed mid-B6.
+   command  : python tools/demonstrate.py b6 b14
+   started  : local 2026-08-06 21:27:27
+   ended    : killed (PID 44800 and its simulator 45048) once the overlap was found
+
+   Started while run 2 was still going. Killed rather than allowed to finish, because
+   its B6 phase had already been disturbed by run 2's B14 stopping the simulator. No
+   verdict was reached and none should have been.
+
+--------------------------------------------------------------------------------
+WHAT IS NOT RECOVERABLE
+   Each run wrote into verification/evidence/B6-staleness-halted-counter/ and was
+   overwritten by the next, so the artifact sets -- the operator-log slices, the
+   measurements files -- are gone. What survives is the runner's own output for each
+   run, preserved here verbatim, plus this labelled account.
+
+   That is the same shape as the 2026-08-05 attempt, whose raw slice had rotated away
+   before anyone looked: a labelled transcription is weaker than the artifact and is
+   what there is. The evidence harness overwrites a demonstration directory on re-run
+   and does not archive the previous attempt; a run that establishes nothing therefore
+   leaves no trace unless one is written by hand, as this was.
+
+WHERE EACH STANDS
+   run 1  INSTRUMENT_FAULT -- retained, discharges nothing, refutes nothing
+   run 2  CONTAMINATED     -- retained, both verdicts void
+   run 3  CONTAMINATED     -- retained, no verdict reached
+   B6 is discharged by the clean serial run of 2026-08-07T01:39:17Z, not by these.

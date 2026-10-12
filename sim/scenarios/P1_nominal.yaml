@@ -1,0 +1,29 @@
+# Campaign pass P1 - nominal activation pass (PROC-001).
+#
+# The commissioning shape of CONOPS Sec. 4.1: bring the payload on with SoC well
+# above the 40% activation inhibit, set a sampling rate, and run a full orbit
+# power-positive with the payload active.
+#
+# Geometry is representative until the surrogate reference element set is pinned
+# (HUG-SYS-002, CONOPS Sec. 3.3). Eclipse intervals here are stated explicitly.
+scenario_id: p1-nominal
+description: Nominal activation pass; one full orbit, payload active, no faults.
+seed: 20260729
+start_epoch_utc: '2026-07-29T14:00:00Z'
+duration_s: 5760
+initial:
+  soc_pct: 70.0
+  mode: NOMINAL
+  payload_on: false
+illumination:
+  source: schedule
+  eclipse_intervals_s:
+    - [3660, 5760]
+faults: []
+commands:
+  - t_s: 180
+    mnemonic: CMD_PLD_SET_STATE
+    args: {state: 'ON'}
+  - t_s: 240
+    mnemonic: CMD_PLD_SET_RATE
+    args: {rate: 2.0}

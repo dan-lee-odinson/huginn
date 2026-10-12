@@ -1,0 +1,17 @@
+{
+  "result": {
+    "target_name": "HUGINN",
+    "cmd_name": "CMD_SAFE_ENTER",
+    "cmd_params": {},
+    "range_check": "true",
+    "hazardous_check": "false",
+    "raw": "false",
+    "cmd_string": "cmd_no_hazardous_check(\"HUGINN CMD_SAFE_ENTER\")",
+    "username": "anonymous",
+    "validate": "true",
+    "manual": "false",
+    "log_message": "true",
+    "obfuscated_items": "[]"
+  },
+  "error": null
+}

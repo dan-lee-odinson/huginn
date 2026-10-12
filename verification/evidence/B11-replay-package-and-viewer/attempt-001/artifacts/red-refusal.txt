@@ -1,0 +1,10 @@
+REFUSED: the package violates 3 conformance rule(s) of replay schema 0.9 (3 occurrence(s)).
+  RS-7-10  (1 occurrence(s))
+      rule: Enum members take only their dictionary values.
+      - frames[0].eps_mode is 'TURBO', not a dictionary value of EPS_MODE
+  RS-7-12  (1 occurrence(s))
+      rule: eps_batt_soc lies in [0, 100].
+      - frames[0].eps_batt_soc is 101.0, must be in [0, 100]
+  RS-7-18  (1 occurrence(s))
+      rule: meta.pass_id equals the package filename stem exactly - byte-exact, which the lowercase-only grammar makes sufficient on case-insensitive and case-sensitive filesystems alike (G001-13 F-06, G001-14 F-01).
+      - pass_id 'b11-demo-001' is not byte-equal to the filename stem 'b11-demo-001-perturbed'

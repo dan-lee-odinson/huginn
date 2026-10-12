@@ -1,0 +1,133 @@
+/* VÉ viewer styling.
+ *
+ * NO COLOUR HERE ENCODES A LIMIT DECISION. The renderer sets data-state="green" |
+ * "yellow" | "red" | "none" from VE_LIMITS, which is generated from the dictionary
+ * (HUG-UI-005); this file only says what those states look like. A threshold expressed
+ * in a stylesheet would be a limit the viewer defined for itself.
+ *
+ * data-state="none" is its own appearance, deliberately. A point with no reading, or a
+ * side with no limit, must not look like a point that is inside its limits -- an
+ * operator reading grey as green is the display lying quietly.
+ */
+
+:root {
+  --bg: #10141a;
+  --panel: #171d26;
+  --ink: #d8e0ea;
+  --muted: #8b98a9;
+  --grid: #232c39;
+  --green: #3fb950;
+  --yellow: #d29922;
+  --red: #f85149;
+  --track: #58a6ff;
+  --contact: #3fb950;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 16px;
+  background: var(--bg);
+  color: var(--ink);
+  font: 13px/1.5 "Segoe UI", system-ui, sans-serif;
+}
+
+h1 { font-size: 18px; margin: 0 0 4px; font-weight: 600; }
+h2 { font-size: 13px; margin: 0 0 8px; color: var(--muted);
+     text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+
+.banner {
+  border: 1px solid var(--grid);
+  border-left: 3px solid var(--track);
+  padding: 8px 12px;
+  margin-bottom: 14px;
+  background: var(--panel);
+  color: var(--muted);
+}
+.banner strong { color: var(--ink); }
+
+.grid { display: grid; grid-template-columns: 1fr 300px; gap: 14px; align-items: start; }
+.panel { background: var(--panel); border: 1px solid var(--grid); padding: 12px;
+         margin-bottom: 14px; }
+
+svg { display: block; width: 100%; height: auto; background: #0c1016;
+      border: 1px solid var(--grid); }
+
+/* --- orbit view */
+.ground-track { fill: none; stroke: var(--track); stroke-width: 1.4; opacity: 0.85; }
+.contact-window { fill: none; stroke: var(--contact); stroke-width: 3.5; opacity: 0.9; }
+.spacecraft { fill: #fff; stroke: var(--track); stroke-width: 2; }
+.eclipse-band { fill: #000; opacity: 0.35; }
+
+/* --- power flow */
+.flow { stroke-linecap: round; }
+.flow-in { stroke: var(--green); }
+.flow-out { stroke: var(--yellow); }
+.flow-label { fill: var(--muted); font-size: 11px; }
+.node { fill: var(--panel); stroke: var(--grid); stroke-width: 1.5; }
+.node-label { fill: var(--ink); font-size: 11px; text-anchor: middle; }
+
+/* --- trends. Band colours are appearance; the numbers are the dictionary's. */
+.band-red { fill: var(--red); opacity: 0.16; }
+.band-yellow { fill: var(--yellow); opacity: 0.14; }
+.trend-line { fill: none; stroke: var(--track); stroke-width: 1.6; }
+.cursor { stroke: #fff; stroke-width: 1; opacity: 0.6; }
+
+/* --- readouts and annunciators */
+.readout { display: flex; justify-content: space-between; padding: 3px 0;
+           border-bottom: 1px solid var(--grid); }
+.readout:last-child { border-bottom: none; }
+.readout .label { color: var(--muted); }
+.readout .value { font-variant-numeric: tabular-nums; }
+
+[data-state="green"] .value { color: var(--green); }
+[data-state="yellow"] .value { color: var(--yellow); font-weight: 600; }
+[data-state="red"] .value { color: var(--red); font-weight: 700; }
+[data-state="none"] .value { color: var(--muted); font-style: italic; }
+
+/* --- events. Text arrives already encoded by the Python sink. */
+.events { max-height: 260px; overflow-y: auto; }
+.event { padding: 4px 6px; border-left: 3px solid var(--grid); margin-bottom: 3px;
+         font-variant-numeric: tabular-nums; }
+.event[data-sev="warn"] { border-left-color: var(--yellow); }
+.event[data-sev="crit"] { border-left-color: var(--red); }
+.event[data-past="no"] { opacity: 0.3; }
+.event .t { color: var(--muted); margin-right: 8px; }
+
+/* --- scrubber */
+.controls { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+.controls input[type="range"] { flex: 1; }
+button { background: var(--grid); color: var(--ink); border: 1px solid var(--muted);
+         padding: 4px 14px; cursor: pointer; font: inherit; }
+button:hover { background: var(--muted); color: var(--bg); }
+.clock { font-variant-numeric: tabular-nums; color: var(--muted); }
+.clock strong { color: var(--ink); }
+
+/* --- orbit view additions.
+ *
+ * Eclipse is drawn ON the track, not as a shade over the map: the spacecraft is in
+ * eclipse, not a region of the Earth, and a rectangle across the map would say the
+ * wrong thing about where. The first version created those rectangles and never
+ * appended them, so eclipse state -- named in HUG-UI-004 -- did not render at all.
+ */
+.graticule { stroke: var(--grid); stroke-width: 0.5; }
+.graticule.equator { stroke: var(--muted); stroke-width: 0.8; }
+.ground-track.sunlit { stroke: var(--track); }
+.ground-track.eclipse { stroke: #6272a4; stroke-dasharray: 4 3; }
+.ground-station { fill: var(--yellow); stroke: none; }
+.eclipse-span { fill: #000; opacity: 0.45; }
+
+/* --- power flow animation.
+ *
+ * The dashes travel along each conductor, so direction is visible rather than inferred
+ * from a colour legend. Width is set by the renderer from the current magnitude; motion
+ * is CSS, so it costs no timer and stops cleanly for a reader who prefers no motion.
+ */
+.flow { stroke-dasharray: 6 6; animation: flow-travel 1.1s linear infinite; }
+.flow-out { animation-direction: reverse; }
+@keyframes flow-travel { to { stroke-dashoffset: -12; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .flow { animation: none; }
+}

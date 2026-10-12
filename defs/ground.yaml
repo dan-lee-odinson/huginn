@@ -1,0 +1,68 @@
+# =============================================================================
+# HUGINN ground segment - deployment pin
+#
+# The single source for how the ground segment is deployed. Check G16 binds every
+# value here to the vendored compose project, so the two cannot drift.
+#
+# Pinned by owner instruction and recorded at DECISIONS.md D-007.
+# =============================================================================
+
+openc3:
+  version: '7.2.1'
+  # PINNED, never `latest`. Two record obligations depend on it:
+  #   HUG-SYS-003 - campaign results reproducible across runs. A ground system that
+  #     silently changed version between passes would break that without a diff.
+  #   HUG-GND-006 / B10 - the loaded configuration's version and digest are verified
+  #     against the dictionary of record at pass setup, mismatch = no-go. That check
+  #     is only meaningful if the system doing the checking is itself fixed.
+  # Upstream's own project template pins a tag here rather than tracking latest; this
+  # keeps that posture deliberately rather than by inheritance.
+
+  registry: docker.io
+  namespace: openc3inc
+
+deployment:
+  # HUGINN deploys as its OWN COSMOS project, not as a target added to the operator's
+  # training clone. Reasoning in full at DECISIONS.md D-007; the short form is that
+  # B14's evidence, B10's configuration identity and the gate's reproducibility all
+  # require the ground segment to be exactly what this repository says it is.
+  mode: own_project
+  compose_project_name: huginn
+  project_dir: gnd/openc3
+
+  host_ports:
+    # Host side only. The container side stays 2900/2943 - traefik listens on those
+    # inside its own namespace (openc3-traefik/traefik.yaml), and upstream's
+    # NetworkConfiguration.md says to change the first number and leave the last.
+    web: 2910          # upstream default 2900
+    web_secondary: 2953  # upstream default 2943
+
+  # Host ports the operator's separate stock COSMOS demo binds for training. HUGINN
+  # must never bind these. G16 asserts the two sets are disjoint.
+  reserved_by_training_demo: [2900, 2943]
+
+  demo_targets: false
+  # The training clone loads the demo targets; HUGINN loads only its own generated
+  # target, so "the loaded configuration" at pass setup is HUGINN's and nothing else
+  # (HUG-GND-006).
+  #
+  # This is enforced by NOT SETTING OPENC3_DEMO at all. It is a presence flag, not a
+  # boolean: init.sh reads `if [ ! -z $OPENC3_DEMO ]`, so 0 and false both switch the
+  # demo ON. This build ran one bring-up with OPENC3_DEMO=0 and the demo installed
+  # (DECISIONS.md D-009).
+
+  # Targets permitted to exist in HUGINN's instance. Anything else is foreign and
+  # fails tools/ground_targets.py --verify, run as B10 pass-setup preflight.
+  #
+  # UNKNOWN is COSMOS's own built-in catch-all for unroutable packets; it is present
+  # in a bare instance with no plugin installed and is not evidence of contamination.
+  # HUGINN is the target declared by the generated plugin. There is no third entry,
+  # and adding one is a decision rather than a convenience.
+  allowed_targets:
+    - UNKNOWN
+    - HUGINN
+
+  credentials: generated
+  # tools/setup_ground.py writes gnd/openc3/.env from the committed template with
+  # fresh random values. The real .env is gitignored; no working credential is
+  # committed to this repository.

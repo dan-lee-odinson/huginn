@@ -1,0 +1,335 @@
+# =============================================================================
+# HUGINN v0.1 - telemetry & command SINGLE SOURCE
+#
+# This file is the single source for the telemetry and command definitions.
+# Two generated views are produced from it and are never hand-edited:
+#   tools/gen_dictionary.py     -> docs/tlm_cmd_dictionary.md
+#   tools/gen_openc3_config.py  -> gnd/openc3/plugins/openc3-cosmos-huginn/  (OpenC3 COSMOS config)
+#
+# Obligations served: B1, B2 (single source + generated views), HUG-GND-001
+# (no hand-edited packet definitions). Values are the owner-dispositioned values
+# of Dictionary v0.5 - the frozen HUG-G001 record. Changing any of them requires
+# an owner ruling, not an edit.
+# =============================================================================
+
+# One identity: this equals the version in the generated dictionary's title, and
+# the dict_ref.version a replay package binds to (replay_schema.md Sec. 3).
+dictionary_version: '0.5'
+
+document:
+  system_title: 'HUGINN: CubeSat Mission Operations Simulator'
+  doc_title: 'Telemetry & Command Dictionary'
+  section_1_heading: '1. Telemetry (16 points, nominal 1 Hz housekeeping frame)'
+  section_2_heading: '2. Commands (5)'
+  section_3_heading: '3. Packet structure (v0.1)'
+  section_4_heading: 'all items resolved by owner, 2026-07-24'
+  status: |-
+    v0.5, HUG-G001-16 fix revision per Director disposition 2026-07-29 (accept/product, G001-16 F-02): note 2 now distinguishes the two overcharge-protection layers — charge taper as the modeled design protection, and the EPS_BATT_V voltage-high alarm (YH 8.3 V / RH 8.5 V) as the operational alarm receiving the generic contingency response (CONOPS §4.4); only a dedicated procedure step is absent in v0.1. All limit values and previously ratified content unchanged. Prior revision v0.4, HUG-G001 fix revision per owner dispositions of Sol findings 2026-07-25 (accept/product): F-04 → CMD_SYS_RESET counter-epoch acknowledgement defined; F-05 → command accounting bound to the HUG-CMD-007 contract (ledger item 6). This markdown file is the drafting surface; before build, definitions move to `defs/tlm_cmd.yaml` as the single source, from which both the OpenC3 configuration (`tools/gen_openc3_config.py`) and this document (`tools/gen_dictionary.py`) are generated. After that point, editing this file directly is prohibited.
+  limit_provenance_rule: |-
+    limits are authoritative within the simulation and derive from the EPS design envelope defined in this project. Any value borrowed from a public CubeSat reference is cited inline.
+
+# The housekeeping frame: all telemetry points below, in this order, at this rate.
+frame:
+  rate_hz: 1
+  point_count: 16
+  packet_structure: |-
+    One housekeeping packet, 1 Hz, all 16 points above, CCSDS-like framing kept minimal: sync marker, length, MET timestamp, points in dictionary order. Exact byte layout lives in `defs/tlm_cmd.yaml` once authored; this document never specifies bytes by hand.
+
+  # Byte layout. Dictionary Sec. 3 delegates it here and states the order: sync
+  # marker, length, MET timestamp, then the points in dictionary order.
+  #
+  # The MET timestamp in the header IS the CDH_MET point - one field, read once,
+  # exposed to the operator under its dictionary mnemonic. Carrying it twice would
+  # put two mission times in one frame and invite them to disagree.
+  endianness: BIG_ENDIAN
+  header:
+    - name: SYNC
+      bits: 16
+      type: uint
+      value: 0x4855          # 'HU' - frame sync marker
+    - name: LENGTH
+      bits: 16
+      type: uint             # octets following this field
+    - name: CDH_MET          # the MET timestamp of Sec. 3; the dictionary point itself
+      bits: 32
+      type: uint
+
+# -----------------------------------------------------------------------------
+# Telemetry. Frame order is group order then point order within the group.
+#
+# limits.kind vocabulary (each renders one dictionary Limits cell and drives one
+# OpenC3 emission rule):
+#   thresholds  RL/YL/YH/RH at `decimals` places; null = no limit on that side
+#   unalarmed   monitored, no limit definition emitted
+#   state       enum states that annunciate
+#   none        no limits; optional parenthetical qualifier
+#   range       inclusive valid range of a continuous quantity
+#   staleness   ground-side DERIVED no-advance monitor (B6, HUG-GND-002) - not an
+#               onboard limit; a halted counter cannot alarm itself (note 1)
+#   delta       counter-delta annunciation
+# -----------------------------------------------------------------------------
+telemetry_groups:
+  - name: 'EPS'
+    limits_header: 'Limits (RL / YL / YH / RH)'
+    points:
+      - mnemonic: EPS_BATT_V
+        description: 'Battery voltage (2S Li-ion)'
+        type: float
+        bits: 32
+        units: 'V'
+        limits:
+          kind: thresholds
+          decimals: 1
+          rl: 6.8
+          yl: 7.2
+          yh: 8.3
+          rh: 8.5
+      - mnemonic: EPS_BATT_I
+        description: 'Battery current (+charge / −discharge)'
+        type: float
+        bits: 32
+        units: 'A'
+        limits:
+          kind: thresholds
+          decimals: 1
+          rl: -2.5
+          yl: -2.0
+          yh: 2.0
+          rh: 2.5
+      - mnemonic: EPS_BATT_SOC
+        description: 'Battery state of charge'
+        type: float
+        bits: 32
+        units: '%'
+        limits:
+          kind: thresholds
+          decimals: 0
+          rl: 20
+          yl: 35
+          yh: null
+          rh: null
+      - mnemonic: EPS_SA1_I
+        description: 'Solar-array string 1 current'
+        type: float
+        bits: 32
+        units: 'A'
+        limits:
+          kind: unalarmed
+      - mnemonic: EPS_SA2_I
+        description: 'Solar-array string 2 current'
+        type: float
+        bits: 32
+        units: 'A'
+        limits:
+          kind: unalarmed
+      - mnemonic: EPS_BUS_V
+        description: 'Regulated bus voltage'
+        type: float
+        bits: 32
+        units: 'V'
+        limits:
+          kind: thresholds
+          decimals: 2
+          rl: 4.75
+          yl: 4.9
+          yh: 5.1
+          rh: 5.25
+      - mnemonic: EPS_LOAD_I
+        description: 'Total load current'
+        type: float
+        bits: 32
+        units: 'A'
+        limits:
+          kind: thresholds
+          decimals: 1
+          rl: null
+          yl: null
+          yh: 1.5
+          rh: 2.0
+      - mnemonic: EPS_MODE
+        description: 'EPS mode'
+        type: enum
+        bits: 8
+        enum_values: ['NOMINAL', 'LOW_POWER', 'SAFE']
+        units: 'n/a'
+        limits:
+          kind: state
+          annunciates: ['SAFE']
+  - name: 'Environment / dynamics'
+    limits_header: 'Limits'
+    points:
+      - mnemonic: ADM_ECLIPSE
+        description: 'Illumination state'
+        type: enum
+        bits: 8
+        enum_values: ['SUNLIT', 'ECLIPSE']
+        units: 'n/a'
+        limits:
+          kind: none
+          qualifier: 'context'
+  - name: 'Payload'
+    limits_header: 'Limits'
+    points:
+      - mnemonic: PLD_STATE
+        description: 'Payload power state'
+        type: enum
+        bits: 8
+        enum_values: ['OFF', 'ON']
+        units: 'n/a'
+        limits:
+          kind: none
+      - mnemonic: PLD_RATE
+        description: 'Payload sampling rate'
+        type: float
+        bits: 32
+        units: 'Hz'
+        limits:
+          kind: range
+          min: 0.1
+          max: 10
+  - name: 'C&DH / commanding'
+    limits_header: 'Limits'
+    points:
+      - mnemonic: CDH_MET
+        description: 'Mission elapsed time'
+        type: uint32
+        bits: 32
+        units: 's'
+        limits:
+          kind: none
+      - mnemonic: CDH_FRAME_CNT
+        description: 'Telemetry frame counter'
+        type: uint16
+        bits: 16
+        wraps: true
+        units: 'n/a'
+        limits:
+          kind: staleness
+          yellow_s: 10
+          red_s: 30
+      - mnemonic: CDH_CMD_ACC_CNT
+        description: 'Commands accepted counter'
+        type: uint16
+        bits: 16
+        units: 'n/a'
+        limits:
+          kind: none
+      - mnemonic: CDH_CMD_REJ_CNT
+        description: 'Commands rejected counter'
+        type: uint16
+        bits: 16
+        units: 'n/a'
+        limits:
+          kind: delta
+          severity: 'yellow'
+      - mnemonic: CDH_REJ_REASON
+        description: 'Last reject reason'
+        type: enum
+        bits: 8
+        enum_values: ['NONE', 'UNKNOWN_OPCODE', 'ARG_RANGE', 'MODE_INHIBIT']
+        units: 'n/a'
+        limits:
+          kind: none
+
+# Dictionary notes 1-3, rendered under section 1.
+telemetry_notes:
+  - |-
+    Staleness on CDH_FRAME_CNT is a ground-side derived monitor (OpenC3 derived telemetry), since a halted counter cannot alarm itself. This is the detection path PROC-003 depends on.
+  - |-
+    SoC has no high limits. Overcharge protection has two distinct layers in v0.1 (G001-16 F-02): charge taper at full charge is the modeled design protection, and the EPS_BATT_V voltage-high alarm (YH 8.3 V / RH 8.5 V) is the operational alarm, whose response is the generic contingency path (CONOPS §4.4). The accepted v0.1 limitation is the absence of a dedicated battery-voltage-high procedure step (FMEA §8 item 5), not of alarm coverage.
+  - |-
+    Battery temperature is deliberately absent: thermal is excluded from v0.1 scope. It is the first candidate telemetry addition in v0.2.
+
+# -----------------------------------------------------------------------------
+# Commands. `hazardous` drives OpenC3 two-step confirmation (B7, FM-CDH-04).
+# `opcode` is the wire identifier; an opcode outside this set is the
+# UNKNOWN_OPCODE rejection of HUG-CMD-001. Enum wire codes are not listed
+# separately: an enum member's code is its zero-based index in `enum_values`,
+# so the member list is the single source for both the spelling and the code.
+# `thresholds` names the numeric values the record states inside `rules`; the
+# defs-generation checker binds each one to its occurrence in that prose, so a
+# value cannot drift between the structured source and the normative sentence.
+# -----------------------------------------------------------------------------
+commands:
+  - mnemonic: CMD_PLD_SET_STATE
+    opcode: 1
+    hazardous: false
+    args:
+      - name: state
+        type: enum
+        enum_values: ['OFF', 'ON']
+    thresholds:
+      payload_on_soc_min_pct: 40
+    rules: |-
+      ON rejected (MODE_INHIBIT) if EPS_MODE = SAFE or EPS_BATT_SOC < 40%
+    effect: |-
+      Switches payload load; PLD_STATE follows
+  - mnemonic: CMD_PLD_SET_RATE
+    opcode: 2
+    hazardous: false
+    args:
+      - name: rate
+        type: float
+        units: 'Hz'
+        min: 0.1
+        max: 10
+    thresholds:
+      rate_min_hz: 0.1
+      rate_max_hz: 10
+    rules: |-
+      Rejected (ARG_RANGE) outside 0.1-10 Hz; rejected (MODE_INHIBIT) if PLD_STATE = OFF
+    effect: |-
+      Sets PLD_RATE
+  - mnemonic: CMD_SAFE_ENTER
+    opcode: 3
+    hazardous: true
+    args: []
+    thresholds: {}
+    rules: |-
+      Always accepted (HUG-CMD-004); flagged hazardous in OpenC3 → two-step confirmation on the ground side
+    effect: |-
+      EPS_MODE → SAFE; payload shed
+  - mnemonic: CMD_SYS_RESET
+    opcode: 4
+    hazardous: true
+    args: []
+    thresholds: {}
+    rules: |-
+      Flagged hazardous; two-step confirmation
+    effect: |-
+      Clears stale-telemetry fault; reinitializes command counters to zero and then applies its own acceptance, so the first post-reset frame reads CDH_CMD_ACC_CNT = 1 / CDH_CMD_REJ_CNT = 0 — that epoch IS the reset acknowledgement; preserves SoC (HUG-CMD-005)
+  - mnemonic: CMD_MODE_SET
+    opcode: 5
+    hazardous: true
+    args:
+      - name: target
+        type: enum
+        enum_values: ['NOMINAL', 'LOW_POWER']
+    thresholds:
+      recovery_floor_nominal_pct: 35
+      recovery_floor_low_power_pct: 25
+    rules: |-
+      Rejected (ARG_RANGE) for any other target (SAFE entry is CMD_SAFE_ENTER's function); rejected (MODE_INHIBIT) if EPS_BATT_SOC < 35% for NOMINAL or < 25% for LOW_POWER; flagged hazardous → two-step confirmation (HUG-CMD-006)
+    effect: |-
+      EPS_MODE → target. Transition to LOW_POWER sheds the payload load (consistent with HUG-EPS-003); transition to NOMINAL does not re-enable the payload (re-activation via CMD_PLD_SET_STATE, subject to its inhibits)
+
+# Normative paragraphs rendered after the command table.
+command_accounting: |-
+  Command accounting (contract per HUG-CMD-007): exactly-once — each received command increments exactly one of CDH_CMD_ACC_CNT / CDH_CMD_REJ_CNT by exactly one, with the increment and any commanded effect visible no later than the next housekeeping frame (≤ 1 s at the nominal rate). Rejections additionally set CDH_REJ_REASON. Operators verify effect by counter delta plus the affected telemetry point, per procedure steps. CMD_SYS_RESET is the sole exception to simple delta arithmetic: its acknowledgement is the post-reset counter epoch (ACC = 1, REJ = 0). No counter delta within 10 s of a verified send = the loss-of-commandability declaration threshold for PROC-003.
+mode_authority_rule: |-
+  Mode-authority rule (FMEA REC-01 resolution): autonomous mode transitions are downward only (NOMINAL → LOW_POWER → SAFE, per HUG-EPS-003); every upward transition is a deliberate ground act via CMD_MODE_SET. The recovery floors (35%/25%) sit 5 points above the autonomous entry thresholds (30%/20%) so a commanded recovery cannot immediately re-trip the ladder.
+
+# Owner disposition ledger, rendered as section 4.
+disposition_ledger:
+  - |-
+    Resolved: 2S battery configuration and all limits ratified as drafted. Build-time check retained as a verification item: each limit must catch its fault case (string failure eventually crosses the SoC yellow; stuck-on load crosses EPS_LOAD_I yellow before red).
+  - |-
+    Resolved: 16 points confirmed as the v0.1 set. Deliberately excluded until v0.2: battery temperature (thermal excluded), per-load current breakdown, ground-side uplink counters.
+  - |-
+    Resolved: staleness thresholds 10 s yellow / 30 s red, married to PROC-003 decision points.
+  - |-
+    Ground station named GS-RAVENSROOST (fictional single terminal, central Florida coordinates recorded in the repo).
+  - |-
+    Resolved (2026-07-25, FMEA v0.2 REC-01): CMD_MODE_SET added as the fifth command with the mode-authority rule above; recovery floors 35% (NOMINAL) / 25% (LOW_POWER) ratified with the FMEA disposition.
+  - |-
+    Resolved (2026-07-25, HUG-G001 F-04/F-05, owner: accept/product): CMD_SYS_RESET post-reset counter epoch (ACC=1/REJ=0) defined as the reset acknowledgement; command accounting bound to the HUG-CMD-007 exactly-once contract with ≤1-frame visibility and the 10 s PROC-003 threshold.

@@ -1,0 +1,10 @@
+# HUGINN build-phase dependencies.
+#
+# Pinned rather than floating: HUG-SYS-003 requires bit-for-bit reproducibility across
+# runs, and a propagator that changed version under the campaign would break it.
+# Added under owner ruling D-003 item 2 ("sgp4 + analytical sun").
+#
+# Everything else in this repository is Python standard library plus PyYAML.
+
+PyYAML==6.0.3
+sgp4==2.27

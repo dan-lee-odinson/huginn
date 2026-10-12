@@ -1,0 +1,48 @@
+# B11 conformance verdict
+
+package: b11-demo-001.json
+package_sha256: 84eb716c7c68df9c66cf83ca797649558f07ef948491d7f7bfeb4db6b0cdd820
+schema: 0.9
+result: CONFORMS
+violations: 0
+
+# rule accounting
+rules_declared: 32
+rules_in_check: 29
+rules_at_viewer: 3
+rules_in_both: 0
+rules_in_neither: 0
+
+# every declared rule, and the site that implements it
+RS-2-01: check
+RS-2-02: check
+RS-2-03: check
+RS-2-04: viewer:odin.viewer.build
+RS-2-05: check
+RS-3-01: check
+RS-4-01: check
+RS-4-02: viewer:odin.interpolate
+RS-5-01: check
+RS-5-02: check
+RS-6-01: check
+RS-6-02: check
+RS-7-01: check
+RS-7-02: check
+RS-7-03: check
+RS-7-04: check
+RS-7-05: check
+RS-7-06: check
+RS-7-07: check
+RS-7-08: check
+RS-7-09: check
+RS-7-10: check
+RS-7-11: check
+RS-7-12: check
+RS-7-13: check
+RS-7-14: check
+RS-7-15: check
+RS-7-16: check
+RS-7-17: check
+RS-7-18: check
+RS-7-19: check
+RS-7-20: viewer:odin.conformance

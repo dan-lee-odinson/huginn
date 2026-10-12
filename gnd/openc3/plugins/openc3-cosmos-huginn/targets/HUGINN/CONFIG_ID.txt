@@ -1,0 +1,11 @@
+# Loaded-configuration identity.
+#
+# HUG-GND-006 / B10: the ground system displays this version and digest at
+# pass setup, and PROC-001's pre-pass step verifies them against the
+# dictionary of record. A mismatch is a no-go for commanding until resolved.
+# It is also the value a replay package's meta.dict_ref carries
+# (replay_schema.md Sec. 3).
+
+DICTIONARY_VERSION 0.5
+SOURCE_SHA256 5e1c2750ef9e0d5463f8b2fcb27abeb1dbde63c1b749717ed170cc2bacd60679
+

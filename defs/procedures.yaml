@@ -1,0 +1,1682 @@
+# HUGINN operating procedures — the single source.
+#
+# PROC-001 nominal activation pass, PROC-002 low-battery response, PROC-003
+# loss-of-telemetry-or-command response (HUG-OPS-001).
+#
+# WHY THE PROCEDURES ARE STRUCTURED AND NOT ONLY PROSE.
+# HUG-OPS-002 requires post-pass review to compare a completion record against "the
+# governing procedure", and requires exactly one entry per step. A validator can only do
+# that against a procedure it can read. Written as prose alone, either the validator
+# parses English — which will disagree with the operator's reading on the day it matters —
+# or it carries a second copy of the step list, which is the private copy this build has
+# removed twice already. So: this file is the procedure, `procedures/PROC-00N.md` is
+# generated from it for the human executing it, and `tools/pass_report.py` validates
+# against it. One source, two readers.
+#
+# EVERY STEP CARRIES role AND checks (HUG-OPS-001), AND EVERY DECISION STEP NAMES THE
+# OBSERVATION THAT SELECTS EACH BRANCH — not only the branch that goes well. A decision
+# step whose unhappy branch has no stated observation is one an operator cannot execute
+# under stress, which is the only time it is read.
+
+procedures_version: '0.3'
+
+#: The roles the CONOPS names. One operator wears all three in v0.1; they are named
+#: separately because procedures assign steps to roles, and separating them on paper is
+#: what lets more than one person execute them later (CONOPS Sec. 6).
+roles:
+  - id: FD
+    name: Flight Director
+    authority: >-
+      Declares anomalies, authorizes commanding, gives the go/no-go. The only role that
+      may accept a NO-GO condition or an omitted step's risk.
+  - id: EPS
+    name: EPS Officer
+    authority: >-
+      Operates the ground system, reads telemetry, sends commands, verifies effects.
+  - id: PLAN
+    name: Ops Planner
+    authority: >-
+      Builds the pass plan, files the pass report, runs post-pass review.
+
+#: Completion states, from HUG-OPS-002's bounded set. Listed here so the validator reads
+#: them from the record rather than carrying its own copy.
+# -----------------------------------------------------------------------------
+# OPERATOR CONTEXT (OF-014). Rendered at the top of every generated procedure.
+#
+# The procedures were written for someone who already knew the program. The
+# Director halted at PROC-001-S01 because no step said which application to open,
+# which file the pass plan was, or where a recorded value goes. Nothing below is
+# new capability -- every command here already existed in gnd/RUNBOOK.md. What was
+# missing was any path from a step to the mechanism that performs it.
+# -----------------------------------------------------------------------------
+operator_context:
+  console: |-
+    The ground system is OpenC3 COSMOS. Its console is a WEB PAGE, not a desktop
+    application: open **http://localhost:2910** in a browser. That page is "the ground
+    system" wherever these procedures say it.
+
+    Navigation is the **menu sidebar on the left**. Four tools there are used below:
+
+    | Tool | Use it to |
+    |---|---|
+    | Packet Viewer | Read the current value of a telemetry point. Target HUGINN, packet HK. |
+    | Telemetry Grapher | Watch a point over time. Use this wherever a step says trend. |
+    | Command Sender | Send a command. Target HUGINN. |
+    | CmdTlmServer | See the link and the staleness alarm. The Interfaces tab shows HUGINN_INT's state and its Tlm pkts, the ground's received count. The Log Messages list at the bottom carries the staleness monitor's lines: type staleness in its Search box, and the newest line is the current level. |
+  shell: |-
+    Commands shown as `python tools/...` are typed in a terminal. On Windows use
+    PowerShell or Git Bash. The terminal's working directory must be the repository
+    root - the folder containing `BUILD_HANDOFF.md`.
+
+    If `python` is not found, or a command fails on a missing module, see
+    `gnd/RUNBOOK.md` under "Operator environment" for which interpreter to use and how
+    to install what is missing. To check the environment before you need it:
+
+    ```
+    python tools/check_deps.py --preflight
+    ```
+  pass_plan: |-
+    **The pass plan and the campaign plan are the same document.** It is
+    `campaign/CAMPAIGN_PLAN.md`. The pass plan is the part of it that concerns the pass
+    you are flying: the PASS-n section, plus the row for that pass's contact in the
+    computed-week table.
+
+    If the file is not there, produce it:
+
+    ```
+    python tools/gen_campaign.py
+    ```
+  pass_id: |-
+    Every pass has an identifier of the form `YYYY-MM-DD-Pn` - the UTC date of the
+    contact, then the pass number from the campaign plan. The campaign's first pass is
+    `2026-07-29-P1`.
+
+    You do not invent it; you read it off the campaign plan. Use the same string in
+    three places: the `pass_setup` command, the report directory name, and the
+    `pass_id:` field inside the report.
+  records: |-
+    Everything a step lists under **Records** goes into one file: your pass report.
+    Create it before the pass.
+
+    1. Open a terminal (PowerShell or Git Bash) and change to the repository root -
+       the folder containing `BUILD_HANDOFF.md`.
+
+    2. Create the directory for this pass. Replace `2026-07-29-P1` with your pass
+       identifier here and in every command that follows.
+
+       ```
+       mkdir -p docs/pass_reports/2026-07-29-P1
+       ```
+
+    3. Create the report from the template. **This is one command on one line**; if it
+       appears wrapped on your screen, it is still one line.
+
+       ```
+       python tools/pass_report.py --template PROC-001 > docs/pass_reports/2026-07-29-P1/report.yaml
+       ```
+
+    4. Open `docs/pass_reports/2026-07-29-P1/report.yaml` in a text editor. It already
+       contains one block per step, in order, each reading `state: CHANGE-ME`.
+
+    5. As you execute each step, find the block whose `step:` matches it and fill it in.
+       Each step below shows you the exact lines to write.
+
+    Times are written in UTC, in quotes, ending in Z - `'2026-07-29T14:36:30Z'`. Numbers
+    are written without units.
+  validate: |-
+    Check your report as often as you like, and always before filing it. **This is one
+    command on one line**, even if your screen wraps it:
+
+    ```
+    python tools/pass_report.py --validate docs/pass_reports/2026-07-29-P1/report.yaml
+    ```
+
+    It prints `[PASS]`, or it names every step whose block is missing, unfilled or
+    inconsistent. A report straight from the template FAILS - every step still reads
+    `CHANGE-ME` - so a report nobody filled in cannot be mistaken for one that was.
+  evidence: |-
+    Do not copy files into `verification/evidence/` by hand. Demonstrations write there
+    as they run. If you find yourself moving a file into that directory, stop and ask -
+    a file placed there by hand will not verify.
+
+completion_states: [completed, not_applicable, omitted]
+
+# A step marked repeatable is one this procedure itself orders re-run inside a single
+# pass. It does NOT get a second completion entry — HUG-OPS-002 says exactly one entry
+# per step — it gets one entry carrying every attempt, so the record shows the re-run
+# instead of quietly reporting only the attempt that worked.
+repeatable_steps_note: >-
+  See the repeatable: true flag on individual steps.
+
+procedures:
+
+  # ============================================================== PROC-001
+  - id: PROC-001
+    title: Nominal activation pass
+    governs: >-
+      A routine contact: pass setup, acquisition, state-of-health assessment, the
+      commanding window, final snapshot and the pass report. Commissioning's first
+      payload activation is this procedure (CONOPS Sec. 4.1).
+
+      At any point in the contact, a staleness line reading YELLOW or RED in
+      CmdTlmServer's Log Messages sends you to PROC-003. When PROC-003 is done, return
+      here at the step after the last one you completed.
+    steps:
+
+      - id: PROC-001-S01
+        mechanism:
+          open: 'campaign/CAMPAIGN_PLAN.md'
+          run: |-
+            python tools/gen_campaign.py
+          expect: >-
+            The command prints a line like `19 contacts: 16 usable for commanding, 19 for
+            telemetry` and `4 passes planned`. Open campaign/CAMPAIGN_PLAN.md, find the PASS-n
+            section for the pass you are flying, and note the contact number it names. Then find
+            that number's row in the computed-week table: it gives the contact's start second,
+            its length above the mask, and whether commanding is allowed on it.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-001-S01` and make it read:
+
+            ```yaml
+              - step: PROC-001-S01
+                role: PLAN
+                operator: YOUR NAME
+                state: completed
+                records:
+                  predicted_soc_pct: 38
+                  window_aos_utc: '2026-07-29T14:36:30Z'
+                  window_los_utc: '2026-07-29T14:44:00Z'
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+          placeholders:
+            "<pass-id>": >-
+              The pass identifier, form YYYY-MM-DD-Pn, read off campaign/CAMPAIGN_PLAN.md. The
+              campaign's first pass is 2026-07-29-P1.
+        role: PLAN
+        when: AOS - 15 min
+        action: >-
+          Review the pass plan: contact window, predicted elevation profile, eclipse
+          timing relative to the pass, planned commands, and the state of charge the
+          plan predicts at acquisition.
+        checks: []
+        records: [predicted_soc_pct, window_aos_utc, window_los_utc]
+        applicability: always
+
+      - id: PROC-001-S02
+        mechanism:
+          open: 'gnd/RUNBOOK.md'
+          run: |-
+            cd gnd/openc3 && docker compose up -d && cd ../..
+            python tools/pass_setup.py --pass-id <pass-id>
+          expect: >-
+            `docker compose up -d` ends with the openc3-* containers reported Started or
+            Running; give it a minute on a cold start. http://localhost:2910 then loads the
+            COSMOS console. `pass_setup.py` prints four condition lines - identity vs
+            dictionary, loaded vs repository, target inventory, configuration digest - each PASS
+            or FAIL, then a final line reading `Verdict: GO` or `Verdict: NO-GO`.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-001-S02` and make it read:
+
+            ```yaml
+              - step: PROC-001-S02
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                records:
+                  pass_setup_verdict: GO
+                  identity_vs_dictionary_result: PASS
+                  loaded_vs_repository_result: PASS
+                  target_inventory_result: PASS
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+          placeholders:
+            "<pass-id>": >-
+              The pass identifier, form YYYY-MM-DD-Pn, read off campaign/CAMPAIGN_PLAN.md. The
+              campaign's first pass is 2026-07-29-P1.
+        repeatable: true
+        role: EPS
+        when: AOS - 5 min
+        action: >-
+          Bring up the ground system and run the pre-pass configuration verification.
+          This is the step FM-GND-04 names as the detection and response for loaded-
+          configuration drift, and a mismatch is a no-go.
+        tool: 'python tools/pass_setup.py --pass-id <pass-id>'
+        checks: []
+        # The four CONDITION results, not the one verdict word. A record carrying only
+        # "GO" cannot be reviewed: the tool's own docstring warns that a step reading the
+        # repository and comparing it to the repository would pass with the ground
+        # segment switched off, and only the per-condition results show which comparison
+        # was actually made.
+        records:
+          - pass_setup_verdict
+          - identity_vs_dictionary_result
+          - loaded_vs_repository_result
+          - target_inventory_result
+        applicability: always
+
+      - id: PROC-001-S03
+        mechanism:
+          open: 'campaign/CAMPAIGN_PLAN.md'
+          expect: >-
+            You are reading the verdict line PROC-001-S02 just printed. GO if it said `Verdict:
+            GO`; NO-GO if it said NO-GO, and the failing condition is named on the line above
+            it.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-001-S03` and make it read:
+
+            ```yaml
+              - step: PROC-001-S03
+                role: FD
+                operator: YOUR NAME
+                state: completed
+                branch: GO
+                observation: what you saw that made you choose that branch
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+            `branch:` must be one of: 'GO', 'NO-GO'.
+        role: FD
+        when: AOS - 5 min
+        action: Give go or no-go for commanding on this pass.
+        checks: []
+        applicability: always
+        decision:
+          question: Is the loaded configuration the configuration of record?
+          branches:
+            - outcome: GO
+              observation: >-
+                tools/pass_setup.py printed "Verdict: GO" and all four of its conditions
+                read PASS.
+              then: Continue to PROC-001-S04.
+            - outcome: NO-GO
+              observation: >-
+                tools/pass_setup.py printed "Verdict: NO-GO", naming at least one failed
+                condition.
+              then: >-
+                Commanding is not authorized. Reload the generated configuration and
+                re-run PROC-001-S02 (FM-GND-04 note (e)). The no-go is procedural: no
+                technical inhibit is armed, and commanding against it is a procedure
+                violation to be dispositioned as an anomaly.
+
+      - id: PROC-001-S04
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, target HUGINN, packet HK'
+          expect: >-
+            CDH_FRAME_CNT shows a number that increases each time the packet updates. Read it
+            twice, a second or so apart, and note both. The staleness annunciator is the
+            newest staleness line in CmdTlmServer's Log Messages list (type staleness in its
+            Search box); at frame lock it reads GREEN.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-001-S04` and make it read:
+
+            ```yaml
+              - step: PROC-001-S04
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                records:
+                  first_frame_utc: '2026-07-29T14:36:32Z'
+                  cdh_frame_cnt_first: 4471
+                  cdh_frame_cnt_second: 4472
+                  staleness_annunciator_state: GREEN
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        role: EPS
+        when: AOS
+        action: >-
+          Confirm telemetry frame lock by recording CDH_FRAME_CNT in two consecutive
+          housekeeping frames. Record the two values, not "the monitor is green": green
+          is the ABSENCE of an annunciation and is produced identically by a healthy
+          spacecraft and by a monitor that cannot read at all. This build has already
+          seen a staleness monitor annunciate a textbook transcript while never once
+          reading the counter, and a monitor blind since start-up reads
+          NO_READ rather than green.
+        checks: [CDH_FRAME_CNT]
+        records: [first_frame_utc, cdh_frame_cnt_first, cdh_frame_cnt_second,
+                  staleness_annunciator_state]
+        applicability: always
+
+      - id: PROC-001-S05
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, target HUGINN, packet HK'
+          expect: >-
+            Acquired: the two CDH_FRAME_CNT readings from S04 differ and the annunciator is
+            GREEN. Not acquired: the readings are identical, or no packet is updating at all.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-001-S05` and make it read:
+
+            ```yaml
+              - step: PROC-001-S05
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                branch: acquired
+                observation: what you saw that made you choose that branch
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+            `branch:` must be one of: 'acquired', 'not acquired'.
+        role: EPS
+        when: AOS
+        action: Determine whether telemetry has been acquired.
+        checks: [CDH_FRAME_CNT]
+        applicability: always
+        decision:
+          question: Is CDH_FRAME_CNT advancing?
+          branches:
+            - outcome: acquired
+              observation: >-
+                CDH_FRAME_CNT increases between two consecutive housekeeping frames and
+                the ground-side staleness annunciator reads GREEN.
+              then: Continue to PROC-001-S06.
+            - outcome: not acquired
+              observation: >-
+                CDH_FRAME_CNT does not advance for 10 s and the staleness annunciator
+                reads YELLOW or RED.
+              then: Execute PROC-003. This pass's remaining steps are omitted or
+                not applicable per their own conditions.
+
+      - id: PROC-001-S06
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, target HUGINN, packet HK'
+          expect: >-
+            All six points readable in one view: EPS_BATT_V, EPS_BATT_SOC, EPS_BATT_I,
+            EPS_SA1_I, EPS_SA2_I, ADM_ECLIPSE. Compare EPS_BATT_SOC against the
+            predicted_soc_pct you recorded at S01 and note the difference.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-001-S06` and make it read:
+
+            ```yaml
+              - step: PROC-001-S06
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                records:
+                  eps_batt_v_at_aos2: 7.31
+                  soc_pct_at_aos2: 37.4
+                  soc_delta_vs_plan_pct: -0.6
+                  eps_sa1_i_at_aos2: 1.70
+                  eps_sa2_i_at_aos2: 1.68
+                  adm_eclipse_at_aos2: SUNLIT
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        role: EPS
+        when: AOS + 2 min
+        action: >-
+          Complete the state-of-health assessment: EPS panel, battery voltage and state
+          of charge against the plan, and both array-string currents against the
+          illumination state.
+        checks: [EPS_BATT_V, EPS_BATT_SOC, EPS_SA1_I, EPS_SA2_I, ADM_ECLIPSE, EPS_MODE]
+        # Values, not "panel green". An operator can write "green" for a panel whose
+        # limits never loaded; they cannot write a battery voltage they did not read.
+        records: [eps_batt_v_at_aos2, soc_pct_at_aos2, soc_delta_vs_plan_pct,
+                  eps_sa1_i_at_aos2, eps_sa2_i_at_aos2, adm_eclipse_at_aos2]
+        applicability: always
+
+      - id: PROC-001-S07
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer; limit colours are shown beside each value'
+          expect: >-
+            Nominal: no value shown yellow or red, SoC above 35 %, EPS_BATT_I positive while
+            ADM_ECLIPSE reads SUNLIT. Limit response required: any yellow or red, or EPS_MODE
+            reading SAFE. Autonomous protection did not actuate: SoC below 30 % while EPS_MODE
+            still reads NOMINAL.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-001-S07` and make it read:
+
+            ```yaml
+              - step: PROC-001-S07
+                role: FD
+                operator: YOUR NAME
+                state: completed
+                branch: nominal
+                observation: what you saw that made you choose that branch
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+            `branch:` must be one of: 'nominal', 'limit response required', 'autonomous protection did not actuate'.
+        role: FD
+        when: AOS + 2 min
+        action: Determine whether the spacecraft is within its operating envelope.
+        checks: [EPS_BATT_SOC, EPS_BATT_V, EPS_LOAD_I, EPS_MODE]
+        applicability: always
+        decision:
+          question: Is any alarmed limit violated, or the energy balance negative?
+          branches:
+            - outcome: nominal
+              observation: >-
+                No annunciator reads YELLOW or RED, and EPS_BATT_I is non-negative or
+                consistent with the illumination state.
+              then: Continue to PROC-001-S08.
+            - outcome: limit response required
+              observation: >-
+                Any of EPS_BATT_SOC at or below 35 %, EPS_BATT_V at or below 7.2 V,
+                EPS_LOAD_I at or above 1.5 A, or EPS_MODE reading SAFE.
+              then: Execute PROC-002. Return here only if PROC-002 closes with the
+                spacecraft in a commanded stable configuration.
+            - outcome: autonomous protection did not actuate
+              observation: >-
+                EPS_BATT_SOC below 30 % while EPS_MODE still reads NOMINAL. The ladder
+                should already have entered LOW_POWER at 30 %; that it has not is the
+                ground cross-check FM-EPS-10 names, and the yellow limit at 35 % exists
+                to precede this point by design so the ground sees it coming.
+              then: >-
+                Execute PROC-002 AND declare an anomaly: the spacecraft's autonomous
+                protection is not acting. Do not assume the ladder will catch the next
+                threshold — it did not catch this one.
+
+      - id: PROC-001-S08
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, EPS_BATT_SOC'
+          expect: >-
+            A single reading of EPS_BATT_SOC, taken now rather than reused from S06 - the
+            inhibit is checked against the value at the moment of commanding.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-001-S08` and make it read:
+
+            ```yaml
+              - step: PROC-001-S08
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                records:
+                  soc_pct_at_activation_check: 41.2
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        role: EPS
+        when: commanding window
+        action: >-
+          Confirm the payload activation inhibit is satisfied before requesting
+          authorization.
+        checks: [EPS_BATT_SOC]
+        records: [soc_pct_at_activation_check]
+        applicability: >-
+          Applicable when the pass plan includes a payload activation. Not applicable on
+          a pass whose plan contains no activation — state that in the completion record
+          as the basis.
+
+      - id: PROC-001-S09
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, EPS_BATT_SOC; and the reading you recorded at PROC-001-S08'
+          expect: >-
+            Authorized if the S08 reading is ABOVE 40 %. Withheld if it is at or below 40 % -
+            the spacecraft would reject the command anyway (HUG-CMD-002), and sending it to
+            watch it fail is not a test, it is a rejection you chose.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-001-S09` and make it read:
+
+            ```yaml
+              - step: PROC-001-S09
+                role: FD
+                operator: YOUR NAME
+                state: completed
+                branch: authorized
+                observation: what you saw that made you choose that branch
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+            `branch:` must be one of: 'authorized', 'withheld'.
+        role: FD
+        when: commanding window
+        action: Authorize or withhold the payload activation.
+        checks: [EPS_BATT_SOC]
+        applicability: >-
+          Applicable when the pass plan includes a payload activation.
+        decision:
+          question: Is EPS_BATT_SOC above the 40 % activation inhibit?
+          branches:
+            - outcome: authorized
+              observation: EPS_BATT_SOC reads above 40 % in the frame checked at
+                PROC-001-S08.
+              then: Continue to PROC-001-S10.
+            - outcome: withheld
+              observation: EPS_BATT_SOC reads at or below 40 % in that frame.
+              then: >-
+                Do not send the activation. PROC-001-S10 through PROC-001-S14 are not
+                applicable for this pass; record the withheld observation as their basis.
+
+      - id: PROC-001-S10
+        mechanism:
+          open: 'http://localhost:2910 - Command Sender, target HUGINN, command CMD_PLD_SET_STATE'
+          expect: >-
+            Choose state = ON and send. The Command Sender shows the command as sent; it does
+            not tell you the spacecraft accepted it, which is what S11 is for.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-001-S10` and make it read:
+
+            ```yaml
+              - step: PROC-001-S10
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                records:
+                  command_sent_utc: '2026-07-29T14:40:00Z'
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        repeatable: true
+        role: EPS
+        when: commanding window
+        action: Send CMD_PLD_SET_STATE with state ON.
+        checks: []
+        records: [command_sent_utc]
+        applicability: Applicable when PROC-001-S09 selected the authorized branch.
+        applicable_when: {step: PROC-001-S09, branch: authorized}
+
+      - id: PROC-001-S11
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, CDH_CMD_ACC_CNT and PLD_STATE'
+          expect: >-
+            CDH_CMD_ACC_CNT one higher than before the send, and PLD_STATE reading ON - both
+            within one housekeeping frame, so about a second. Read the counter BEFORE you send
+            as well as after; a delta needs two numbers.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-001-S11` and make it read:
+
+            ```yaml
+              - step: PROC-001-S11
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                records:
+                  acc_cnt_before: 4471
+                  acc_cnt_after: 4472
+                  pld_state_after: ON
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        repeatable: true
+        role: EPS
+        when: commanding window
+        action: >-
+          Verify the command by counter delta AND by its affected telemetry point.
+          Either alone is insufficient: a counter delta with no state change means the
+          command was accounted and did nothing.
+        checks: [CDH_CMD_ACC_CNT, CDH_CMD_REJ_CNT, PLD_STATE]
+        records: [acc_cnt_before, acc_cnt_after, pld_state_after]
+        applicability: Applicable when PROC-001-S10 was executed.
+        applicable_when: {step: PROC-001-S09, branch: authorized}
+
+      - id: PROC-001-S12
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, CDH_CMD_ACC_CNT, CDH_CMD_REJ_CNT, CDH_REJ_REASON'
+          expect: >-
+            Accepted: accept counter +1 and PLD_STATE ON. Rejected: REJECT counter +1, and
+            CDH_REJ_REASON names the cause. Unacknowledged: NEITHER counter moved within 10 s of
+            the send - that is the threshold, count it.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-001-S12` and make it read:
+
+            ```yaml
+              - step: PROC-001-S12
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                branch: accepted
+                observation: what you saw that made you choose that branch
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+            `branch:` must be one of: 'accepted', 'rejected', 'unacknowledged'.
+        repeatable: true
+        role: EPS
+        when: commanding window
+        action: Determine the outcome of the command.
+        checks: [CDH_CMD_ACC_CNT, CDH_CMD_REJ_CNT, CDH_REJ_REASON, PLD_STATE]
+        applicability: Applicable when PROC-001-S10 was executed.
+        applicable_when: {step: PROC-001-S09, branch: authorized}
+        decision:
+          question: Was the command accepted, rejected, or unacknowledged?
+          branches:
+            - outcome: accepted
+              observation: >-
+                CDH_CMD_ACC_CNT incremented by exactly one and PLD_STATE reads ON, both
+                no later than the next housekeeping frame.
+              then: Continue to PROC-001-S13.
+            - outcome: rejected
+              observation: >-
+                CDH_CMD_REJ_CNT incremented by exactly one; read CDH_REJ_REASON for the
+                cause.
+              then: >-
+                Do not retry blindly. If the reason is MODE_INHIBIT, execute PROC-002.
+                If ARG_RANGE, correct the argument against the dictionary and re-send.
+            - outcome: unacknowledged
+              observation: >-
+                Neither counter changed within 10 s of the verified send (HUG-CMD-007).
+              then: Execute PROC-003, command-path branch.
+
+      - id: PROC-001-S13
+        mechanism:
+          open: 'http://localhost:2910 - Command Sender, command CMD_PLD_SET_RATE'
+          expect: >-
+            Set rate to a value in 0.1-10 Hz (the pass plan names the one to use) and send.
+            Outside that range the spacecraft rejects with ARG_RANGE, which is the dictionary
+            working, not a fault.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-001-S13` and make it read:
+
+            ```yaml
+              - step: PROC-001-S13
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                records:
+                  commanded_rate_hz: 0
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        role: EPS
+        when: commanding window
+        action: >-
+          Set the payload sampling rate with CMD_PLD_SET_RATE, in the dictionary range
+          0.1 to 10 Hz.
+        checks: []
+        records: [commanded_rate_hz]
+        applicability: Applicable when PROC-001-S12 selected the accepted branch.
+        applicable_when: {step: PROC-001-S12, branch: accepted}
+
+      - id: PROC-001-S14
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, CDH_CMD_ACC_CNT and PLD_RATE_HZ'
+          expect: >-
+            Accept counter one higher again, and PLD_RATE_HZ reading the value you sent, within
+            one frame.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-001-S14` and make it read:
+
+            ```yaml
+              - step: PROC-001-S14
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                records:
+                  pld_rate_after: CHANGE-ME
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        role: EPS
+        when: commanding window
+        action: Verify the rate command by counter delta and affected point.
+        checks: [CDH_CMD_ACC_CNT, PLD_RATE]
+        records: [pld_rate_after]
+        applicability: Applicable when PROC-001-S13 was executed.
+        applicable_when: {step: PROC-001-S12, branch: accepted}
+
+      - id: PROC-001-S15
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, target HUGINN, packet HK'
+          expect: >-
+            One final read of the whole HK packet, two minutes before LOS. This is the last
+            state anyone will have until the next contact, which is why the step exists and why
+            omitting it is an anomaly rather than a shrug.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-001-S15` and make it read:
+
+            ```yaml
+              - step: PROC-001-S15
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                records:
+                  soc_pct_at_los: CHANGE-ME
+                  mode_at_los: CHANGE-ME
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        role: EPS
+        when: LOS - 2 min
+        action: >-
+          Take the final state snapshot: mode, state of charge, load current, and the
+          trend against plan.
+        checks: [EPS_MODE, EPS_BATT_SOC, EPS_LOAD_I, EPS_BATT_V]
+        records: [soc_pct_at_los, mode_at_los]
+        applicability: always
+
+      - id: PROC-001-S16
+        mechanism:
+          open: 'campaign/CAMPAIGN_PLAN.md - the contact row for this pass'
+          expect: >-
+            Telemetry stops updating: the contact has ended. Compare the wall-clock time it
+            stopped against the LOS in the plan; they should agree within a few seconds.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-001-S16` and make it read:
+
+            ```yaml
+              - step: PROC-001-S16
+                role: PLAN
+                operator: YOUR NAME
+                state: completed
+                records:
+                  observed_los_utc: '2026-07-29T14:44:02Z'
+                  computed_los_utc: '2026-07-29T14:44:00Z'
+                  last_cdh_frame_cnt: 4515
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        role: PLAN
+        when: LOS
+        action: >-
+          Close the contact and open the pass report. Record the observed LOS against
+          the computed window: "began the report" is an act with no observable, and a
+          step whose completion is an assertion is one nobody can review.
+        checks: [CDH_FRAME_CNT]
+        records: [observed_los_utc, computed_los_utc, last_cdh_frame_cnt]
+        applicability: always
+
+      - id: PROC-001-S17
+        mechanism:
+          open: 'docs/pass_reports/<pass-id>/report.yaml'
+          run: |-
+            python tools/pass_report.py --validate docs/pass_reports/<pass-id>/report.yaml
+          expect: >-
+            `[PASS]` and a line confirming the record accounts for all 18 steps. If it prints
+            findings, each names the step and what is missing - fix those entries and run it
+            again. A report is filed when it validates, not when you have stopped typing.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-001-S17` and make it read:
+
+            ```yaml
+              - step: PROC-001-S17
+                role: PLAN
+                operator: YOUR NAME
+                state: completed
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+          placeholders:
+            "<pass-id>": >-
+              The pass identifier, form YYYY-MM-DD-Pn, read off campaign/CAMPAIGN_PLAN.md. The
+              campaign's first pass is 2026-07-29-P1.
+        role: PLAN
+        when: LOS + 30 min
+        action: >-
+          File the pass report to docs/pass_reports/, containing the pass plan, event
+          timeline, limit violations, actions with procedure step references, the
+          per-step completion record, and the disposition of anomalies (HUG-OPS-002).
+        tool: 'python tools/pass_report.py --validate docs/pass_reports/<pass-id>/report.yaml'
+        checks: []
+        applicability: always
+
+      - id: PROC-001-S18
+        mechanism:
+          open: 'procedures/PROC-001.md - this document, beside your completed report'
+          run: |-
+            python tools/pass_report.py --validate docs/pass_reports/<pass-id>/report.yaml
+          expect: >-
+            Read your record against this procedure, step by step. Any step with no entry, or an
+            entry that claims more than you observed, is an omission finding and is recorded as
+            one - `state: omitted` with an `anomaly:` reference, never deleted and never quietly
+            upgraded.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-001-S18` and make it read:
+
+            ```yaml
+              - step: PROC-001-S18
+                role: PLAN
+                operator: YOUR NAME
+                state: completed
+                branch: complete
+                observation: what you saw that made you choose that branch
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+            `branch:` must be one of: 'complete', 'omission finding'.
+          placeholders:
+            "<pass-id>": >-
+              The pass identifier, form YYYY-MM-DD-Pn, read off campaign/CAMPAIGN_PLAN.md. The
+              campaign's first pass is 2026-07-29-P1.
+        role: PLAN
+        when: post-pass
+        action: >-
+          Review the completion record against this procedure. A step with no entry, or
+          an applicable step without a completed or omitted entry, is an omission
+          finding — record and disposition it as an anomaly with corrective action.
+        checks: []
+        applicability: always
+        decision:
+          question: Does the completion record account for every step of the governing
+            procedure?
+          branches:
+            - outcome: complete
+              observation: >-
+                tools/pass_report.py --validate exits zero: exactly one entry per step,
+                every not-applicable entry carrying a basis, every completed decision
+                step carrying its branch-selecting observation.
+              then: File the report. Post-pass review is closed.
+            - outcome: omission finding
+              observation: >-
+                The validator names at least one step with no entry, a duplicate entry,
+                a missing basis, or a decision entry with no branch-selecting
+                observation.
+              then: >-
+                Record the omission truthfully as an omitted entry — it is permanent for
+                this pass and is never rewritten to completed. Disposition it as an
+                anomaly with corrective action: re-execution at the next opportunity,
+                recorded as a completed entry for the re-executed step and referenced
+                from the omitted entry, or an explicit owner risk acceptance approved by
+                the design authority and referenced from the omitted entry.
+
+  # ============================================================== PROC-002
+  - id: PROC-002
+    title: Low-battery and limit response
+    governs: >-
+      The response to a low state of charge, a low battery voltage, a load-current
+      excursion, or a SAFE annunciation. CONOPS Sec. 4.4 maps each alarmed limit to this
+      procedure or to the generic contingency response.
+    steps:
+
+      - id: PROC-002-S01
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer; the annunciated point is the one shown yellow or red'
+          expect: >-
+            Read the point's mnemonic, its current value, and which limit side it crossed. The
+            dictionary's limits are in docs/tlm_cmd_dictionary.md if you want the thresholds
+            beside the reading.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-002-S01` and make it read:
+
+            ```yaml
+              - step: PROC-002-S01
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                records:
+                  annunciated_point: EPS_BATT_SOC
+                  annunciated_value: 34.6
+                  annunciated_level: YELLOW
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        role: EPS
+        when: on annunciation
+        action: >-
+          Confirm the annunciation: which point, which limit side, and the value read.
+          Confirm it against the dictionary of record rather than against memory.
+        checks: [EPS_BATT_SOC, EPS_BATT_V, EPS_LOAD_I, EPS_BATT_I, EPS_MODE]
+        records: [annunciated_point, annunciated_value, annunciated_level]
+        applicability: always
+
+      - id: PROC-002-S02
+        mechanism:
+          open: 'http://localhost:2910 - Telemetry Grapher, EPS_BATT_I over the last few minutes'
+          expect: >-
+            Load alarm: the point you confirmed at S01 is EPS_LOAD_I. That alone selects the
+            branch, whatever EPS_BATT_I reads. Otherwise, negative balance: EPS_BATT_I sits
+            below zero (discharging) while ADM_ECLIPSE reads SUNLIT, or the SoC trace slopes
+            down. A single reading cannot tell you this - it is a trend, which is what the
+            grapher is for.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-002-S02` and make it read:
+
+            ```yaml
+              - step: PROC-002-S02
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                branch: negative beyond eclipse
+                observation: what you saw that made you choose that branch
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+            `branch:` must be one of: 'load alarm', 'negative beyond eclipse', 'explained by eclipse'.
+        role: EPS
+        when: on annunciation
+        action: >-
+          If the point you confirmed at S01 is EPS_LOAD_I, record branch load alarm and
+          go to S03. Otherwise, determine whether the energy balance is negative.
+        checks: [EPS_BATT_I, EPS_SA1_I, EPS_SA2_I, ADM_ECLIPSE, EPS_LOAD_I]
+        applicability: always
+        decision:
+          question: Was PROC-002 entered on a load alarm, and if not, is the spacecraft
+            trending energy-negative beyond what the illumination state explains?
+          branches:
+            - outcome: load alarm
+              # D-017 ruling 2.
+              requires: {step: PROC-002-S01, record: annunciated_point, equals: EPS_LOAD_I}
+              observation: >-
+                The point recorded at PROC-002-S01 is EPS_LOAD_I, at or above 1.5 A. This
+                selects the branch whatever EPS_BATT_I reads.
+              then: >-
+                Continue to PROC-002-S03. A load alarm is diagnosed from the load itself and
+                does not wait for the battery to discharge.
+            - outcome: negative beyond eclipse
+              observation: >-
+                EPS_BATT_I is negative across three or more consecutive frames while
+                ADM_ECLIPSE reads SUNLIT, or the discharge is deeper than the eclipse
+                plan predicts.
+              then: Continue to PROC-002-S03.
+            - outcome: explained by eclipse
+              observation: >-
+                EPS_BATT_I is negative while ADM_ECLIPSE reads ECLIPSE and the depth of
+                discharge tracks the plan.
+              then: >-
+                No shed action. Monitor to eclipse exit and confirm recovery; if state of
+                charge does not recover after exit, return to PROC-002-S02.
+
+      - id: PROC-002-S03
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, EPS_SA1_I and EPS_SA2_I side by side, and EPS_LOAD_I'
+          expect: >-
+            String loss: one array current near zero while the other holds - an ASYMMETRY. Stuck
+            load: both strings normal but EPS_LOAD_I about 2 W higher than the plan expects.
+            These are the two causes the record anticipates and they look different on the same
+            screen.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-002-S03` and make it read:
+
+            ```yaml
+              - step: PROC-002-S03
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                branch: array-string failure
+                observation: what you saw that made you choose that branch
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+            `branch:` must be one of: 'array-string failure', 'load excursion', 'neither'.
+        role: EPS
+        when: on negative trend or load alarm
+        action: Identify the cause among the two the record anticipates.
+        checks: [EPS_SA1_I, EPS_SA2_I, EPS_LOAD_I]
+        applicability: Applicable when PROC-002-S02 selected negative beyond eclipse or load alarm.
+        decision:
+          question: Is generation down, or is load up?
+          branches:
+            - outcome: array-string failure
+              observation: >-
+                EPS_SA1_I and EPS_SA2_I are asymmetric — one string at or near zero
+                while the other carries its expected current for the illumination state.
+              then: Continue to PROC-002-S04. Generation cannot be restored from the
+                ground; the response is load management.
+            - outcome: load excursion
+              observation: >-
+                EPS_LOAD_I is at or above 1.5 A with both array strings symmetric and
+                consistent with illumination.
+              then: Continue to PROC-002-S04, load-shed branch.
+            - outcome: neither
+              observation: >-
+                Strings symmetric and EPS_LOAD_I below 1.5 A, yet the discharge persists.
+              then: >-
+                Declare an anomaly (FD). The generic contingency response governs: safe
+                the spacecraft by command if power integrity is threatened, and file an
+                anomaly report.
+
+      - id: PROC-002-S04
+        mechanism:
+          open: 'http://localhost:2910 - Command Sender, CMD_PLD_SET_STATE, state OFF'
+          expect: >-
+            The command is sent. Note the time to the second; S05 verifies against it.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-002-S04` and make it read:
+
+            ```yaml
+              - step: PROC-002-S04
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                records:
+                  shed_command_utc: '2026-07-29T14:39:10Z'
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        role: EPS
+        when: on negative trend or load alarm
+        action: >-
+          Shed the payload: send CMD_PLD_SET_STATE with state OFF. This is the only load
+          the ground can shed.
+        checks: []
+        records: [shed_command_utc]
+        applicability: >-
+          Applicable when PROC-002-S03 selected array-string failure or load excursion.
+          Not applicable when the payload is already OFF — state PLD_STATE as the basis.
+
+      - id: PROC-002-S05
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, PLD_STATE and EPS_LOAD_I'
+          expect: >-
+            PLD_STATE reads OFF and EPS_LOAD_I drops by roughly the payload load, within one
+            frame. Read EPS_LOAD_I BEFORE the send too - the drop is the evidence, and a drop
+            needs a before.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-002-S05` and make it read:
+
+            ```yaml
+              - step: PROC-002-S05
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                records:
+                  pld_state_after_shed: OFF
+                  load_i_after_shed: 0.62
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        role: EPS
+        when: after shed
+        action: Verify the shed by counter delta and affected point.
+        checks: [CDH_CMD_ACC_CNT, PLD_STATE, EPS_LOAD_I]
+        records: [pld_state_after_shed, load_i_after_shed]
+        applicability: Applicable when PROC-002-S04 was executed.
+
+      - id: PROC-002-S06
+        mechanism:
+          open: 'http://localhost:2910 - Telemetry Grapher, EPS_BATT_I'
+          expect: >-
+            Restored: EPS_BATT_I is at or above zero after the shed. Not restored: still
+            negative, and the ladder will act on its own at 30 %.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-002-S06` and make it read:
+
+            ```yaml
+              - step: PROC-002-S06
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                branch: recovered
+                observation: what you saw that made you choose that branch
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+            `branch:` must be one of: 'recovered', 'still negative'.
+        role: EPS
+        when: after shed
+        action: Determine whether shedding restored a non-negative balance.
+        checks: [EPS_BATT_I, EPS_BATT_SOC]
+        applicability: Applicable when PROC-002-S04 was executed.
+        decision:
+          question: Is EPS_BATT_I non-negative after the shed?
+          branches:
+            - outcome: recovered
+              observation: >-
+                EPS_BATT_I is at or above zero across three or more consecutive frames
+                while sunlit.
+              then: >-
+                Continue to PROC-002-S09. The stuck-load case reaches here with the
+                balance still negative and is handled by the next branch.
+            - outcome: still negative
+              observation: >-
+                EPS_BATT_I remains negative across three or more consecutive frames
+                after the shed was verified — the load did not go away when the payload
+                did, which is the stuck-load presentation.
+              then: Continue to PROC-002-S07.
+
+      - id: PROC-002-S07
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, EPS_MODE and EPS_BATT_SOC'
+          expect: >-
+            You are watching, not commanding. EPS_MODE changes to LOW_POWER at 30 % or SAFE at
+            20 % on its own. Record the mode it entered and the SoC when it did; commanding
+            against a descending ladder spends the margin the ladder exists to hold.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-002-S07` and make it read:
+
+            ```yaml
+              - step: PROC-002-S07
+                role: FD
+                operator: YOUR NAME
+                state: completed
+                records:
+                  mode_entered: LOW_POWER
+                  soc_pct_at_entry: 29.8
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        role: FD
+        when: on continued discharge
+        action: >-
+          Do not fight the mode ladder. The spacecraft protects itself autonomously:
+          LOW_POWER at 30 % and SAFE at 20 %, shedding the payload on entry. Commanding
+          against a descending ladder spends the margin the ladder exists to hold.
+        checks: [EPS_BATT_SOC, EPS_MODE]
+        records: [mode_entered, soc_pct_at_entry]
+        applicability: >-
+          Applicable when PROC-002-S06 selected the still-negative branch. Not
+          applicable when state of charge recovered before an autonomous entry — state
+          the recovering SoC as the basis.
+
+      - id: PROC-002-S08
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, EPS_MODE and EPS_BATT_SOC'
+          expect: >-
+            Safe by command if the ladder has not acted and SoC continues to fall; hold if the
+            ladder has already taken the spacecraft where you would have sent it.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-002-S08` and make it read:
+
+            ```yaml
+              - step: PROC-002-S08
+                role: FD
+                operator: YOUR NAME
+                state: completed
+                branch: safe by command
+                observation: what you saw that made you choose that branch
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+            `branch:` must be one of: 'safe by command', 'ladder holds'.
+        role: FD
+        when: on continued discharge
+        action: Determine whether the spacecraft must be safed by command.
+        checks: [EPS_BATT_SOC, EPS_BATT_V, EPS_BUS_V, EPS_MODE]
+        applicability: Applicable when PROC-002-S06 selected the still-negative branch.
+        decision:
+          question: Is power integrity threatened beyond what the ladder will hold?
+          branches:
+            - outcome: safe by command
+              observation: >-
+                EPS_BATT_SOC at or below 20 % with the ladder not yet in SAFE, or
+                EPS_BUS_V outside 4.75 to 5.25 V.
+              then: >-
+                Send CMD_SAFE_ENTER. It is hazardous: the ground system requires the
+                two-step confirmation, and the second step is the resend that follows
+                the caught refusal, never a bypass called on its own.
+            - outcome: ladder holds
+              observation: >-
+                EPS_MODE has entered LOW_POWER or SAFE autonomously and EPS_BATT_SOC has
+                stopped falling across three or more consecutive frames.
+              then: Continue to PROC-002-S09.
+
+      - id: PROC-002-S09
+        mechanism:
+          open: 'http://localhost:2910 - Command Sender, CMD_MODE_SET'
+          expect: >-
+            Recovery has a FLOOR: the command is accepted only above the recovery floor for the
+            target mode, and rejected with MODE_INHIBIT below it. A rejection here is the
+            spacecraft protecting itself, not a failed command.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-002-S09` and make it read:
+
+            ```yaml
+              - step: PROC-002-S09
+                role: FD
+                operator: YOUR NAME
+                state: completed
+                branch: recover to NOMINAL
+                observation: what you saw that made you choose that branch
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+            `branch:` must be one of: 'recover to NOMINAL', 'recover to LOW_POWER', 'hold'.
+        role: FD
+        when: on recovery
+        action: >-
+          Recover the commanded mode. Recovery from LOW_POWER or SAFE is a deliberate
+          ground act and is gated on the recovery floor for the target mode, not on the
+          autonomous entry threshold — the floors sit above the entries so a recovery
+          cannot immediately re-trip.
+        checks: [EPS_BATT_SOC, EPS_MODE]
+        applicability: >-
+          Applicable when the spacecraft is in LOW_POWER or SAFE. Not applicable when
+          EPS_MODE still reads NOMINAL — state that as the basis.
+        decision:
+          question: Is state of charge at or above the recovery floor for the target
+            mode?
+          branches:
+            - outcome: recover to NOMINAL
+              observation: EPS_BATT_SOC at or above 35 %.
+              then: Send CMD_MODE_SET with target NOMINAL, then PROC-002-S10.
+            - outcome: recover to LOW_POWER
+              observation: EPS_BATT_SOC at or above 25 % but below 35 %.
+              then: Send CMD_MODE_SET with target LOW_POWER, then PROC-002-S10.
+            - outcome: hold
+              observation: EPS_BATT_SOC below 25 %.
+              then: >-
+                Do not command a recovery. Hold and monitor; a mode command below the
+                floor is refused with MODE_INHIBIT and spends a command slot for nothing.
+
+      - id: PROC-002-S10
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, CDH_CMD_ACC_CNT and EPS_MODE'
+          expect: >-
+            Accept counter +1 and EPS_MODE reading the mode you commanded, within one frame.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-002-S10` and make it read:
+
+            ```yaml
+              - step: PROC-002-S10
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                records:
+                  mode_after_recovery: NOMINAL
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        role: EPS
+        when: on recovery
+        action: Verify the mode change by counter delta and affected point.
+        checks: [CDH_CMD_ACC_CNT, CDH_CMD_REJ_CNT, CDH_REJ_REASON, EPS_MODE]
+        records: [mode_after_recovery]
+        applicability: Applicable when PROC-002-S09 sent a mode command.
+
+      - id: PROC-002-S11
+        mechanism:
+          open: 'docs/pass_reports/<pass-id>/report.yaml - the anomalies: section'
+          run: |-
+            python tools/pass_report.py --validate docs/pass_reports/<pass-id>/report.yaml
+          expect: >-
+            Every anomaly entry needs an id, the step it arose at, the finding, a feasibility
+            statement and a disposition. The validator names any that are incomplete.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-002-S11` and make it read:
+
+            ```yaml
+              - step: PROC-002-S11
+                role: FD
+                operator: YOUR NAME
+                state: completed
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+          placeholders:
+            "<pass-id>": >-
+              The pass identifier, form YYYY-MM-DD-Pn, read off campaign/CAMPAIGN_PLAN.md. The
+              campaign's first pass is 2026-07-29-P1.
+        role: FD
+        when: closeout
+        action: >-
+          Declare the anomaly and file the anomaly report. Payload re-activation is not
+          part of this procedure: it is a PROC-001 commanding step on a later pass,
+          subject to the 40 % activation inhibit.
+        checks: [EPS_MODE, EPS_BATT_SOC]
+        applicability: always
+
+  # ============================================================== PROC-003
+  - id: PROC-003
+    title: Loss of telemetry or commandability
+    governs: >-
+      Two presentations of lost insight: telemetry stopped, and commands unacknowledged.
+      They share a procedure because the escalation is the same and because the two can
+      be present at once — uplink is independent of the housekeeping downlink
+      (HUG-EPS-004(c)), which is the whole reason an escalation path exists. Its
+      telemetry steps are entered on the staleness alarm at any point in a contact, not
+      only at acquisition.
+    # D-018 ruling 2.
+    entered_on:
+      annunciation: staleness
+      requires: {step: PROC-003-S01, record: staleness_level, one_of: [YELLOW, RED]}
+    steps:
+
+      - id: PROC-003-S01
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, CDH_FRAME_CNT; and CmdTlmServer, Log Messages, searched for staleness'
+          expect: >-
+            The staleness annunciator reads YELLOW (10 s of no advance) or RED (30 s). Record
+            the last frame counter value you saw and when you saw it - after this the number
+            stops changing, so the time you noticed it is part of the record.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-003-S01` and make it read:
+
+            ```yaml
+              - step: PROC-003-S01
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                records:
+                  last_frame_utc: '2026-07-29T14:38:05Z'
+                  last_cdh_frame_cnt: 4515
+                  staleness_level: RED
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        role: EPS
+        when: on staleness annunciation
+        action: >-
+          Record the staleness annunciation and the last frame received. The ground-side
+          monitor annunciates YELLOW at 10 s and RED at 30 s of no advance; a halted
+          counter cannot alarm itself, which is why the monitor is ground-side.
+        checks: [CDH_FRAME_CNT]
+        records: [last_frame_utc, last_cdh_frame_cnt, staleness_level]
+        applicability: Applicable on the telemetry presentation.
+
+      - id: PROC-003-S02
+        mechanism:
+          open: 'http://localhost:2910 - CmdTlmServer: the Interfaces tab for HUGINN_INT and its Tlm pkts, and Log Messages searched for staleness'
+          expect: >-
+            Spacecraft-side: the interface still reads CONNECTED and the annunciator reads a
+            staleness LEVEL. Ground-side: the interface is not CONNECTED. Monitor read fault:
+            the annunciator reads READ_FAULT or NO_READ - which is a statement about the ground
+            segment, not about the spacecraft, and must not be read as staleness.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-003-S02` and make it read:
+
+            ```yaml
+              - step: PROC-003-S02
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                branch: spacecraft-side
+                observation: what you saw that made you choose that branch
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+            `branch:` must be one of: 'spacecraft-side', 'ground-side', 'monitor read fault'.
+        role: EPS
+        when: on staleness annunciation
+        action: >-
+          Determine whether the staleness is a ground-side artifact before escalating to
+          the spacecraft. Escalating on a ground fault sends a hazardous command to a
+          healthy vehicle.
+        checks: [CDH_FRAME_CNT]
+        applicability: Applicable on the telemetry presentation.
+        decision:
+          question: >-
+            Which of the three conditions that all present as "the counter is not
+            advancing at the ground" is this?
+          branches:
+            - outcome: spacecraft-side
+              observation: >-
+                The staleness annunciator reads YELLOW or RED, the ground system's
+                interface reads CONNECTED, and its received count is frozen — an
+                absence of frames on a live link.
+              then: Continue to PROC-003-S03.
+            - outcome: ground-side
+              observation: >-
+                The interface reads other than CONNECTED, or its received count is
+                advancing while the displayed counter is not.
+              then: >-
+                Restore the ground path and re-run PROC-001-S02. Do not command the
+                spacecraft: nothing observed says anything about it.
+            - outcome: monitor read fault
+              observation: >-
+                The staleness annunciator reads READ_FAULT or NO_READ rather than
+                YELLOW or RED.
+              then: >-
+                The monitor is blind and its silence is about itself, not about the
+                spacecraft. Restart the staleness monitor and re-acquire; escalating
+                here would send a hazardous command to a vehicle nothing has observed.
+                READ_FAULT means reads began failing after succeeding;
+                NO_READ before AOS is the ordinary pre-acquisition state and is not an
+                anomaly at all.
+
+      - id: PROC-003-S03
+        mechanism:
+          open: 'http://localhost:2910 - Command Sender, CMD_SYS_RESET'
+          expect: >-
+            CMD_SYS_RESET is HAZARDOUS: the Command Sender asks for confirmation before it
+            sends. That two-step is deliberate (B7) - read the command back before confirming.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-003-S03` and make it read:
+
+            ```yaml
+              - step: PROC-003-S03
+                role: FD
+                operator: YOUR NAME
+                state: completed
+                records:
+                  reset_command_utc: '2026-07-29T14:39:44Z'
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        role: FD
+        when: on confirmed spacecraft-side loss
+        action: >-
+          Authorize and send CMD_SYS_RESET. It is hazardous: the ground system requires
+          the two-step confirmation, and the second step is the resend that follows the
+          caught refusal.
+        checks: []
+        records: [reset_command_utc]
+        applicability: Applicable when PROC-003-S02 selected the spacecraft-side branch.
+
+      - id: PROC-003-S04
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, CDH_CMD_ACC_CNT, CDH_CMD_REJ_CNT, EPS_BATT_SOC'
+          expect: >-
+            The post-reset epoch: CDH_CMD_ACC_CNT reads exactly 1 and CDH_CMD_REJ_CNT exactly 0
+            - NOT the previous values plus one. Reset is the sole exception to counter delta
+            arithmetic, so do not compute a delta here. State of charge is preserved across the
+            reset.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-003-S04` and make it read:
+
+            ```yaml
+              - step: PROC-003-S04
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                records:
+                  acc_cnt_post_reset: 1
+                  rej_cnt_post_reset: 0
+                  soc_pct_post_reset: 38.9
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        role: EPS
+        when: after reset
+        action: >-
+          Verify the reset by its post-reset counter epoch, NOT by delta arithmetic.
+          CMD_SYS_RESET is the sole exception: it reinitializes the counters and then
+          applies its own acceptance, so the first post-reset frame reads
+          CDH_CMD_ACC_CNT = 1 and CDH_CMD_REJ_CNT = 0. That epoch IS the acknowledgement.
+        checks: [CDH_CMD_ACC_CNT, CDH_CMD_REJ_CNT, CDH_FRAME_CNT, EPS_BATT_SOC]
+        records: [acc_cnt_post_reset, rej_cnt_post_reset, soc_pct_post_reset]
+        applicability: Applicable when PROC-003-S03 was executed.
+
+      - id: PROC-003-S05
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, CDH_FRAME_CNT; and CmdTlmServer, Log Messages, searched for staleness'
+          expect: >-
+            Restored: the frame counter is advancing again and the annunciator returns to GREEN.
+            Not restored: it is still frozen after the reset, which escalates.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-003-S05` and make it read:
+
+            ```yaml
+              - step: PROC-003-S05
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                branch: restored
+                observation: what you saw that made you choose that branch
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+            `branch:` must be one of: 'restored', 'not restored'.
+        role: EPS
+        when: after reset
+        action: Determine whether telemetry has been restored.
+        checks: [CDH_FRAME_CNT, EPS_BATT_SOC]
+        applicability: Applicable when PROC-003-S03 was executed.
+        decision:
+          question: Is CDH_FRAME_CNT advancing again, with state of charge preserved?
+          branches:
+            - outcome: restored
+              observation: >-
+                CDH_FRAME_CNT advances across consecutive frames, the staleness
+                annunciator returns to GREEN, and EPS_BATT_SOC is continuous with the
+                value before the outage.
+              then: >-
+                Return to PROC-001 at the step after the last one you completed there, and
+                reassess state of health. When PROC-003 was entered from PROC-001-S05, that
+                step is PROC-001-S06.
+            - outcome: not restored
+              observation: >-
+                No frames after the reset command, or the staleness annunciator remains
+                RED past 30 s.
+              then: >-
+                Declare the anomaly (FD). Insight is not recoverable this pass; file the
+                anomaly report and plan the next contact against the last known state.
+
+      - id: PROC-003-S06
+        mechanism:
+          open: 'http://localhost:2910 - Command Sender, then Packet Viewer for both counters'
+          expect: >-
+            Read CDH_CMD_ACC_CNT and CDH_CMD_REJ_CNT before the send, send, then watch both for
+            10 s. Establishing that NEITHER moved is the observation; you cannot make it without
+            the before-values.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-003-S06` and make it read:
+
+            ```yaml
+              - step: PROC-003-S06
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                records:
+                  send_utc: '2026-07-29T14:40:12Z'
+                  acc_cnt_at_send: 4472
+                  rej_cnt_at_send: 0
+                  elapsed_s: 10
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        role: EPS
+        when: on unacknowledged command
+        action: >-
+          Establish that a verified send produced no accounting. Every received command
+          increments exactly one counter by exactly one, visible no later than the next
+          housekeeping frame; absence of any delta within 10 s of a verified send is the
+          loss-of-commandability declaration threshold (HUG-CMD-007).
+        checks: [CDH_CMD_ACC_CNT, CDH_CMD_REJ_CNT, CDH_FRAME_CNT]
+        records: [send_utc, acc_cnt_at_send, rej_cnt_at_send, elapsed_s]
+        applicability: Applicable on the command presentation.
+
+      - id: PROC-003-S07
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, both command counters'
+          expect: >-
+            Command path lost: neither counter moved within 10 s of a verified send. Not lost:
+            either counter moved, and the command was received even if it was rejected.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-003-S07` and make it read:
+
+            ```yaml
+              - step: PROC-003-S07
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                branch: accounted late
+                observation: what you saw that made you choose that branch
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+            `branch:` must be one of: 'accounted late', 'not accounted'.
+        role: EPS
+        when: on unacknowledged command
+        action: Determine whether the command path is lost.
+        checks: [CDH_CMD_ACC_CNT, CDH_CMD_REJ_CNT, CDH_FRAME_CNT]
+        applicability: Applicable on the command presentation.
+        decision:
+          question: Did either counter change within 10 s of the verified send?
+          branches:
+            - outcome: accounted late
+              observation: >-
+                One counter incremented by exactly one within 10 s, later than the next
+                frame but inside the threshold.
+              then: >-
+                Not a loss of commandability. Record the latency in the pass report and
+                continue the governing procedure.
+            - outcome: not accounted
+              observation: >-
+                Neither counter changed within 10 s of the verified send, while
+                CDH_FRAME_CNT continues to advance — telemetry is flowing and commands
+                are not being accounted.
+              then: Continue to PROC-003-S08.
+
+      - id: PROC-003-S08
+        mechanism:
+          open: 'http://localhost:2910 - Command Sender'
+          expect: >-
+            Send the same command once more. One retry distinguishes a lost uplink frame from a
+            lost command path; a second and third tell you nothing the first did not.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-003-S08` and make it read:
+
+            ```yaml
+              - step: PROC-003-S08
+                role: EPS
+                operator: YOUR NAME
+                state: completed
+                records:
+                  retry_utc: '2026-07-29T14:40:31Z'
+                  retry_outcome: unacknowledged
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+        role: EPS
+        when: on unacknowledged command
+        action: >-
+          Retry once within the pass. A single retry distinguishes a lost uplink frame
+          from a lost command path, and costs one command slot.
+        checks: [CDH_CMD_ACC_CNT, CDH_CMD_REJ_CNT]
+        records: [retry_utc, retry_outcome]
+        applicability: Applicable when PROC-003-S07 selected the not-accounted branch.
+
+      - id: PROC-003-S09
+        mechanism:
+          open: 'http://localhost:2910 - Packet Viewer, both command counters'
+          expect: >-
+            Escalate if the retry was also unacknowledged. Do not escalate if the retry was
+            accounted - the path is there.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-003-S09` and make it read:
+
+            ```yaml
+              - step: PROC-003-S09
+                role: FD
+                operator: YOUR NAME
+                state: completed
+                branch: retry accounted
+                observation: what you saw that made you choose that branch
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+            `branch:` must be one of: 'retry accounted', 'retry unaccounted'.
+        role: FD
+        when: on failed retry
+        action: Determine whether to escalate to a reset.
+        checks: [CDH_CMD_ACC_CNT, CDH_CMD_REJ_CNT, CDH_FRAME_CNT]
+        applicability: Applicable when PROC-003-S08 was executed.
+        decision:
+          question: Did the retry produce a counter delta?
+          branches:
+            - outcome: retry accounted
+              observation: One counter incremented by exactly one after the retry.
+              then: >-
+                The command path is live. Return to the governing procedure and record
+                the first send as an anomaly in the pass report.
+            - outcome: retry unaccounted
+              observation: >-
+                Neither counter changed within 10 s of the retry, while CDH_FRAME_CNT
+                continues to advance.
+              then: >-
+                Escalate to PROC-003-S03: send CMD_SYS_RESET under two-step
+                confirmation. Verify by the post-reset counter epoch at PROC-003-S04,
+                not by delta.
+
+      - id: PROC-003-S10
+        mechanism:
+          open: 'docs/pass_reports/<pass-id>/report.yaml - the anomalies: section'
+          run: |-
+            python tools/pass_report.py --validate docs/pass_reports/<pass-id>/report.yaml
+          expect: >-
+            The anomaly report is part of the pass report, not a separate document. The
+            validator names any anomaly entry missing its finding, feasibility or disposition.
+          record_to: |-
+            In your report, find the block that begins `- step: PROC-003-S10` and make it read:
+
+            ```yaml
+              - step: PROC-003-S10
+                role: FD
+                operator: YOUR NAME
+                state: completed
+            ```
+
+            The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
+          placeholders:
+            "<pass-id>": >-
+              The pass identifier, form YYYY-MM-DD-Pn, read off campaign/CAMPAIGN_PLAN.md. The
+              campaign's first pass is 2026-07-29-P1.
+        role: FD
+        when: closeout
+        action: >-
+          Declare the anomaly and file the anomaly report, whichever branch was taken.
+          A recovered outage is still an outage and is still reported.
+        checks: [EPS_MODE, EPS_BATT_SOC, CDH_FRAME_CNT]
+        applicability: always

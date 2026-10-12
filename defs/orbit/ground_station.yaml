@@ -1,0 +1,71 @@
+# =============================================================================
+# GS-RAVENSROOST - the single ground terminal
+#
+# PINNED by owner ruling D-004 (DECISIONS.md, 2026-07-29), which closed the coordinate
+# question D-003 left outstanding.
+#
+# The record required these coordinates and did not carry them:
+#   Brief: "one fictional ground terminal, callsign GS-RAVENSROOST, at a fixed site in
+#   central Florida (site coordinates recorded in the repo)"
+#   Dictionary ledger item 4: "Ground station named GS-RAVENSROOST (fictional single
+#   terminal, central Florida coordinates recorded in the repo)"
+#
+# Pinned alongside the element set because ASM-03 requires contact geometry stable
+# across all four campaign passes and the site is half that geometry - move the site
+# and every pass window moves with it.
+#
+# GS-RAVENSROOST remains a FICTIONAL terminal. The ruling places it at a real, publicly
+# identifiable location so the geometry is checkable against something outside this
+# repository; it does not assert that a ground station exists there.
+# =============================================================================
+
+callsign: GS-RAVENSROOST         # Dictionary ledger item 4; Brief; CONOPS Sec. 3.2
+region: central Florida          # Brief; CONOPS Sec. 3.2
+terminals: 1                     # CON-03: single ground station, no cross-support
+
+# ----------------------------------------------------------------- from the record
+contact_model:
+  kind: elevation_mask           # Brief: "a simple elevation-mask visibility window"
+  elevation_mask_deg: 10         # CONOPS Sec. 3.3: "above a 10 deg elevation mask"
+  # CON-01 / HUG-GND-005: telemetry receivable and commands sendable ONLY within
+  # computed contact windows of this terminal.
+
+# --------------------------------------------------------- pinned by ruling D-004
+site:
+  status: pinned
+  latitude_deg: 28.5219          # north
+  longitude_deg: -80.6817        # east-negative, so 80.6817 deg west
+  elevation_m: 3
+  place: Kennedy Space Center Visitor Complex, the Space Shop
+  ruled_by: D-004
+  ruled_on: '2026-07-29'
+
+  # VERIFICATION, performed the same way the element sets were verified and recorded
+  # rather than asserted (ruling D-004 required this explicitly, and the reason is
+  # below - the identification is genuinely ambiguous in public sources).
+  verification:
+    authoritative_reference_deg: [28.521894, -80.681702]
+    reference_source: latlong.net, "Kennedy Space Center Visitor Complex, FL, USA"
+    separation_from_reference_m: 0.70
+    # The pinned point is the reference rounded to four decimal places - sub-metre.
+
+    ruled_out_deg: [28.6055, -80.6695]
+    ruled_out_is: Apollo/Saturn V Center
+    ruled_out_separation_km: 9.37
+    # THE TRAP, RECORDED SO IT IS NOT WALKED INTO AGAIN. A second public source
+    # (latitude.to) publishes 28.6055 / -80.6695 under the SAME NAME, "Kennedy Space
+    # Center Visitor Complex". It is the Apollo/Saturn V Center, a different facility
+    # 9.37 km north-north-east - 9.31 km north and 1.19 km east. Two coordinates
+    # 9.37 km apart cannot both be one facility, so a name match alone does not
+    # identify a site. The owner ruled the correct one and named the wrong one
+    # explicitly; both are recorded here so a later reader who finds the other
+    # coordinate can see it was considered and ruled out rather than overlooked.
+    #
+    # The separation matters operationally, not just bibliographically: 9.4 km of
+    # site displacement moves every computed contact window, and ASM-03 requires that
+    # geometry be stable across the campaign.
+
+  # Elevation is nominal for the Visitor Complex, which sits a few metres above sea
+  # level on Merritt Island. At a 10 deg elevation mask, a few metres of site height
+  # changes no contact window measurably - the mask dominates by orders of magnitude -
+  # so this value is recorded for completeness rather than for precision.

@@ -1,0 +1,18 @@
+# HUGINN Redis access control - TEMPLATE.
+#
+# This file is committed; the users.acl it produces is NOT. tools/setup_ground.py
+# renders it with the same credentials it writes into .env, and .gitignore excludes the
+# result.
+#
+# The ACL and .env MUST agree: Redis stores the sha256 of each password here, and the
+# services authenticate with the plaintext from .env. Generating one without the other
+# is why the first bring-up failed with WRONGPASS - a mismatch that presents as two
+# services restart-looping, not as anything that says "credentials".
+#
+# Upstream ships this file with working hashes, which means its default Redis passwords
+# are public knowledge. This repository ships none.
+user healthcheck on nopass -@all +ping
+user __REDIS_USERNAME__ on #__REDIS_PASSWORD_SHA256__ allkeys allchannels -@all +@read +@write +@pubsub +@connection +@transaction +info
+user __SR_USERNAME__ on #__SR_PASSWORD_SHA256__ resetkeys resetchannels ~running-script* ~*script-locks ~*script-breakpoints ~*openc3_log_messages &__anycable__ &_action_cable_internal &script-api:* -@all +@read +@write +@pubsub +@hash +@connection
+user admin on #__ADMIN_PASSWORD_SHA256__ +@admin
+user default off

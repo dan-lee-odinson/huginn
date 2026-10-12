@@ -1,0 +1,18 @@
+# B11 evidence chain
+#
+# package -> verdict -> viewer page. Each link records the digest of the
+# artifact it is about, so the three are BOUND rather than merely adjacent.
+# Three files in a directory prove they were written together and nothing
+# more; these say which package the verdict judged and which package the
+# page was built from.
+#
+# Recompute: sha256sum artifacts/replay/*.json artifacts/viewer/*.html
+
+package: replay/b11-demo-001.json
+package_sha256: 84eb716c7c68df9c66cf83ca797649558f07ef948491d7f7bfeb4db6b0cdd820
+verdict: conformance-verdict.txt
+verdict_sha256: ba0de9e5f0b559a8b890e7bd06cd602c4569a3b1416524106ff4273c73d61f3f
+verdict_covers_package_sha256: 84eb716c7c68df9c66cf83ca797649558f07ef948491d7f7bfeb4db6b0cdd820
+viewer_page: viewer/b11-demo-001.html
+viewer_page_sha256: ed8c4038e7cc6c77ca14e677b49ee46534b1acd1006a7b319f1d4640941fb1a8
+viewer_page_built_from_sha256: 84eb716c7c68df9c66cf83ca797649558f07ef948491d7f7bfeb4db6b0cdd820

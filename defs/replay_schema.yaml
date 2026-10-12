@@ -1,0 +1,415 @@
+# =============================================================================
+# HUGINN v0.1 - replay package interface, MACHINE FORM
+#
+# This is the machine-checkable form of defs/replay_schema.md Sec. 2-7, which Sec. 7
+# names: "The machine-checkable form of this contract is the content of
+# defs/replay_schema.yaml at build; this table is the normative drafting surface
+# until then."
+#
+# THIS FILE ADDS NOTHING. Every rule below carries the section it comes from. Where
+# the prose and this file disagree, the prose is the record and this file has a bug -
+# report it, do not reconcile by editing the record.
+#
+# defs/replay_schema.md is NOT regenerated from this file. The two are bound by one
+# identity - the schema number - checked by tools/checkers/defs_generation.py and,
+# on the prose side, by C16 of the design-record consistency checks.
+#
+# Governing requirements: HUG-UI-002/003/004/005/007. Ground-system replay is a
+# SEPARATE obligation discharged by the ground system's native log recording and
+# playback (HUG-SYS-006, B14); this package does not discharge it (G001-15 F-01).
+#
+# RULE IDENTIFIERS. Every conformance rule carries a stable `id` of the form
+# RS-<section>-<nn>. They are the anchors the Phase 6 evidence index (D0-17 item 5)
+# maps claim -> executed case -> recorded result -> polarity against, and the
+# identifiers the Phase 4 validator reports refusals by. They are permanent: a rule
+# is never renumbered, only added or retired.
+# =============================================================================
+
+# One identity (Sec. 3, per G001-04 F-01): this value equals the schema number in
+# the title of defs/replay_schema.md AND the value a package's meta.schema carries.
+# The three are one identity; it advances only when the interface changes.
+schema: '0.9'
+
+interface:
+  name: replay package
+  role: recorder-to-VÉ interface
+  path_template: replay/<pass_id>.json
+  form: a single JSON object
+  discharges: [HUG-UI-002, HUG-UI-003, HUG-UI-004, HUG-UI-005, HUG-UI-007]
+  does_not_discharge:
+    - id: HUG-SYS-006
+      reason: >-
+        Ground-system replay is discharged by the ground system's native timestamped
+        log recording and playback (HUG-GND-004, B14), not by this package
+        (Sec. 1, G001-15 F-01).
+
+# -----------------------------------------------------------------------------
+# Sec. 2 - package form and timebase
+# -----------------------------------------------------------------------------
+top_level_members: [meta, track, frames, events]
+
+timebase:
+  clock: ground recorder monotonic
+  units: seconds, pass-relative
+  anchor_field: meta.epoch_utc
+  ground_time: epoch_utc + t_s
+  meaning_by_array:
+    track: computation time
+    frames: receive time
+    events: occurrence time
+  not_a_timebase:
+    field: CDH_MET
+    reason: >-
+      CDH_MET is telemetry CONTENT, never a timebase; a stalled or jumping MET
+      corrupts nothing in the package timeline (Sec. 2, FMEA FM-CDH-05).
+
+# -----------------------------------------------------------------------------
+# Sec. 3 - meta
+# -----------------------------------------------------------------------------
+meta_fields:
+  pass_id:
+    required: true
+    type: string
+    grammar: '^[a-z0-9][a-z0-9_-]{0,63}$'
+    # Lowercase-only, so exactly one spelling exists and comparison is byte-exact:
+    # case collision on a case-insensitive filesystem is impossible by construction.
+    reserved_basenames: [con, prn, aux, nul,
+                         com1, com2, com3, com4, com5, com6, com7, com8, com9,
+                         lpt1, lpt2, lpt3, lpt4, lpt5, lpt6, lpt7, lpt8, lpt9]
+    equals_filename_stem: true
+    reuse_across_executed_passes: forbidden
+  scenario:
+    required: true
+    type: string
+    semantics: Scenario file identifier that produced the pass.
+  gs:
+    required: true
+    type: string
+    semantics: Ground terminal callsign.
+    v0_1_value: GS-RAVENSROOST
+  epoch_utc:
+    required: true
+    type: string
+    format: ISO 8601 UTC instant
+    semantics: The instant of t_s = 0 on the recorder clock.
+  cadence_s:
+    required: true
+    type: number
+    exclusive_min: 0
+    semantics: Track sampling interval and nominal telemetry cadence.
+  aos_s:
+    required: true
+    type: number
+    semantics: Acquisition of signal, recorder-clock pass-relative.
+  los_s:
+    required: true
+    type: number
+    semantics: Loss of signal, recorder-clock pass-relative.
+  eclipse_exit_s:
+    required: false
+    nullable: true
+    type: number
+    semantics: >-
+      Eclipse exit within the recorded span. Null or absent when no eclipse boundary
+      occurs in the span (F-06). Convenience marker only - the orbit view's eclipse
+      display renders from track[].ecl, not from this field.
+  eclipse_entry_s:
+    required: false
+    nullable: true
+    type: number
+    semantics: >-
+      Eclipse entry within the recorded span, under the same rule as eclipse_exit_s.
+  end_s:
+    required: true
+    type: number
+    semantics: Last recorded time.
+  orbit_ref:
+    required: true
+    type: string
+    semantics: >-
+      Provenance: the pinned surrogate reference element set (defs/orbit/).
+  dict_ref:
+    required: true
+    type: object
+    fields:
+      version: {type: string}
+      sha256: {type: string, format: hex}
+    semantics: >-
+      Identity of the defs/tlm_cmd.yaml in force at recording; unmatchable -> refuse.
+      This is the value tools/gen_openc3_config.py emits as CONFIG_ID.txt.
+  schema:
+    required: true
+    type: string
+    equals: schema           # the top-level identity of this file
+    semantics: Unknown value -> refuse.
+
+# -----------------------------------------------------------------------------
+# Sec. 4 - track (ground-computed position; always present)
+# -----------------------------------------------------------------------------
+track_sample_fields:
+  t_s:
+    required: true
+    type: number
+  lat_deg:
+    required: true
+    type: number
+    min: -90
+    max: 90
+    min_inclusive: true
+    max_inclusive: true
+  lon_deg:
+    required: true
+    type: number
+    min: -180
+    max: 180
+    min_inclusive: false      # (-180, 180]
+    max_inclusive: true
+  alt_km:
+    required: true
+    type: number
+  az_deg:
+    required: true
+    type: number
+    min: 0
+    max: 360
+    min_inclusive: true       # [0, 360)
+    max_inclusive: false
+    semantics: 'Topocentric look angle: 0 = north, clockwise.'
+  el_deg:
+    required: true
+    type: number
+    min: -90
+    max: 90
+    min_inclusive: true
+    max_inclusive: true
+    semantics: Topocentric elevation; negative is below horizon.
+  ecl:
+    required: true
+    type: boolean
+    semantics: >-
+      Ground-computed illumination from the propagated orbit; true = in eclipse.
+      The orbit view's eclipse display renders from HERE - deterministic on every
+      pass shape, independent of telemetry reception. ADM_ECLIPSE in received
+      frames is the telemetered counterpart, never the display source
+      (G001-03 F-03).
+
+# Sec. 4 interpolation, normative per F-07. For display between samples only.
+interpolation:
+  shortest_arc: [lon_deg, az_deg]     # 179 -> -179 crosses 180, a 2 degree path
+  linear: [lat_deg, alt_km, el_deg]
+
+# -----------------------------------------------------------------------------
+# Sec. 5 - frames (received housekeeping telemetry)
+# -----------------------------------------------------------------------------
+frames:
+  entry_rule: >-
+    One entry per housekeeping frame ACTUALLY RECEIVED, at its receive t_s. Nothing
+    is fabricated: during a telemetry outage - including the exercised generation-halt
+    fault, HUG-EPS-004(c) - no entries exist, and the gap itself is the record.
+  member_name_rule:
+    transform: lowercase the dictionary mnemonic
+    example: EPS_BATT_V -> eps_batt_v
+    bijective: true
+    # Mnemonics are unique case-insensitively, so the transform is bijective over the
+    # dictionary's mnemonic set. Producer and consumer both apply exactly this
+    # transform; no other mapping exists (F-05).
+  members_source: defs/tlm_cmd.yaml
+  # The members ARE the 16 dictionary points under that transform - not a list copied
+  # here, which could fall out of step with the dictionary.
+  value_domains: dictionary-native
+  # Voltages V, currents A, SoC %, enums as their dictionary string values, counters
+  # as integers. Limit evaluation happens in native units against the dict_ref
+  # dictionary; the viewer derives display values (watts = current x eps_bus_v),
+  # never the reverse.
+
+# -----------------------------------------------------------------------------
+# Sec. 6 - events (operator-salient timeline)
+# -----------------------------------------------------------------------------
+event_fields:
+  t_s: {required: true, type: number}
+  text:
+    required: true
+    type: string
+    rendering: text-only sink
+    markup: forbidden
+    semantics: >-
+      Plain text only: producers shall emit no markup; the viewer shall render text
+      through a text-only sink with no markup or code interpretation (HUG-UI-007,
+      F-15) - markup-significant characters render inert.
+  sev: {required: true, type: string, values: [info, warn, crit]}
+  cmd:
+    required: false
+    type: object
+    present_when: the event records a command, and exactly then
+    fields:
+      mnemonic: {type: string, source: dictionary command mnemonics}
+      result: {type: string, values: [accepted, rejected]}
+      reason: {type: string, source: CDH_REJ_REASON dictionary values}
+    result_reason_invariant:
+      scope: event-local
+      rule: reason is 'NONE' if and only if result is 'accepted'
+      # reason reports THIS event's own outcome, never the CDH_REJ_REASON telemetry
+      # register's last-reject value (normative, G001-05 F-03).
+
+# -----------------------------------------------------------------------------
+# Sec. 7 - conformance contract
+#
+# A package violating any rule is MALFORMED and is refused with a stated reason.
+# Refusal is unconditional: the viewer never best-effort renders (Sec. 2).
+# -----------------------------------------------------------------------------
+conformance_rules:
+  - id: RS-2-01
+    source: Sec. 2
+    statement: The package is a single JSON object at replay/<pass_id>.json.
+  - id: RS-2-02
+    source: Sec. 2
+    statement: >-
+      The package has exactly four top-level members: meta, track, frames, events.
+  - id: RS-2-03
+    source: Sec. 2
+    statement: >-
+      The recorder refuses to assign a pass_id already assigned to an executed pass;
+      an identifier is used once, so a later execution can neither overwrite nor
+      alias an earlier package (G001-14 F-01).
+    enforced_by: recorder
+  - id: RS-2-04
+    source: Sec. 2
+    statement: >-
+      The viewer refuses - never best-effort renders - a package with an unknown
+      schema version, an unmatchable dict_ref, or any violation of this contract.
+    enforced_by: viewer
+  - id: RS-2-05
+    source: Sec. 2
+    statement: >-
+      Every t_s in track, frames and events is pass-relative seconds on the ground
+      recorder's monotonic clock, anchored to UTC by meta.epoch_utc.
+  - id: RS-3-01
+    source: Sec. 3
+    statement: >-
+      meta.schema equals the schema number of this interface definition; the two are
+      one identity (G001-04 F-01).
+  - id: RS-4-01
+    source: Sec. 4
+    statement: >-
+      track is always present, carrying position computed from the propagated
+      surrogate reference orbit independent of telemetry reception (F-01).
+  - id: RS-4-02
+    source: Sec. 4
+    statement: >-
+      Circular quantities (lon_deg, az_deg) interpolate along the shortest arc;
+      non-circular quantities (lat_deg, alt_km, el_deg) interpolate linearly (F-07).
+    applies_to: display
+  - id: RS-5-01
+    source: Sec. 5
+    statement: >-
+      frames carries one entry per housekeeping frame actually received and fabricates
+      nothing; during an outage no entries exist and the gap itself is the record.
+  - id: RS-5-02
+    source: Sec. 5
+    statement: >-
+      Each frame member name is the dictionary mnemonic lowercased, a bijective
+      transform over the dictionary's mnemonic set; no other mapping exists (F-05).
+  - id: RS-6-01
+    source: Sec. 6
+    statement: >-
+      events[].text is plain text; producers emit no markup and the viewer renders it
+      through a text-only sink with no markup or code interpretation (HUG-UI-007).
+  - id: RS-6-02
+    source: Sec. 6
+    statement: events[].cmd is present exactly when the event records a command.
+  - id: RS-7-01
+    source: Sec. 7
+    statement: >-
+      Members not defined by this schema are forbidden, at every level.
+  - id: RS-7-02
+    source: Sec. 7
+    statement: All numbers are finite.
+  - id: RS-7-03
+    source: Sec. 7
+    statement: cadence_s > 0.
+  - id: RS-7-04
+    source: Sec. 7
+    statement: 0 <= aos_s < los_s <= end_s.
+  - id: RS-7-05
+    source: Sec. 7
+    statement: Every t_s lies in [0, end_s].
+  - id: RS-7-06
+    source: Sec. 7
+    statement: >-
+      t_s is strictly increasing within each of track, frames and events.
+  - id: RS-7-07
+    source: Sec. 7
+    statement: >-
+      track has exactly floor(end_s / cadence_s) + 1 samples, on the cadence grid.
+  - id: RS-7-08
+    source: Sec. 7
+    statement: Every track sample carries ecl as a boolean (G001-03 F-03).
+  - id: RS-7-09
+    source: Sec. 7
+    statement: >-
+      Angular and geodetic values lie in their Sec. 4 ranges: lat_deg in [-90, 90],
+      lon_deg in (-180, 180], az_deg in [0, 360), el_deg in [-90, 90].
+  - id: RS-7-10
+    source: Sec. 7
+    statement: >-
+      Enum members take only their dictionary values.
+  - id: RS-7-11
+    source: Sec. 7
+    statement: Counters are integers in [0, 65535].
+  - id: RS-7-12
+    source: Sec. 7
+    statement: eps_batt_soc lies in [0, 100].
+  - id: RS-7-13
+    source: Sec. 7
+    statement: >-
+      pld_rate lies in [0.1, 10] in EVERY frame regardless of pld_state - the rate
+      register always holds a dictionary-valid value, so an OFF frame reports the
+      resting register value, never a sentinel, a null, or an out-of-domain number
+      (Sec. 5 payload-rate domain; G001-04 F-07).
+    unconditional: true
+  - id: RS-7-14
+    source: Sec. 7
+    statement: >-
+      Every events[].cmd.mnemonic exists in the dict_ref dictionary.
+  - id: RS-7-15
+    source: Sec. 7
+    statement: >-
+      Every events[].cmd satisfies the event-local result-reason invariant: reason is
+      'NONE' if and only if result is 'accepted' (G001-05 F-03).
+  - id: RS-7-16
+    source: Sec. 7
+    statement: >-
+      meta.pass_id matches the canonical lowercase grammar
+      ^[a-z0-9][a-z0-9_-]{0,63}$.
+  - id: RS-7-17
+    source: Sec. 7
+    statement: >-
+      meta.pass_id is not a reserved device basename (con, prn, aux, nul, com1-com9,
+      lpt1-lpt9).
+  - id: RS-7-18
+    source: Sec. 7
+    statement: >-
+      meta.pass_id equals the package filename stem exactly - byte-exact, which the
+      lowercase-only grammar makes sufficient on case-insensitive and case-sensitive
+      filesystems alike (G001-13 F-06, G001-14 F-01).
+  - id: RS-7-19
+    source: Sec. 7
+    statement: >-
+      With RS-2-03, exactly one conforming package exists per executed pass on every
+      supported platform.
+  - id: RS-7-20
+    source: Sec. 7
+    statement: >-
+      A package violating any rule is refused with a STATED REASON; refusal names the
+      rule it failed.
+
+# -----------------------------------------------------------------------------
+# Sec. 8 - what the package deliberately excludes. Recorded so the Phase 4 validator
+# and viewer cannot drift into carrying any of it.
+# -----------------------------------------------------------------------------
+excluded_content:
+  - limit values, colorings and staleness thresholds
+  # derived from defs/tlm_cmd.yaml at build and bound by dict_ref, never carried here
+  - command definitions
+  - executable or markup content of any kind
+  - any live-data path

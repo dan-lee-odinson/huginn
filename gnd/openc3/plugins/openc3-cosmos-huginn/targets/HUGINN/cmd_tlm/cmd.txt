@@ -1,0 +1,37 @@
+# HUGINN commands — the 5 v0.1 commands
+#
+# GENERATED FILE — DO NOT EDIT.
+# Source: defs/tlm_cmd.yaml   Generator: tools/gen_openc3_config.py
+# Dictionary version: 0.5
+# Source sha256: 5e1c2750ef9e0d5463f8b2fcb27abeb1dbde63c1b749717ed170cc2bacd60679
+#
+# HUG-GND-001 prohibits hand-edited packet definitions. Edit the source and
+# regenerate; an edit here is overwritten and, per HUG-GND-006, would make the
+# displayed configuration digest disagree with the dictionary of record — a
+# no-go for commanding at pass setup.
+
+COMMAND HUGINN CMD_PLD_SET_STATE BIG_ENDIAN "Switches payload load; PLD_STATE follows"
+  APPEND_ID_PARAMETER OPCODE 16 UINT 1 1 1 "Opcode"
+  APPEND_PARAMETER STATE 8 UINT 0 1 0 "state"
+    STATE OFF 0
+    STATE ON 1
+
+COMMAND HUGINN CMD_PLD_SET_RATE BIG_ENDIAN "Sets PLD_RATE"
+  APPEND_ID_PARAMETER OPCODE 16 UINT 2 2 2 "Opcode"
+  APPEND_PARAMETER RATE 32 FLOAT 0.1 10 0.1 "rate"
+
+COMMAND HUGINN CMD_SAFE_ENTER BIG_ENDIAN "EPS_MODE → SAFE; payload shed"
+  HAZARDOUS "Two-step confirmation required (Dictionary Sec. 2; B7, FM-CDH-04)"
+  APPEND_ID_PARAMETER OPCODE 16 UINT 3 3 3 "Opcode"
+
+COMMAND HUGINN CMD_SYS_RESET BIG_ENDIAN "Clears stale-telemetry fault; reinitializes command counters to zero and then applies its own acceptance, so the first post-reset frame reads CDH_CMD_ACC_CNT = 1 / CDH_CMD_REJ_CNT = 0 — that epoch IS the reset acknowledgement; preserves SoC (HUG-CMD-005)"
+  HAZARDOUS "Two-step confirmation required (Dictionary Sec. 2; B7, FM-CDH-04)"
+  APPEND_ID_PARAMETER OPCODE 16 UINT 4 4 4 "Opcode"
+
+COMMAND HUGINN CMD_MODE_SET BIG_ENDIAN "EPS_MODE → target. Transition to LOW_POWER sheds the payload load (consistent with HUG-EPS-003); transition to NOMINAL does not re-enable the payload (re-activation via CMD_PLD_SET_STATE, subject to its inhibits)"
+  HAZARDOUS "Two-step confirmation required (Dictionary Sec. 2; B7, FM-CDH-04)"
+  APPEND_ID_PARAMETER OPCODE 16 UINT 5 5 5 "Opcode"
+  APPEND_PARAMETER TARGET 8 UINT 0 1 0 "target"
+    STATE NOMINAL 0
+    STATE LOW_POWER 1
+

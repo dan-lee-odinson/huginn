@@ -1,0 +1,28 @@
+# Campaign pass P3 - stuck-on load, fault (b) of HUG-EPS-004.
+#
+# FMEA FM-EPS-08: an unsheddable 2.0 W draw appears; total load current crosses its
+# yellow limit (YH 1.5 A) before red (RH 2.0 A), which is the dictionary ledger item
+# 1 property, and actual SoC diverges below plan. PROC-002's load-shed branch governs
+# - the payload can be shed, the stuck load cannot.
+scenario_id: p3-stuck-load
+description: Unsheddable 2.0 W load with the payload active; load current crosses yellow.
+seed: 20260731
+start_epoch_utc: '2026-07-29T17:12:00Z'
+duration_s: 17280
+initial:
+  soc_pct: 60.0
+  mode: NOMINAL
+  payload_on: false
+illumination:
+  source: schedule
+  eclipse_intervals_s:
+    - [3660, 5760]
+    - [9420, 11520]
+    - [15180, 17280]
+faults:
+  - t_s: 900
+    fault: stuck_load
+commands:
+  - t_s: 120
+    mnemonic: CMD_PLD_SET_STATE
+    args: {state: 'ON'}

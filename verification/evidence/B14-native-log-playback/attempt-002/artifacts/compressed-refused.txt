@@ -1,0 +1,10 @@
+the same reader, same container, pointed at the COMPRESSED object:
+  /tmp/b14-native-telemetry.bin.gz
+
+stdout:
+REFUSED ValueError OpenC3 file header not found
+
+stderr:
+
+
+refused: True (must be True)

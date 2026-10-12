@@ -1,0 +1,19 @@
+# The design record is byte-normative: C1 of tools/checkers/design_record_consistency.py
+# asserts zero CRLF pairs across the record documents, and the Phase 1 round-trip check
+# compares generated documents to their committed form byte for byte. The developer
+# machine has core.autocrlf=true set system-wide, which would rewrite LF to CRLF on
+# checkout and turn both red. These rules override it for every file in the repo.
+* text=auto eol=lf
+
+# Binary forms that must never be line-ending translated.
+*.png binary
+*.jpg binary
+*.pdf binary
+*.zip binary
+
+# Evidence artifacts are DIGESTED in their manifest. Line-ending translation would
+# change their bytes and the recorded sha256 would stop verifying on a fresh clone --
+# measured: a captured runner transcript hashed 634ec09d in the working copy and
+# 43b38324 as git would check it out. The digest exists to bind what the gate reads to
+# what the demonstration produced, so these bytes are never touched.
+verification/evidence/** -text

@@ -1,0 +1,322 @@
+# =============================================================================
+# HUGINN ITEM-5 — THE EVIDENCE CHAIN
+#
+# verification/EVIDENCE_CHAIN.md is a GENERATED VIEW of this file:
+#   tools/gen_verification_report.py -> verification/EVIDENCE_CHAIN.md
+#
+# WHAT THIS FILE IS. D0-17 item 5 asks for an index mapping every DIRECTION CLAIM
+# made by a checker or an inventory statement to its executed case ID, recorded
+# result and polarity.
+#
+# A direction claim is an inference of the form "because I observed A, B holds". It
+# is called a direction claim because such an inference runs ONE WAY: observing A
+# may establish B while the absence of A establishes nothing, and a check written
+# without noticing which way its own inference runs will report the strong direction
+# and mean the weak one. Every exhibit below is an occasion when this build made such
+# a claim, was wrong, and the check that should have caught it passed.
+#
+# WHY THE CLAIMS ARE AUTHORED HERE AND THE STATUS IS NOT. The claim, the defect and
+# the case identifiers are judgements about the record and belong in the record. But
+# whether a named case EXISTS and EXECUTED is a fact about a run, and a chain that
+# asserted its own execution status would be exactly the artifact it exists to
+# prevent — an index that reads as complete while nothing behind it ran. So the
+# generator joins each case_id below against the run record produced by
+# tools/verification_run.py, and a case that did not execute is rendered as a finding
+# rather than quietly dropped from the table.
+#
+# ADDING AN EXHIBIT. Give the claim in the form "because ... therefore ...", say what
+# the check actually established (which is always less), name the executed cases that
+# now discharge it, and cite the register entry. An exhibit with no covering case is
+# not a defect in this file — it is a finding, and the generator will say so.
+# =============================================================================
+
+evidence_chain_version: '0.1'
+
+# The property every exhibit shares, stated once so the set has a criterion rather
+# than a vibe. Used by the generated view's own introduction.
+shared_shape: >-
+  An observation was scored as positive evidence for a proposition it could not
+  support, and the check that should have caught the gap passed instead. In every
+  case the passing result was real — the check did run and did return true — and the
+  proposition it was read as establishing was false. The failure is never in the
+  observation; it is in the direction the inference was allowed to run.
+
+exhibits:
+
+  - id: EX-1
+    title: The demo plugin that every spelling of "off" installed
+    register: [D-009, OF-003]
+    obligations: [B10]
+    claim: >-
+      Because OPENC3_DEMO in the deployment environment equals the string generated
+      from defs/ground.yaml's `demo_targets: false` — the literal "0" — the demo
+      plugin is not installed, and therefore the targets present in HUGINN's COSMOS
+      instance are exactly the targets this repository generated.
+    actually_established: >-
+      That the variable held the string "0". Nothing about what the container did
+      with it. openc3-cosmos-init's /openc3/init.sh tests `[ ! -z $OPENC3_DEMO ]` —
+      presence, not value — so "0", "false" and "1" all install the demo, and only an
+      empty value or absence suppresses it.
+    why_the_check_missed_it: >-
+      The retired G16 property was falsified only BETWEEN TWO VALUES THAT BOTH
+      INSTALL. Its red case flipped 0 to 1 and both spellings load the demo, so the
+      mutation could not distinguish a correct configuration from the defect. A red
+      case that moves along an axis the subject does not respond to certifies
+      whatever it is pointed at.
+    covering_cases:
+      - {id: 'defs_generation:G16.m5', polarity: red}
+      - {id: 'defs_generation:G16.m6', polarity: red}
+      - {id: 'defs_generation:G16.m7', polarity: red}
+      - {id: 'defs_generation:G16.m8', polarity: green}
+      - {id: 'defs_generation:G16', polarity: green}
+      - {id: 'test_ground_targets.TestForeignTargetsAreCaught.test_a_single_foreign_target',
+         polarity: red}
+      - {id: 'test_ground_targets.TestTheCleanInstanceHolds.test_the_permitted_set_exactly',
+         polarity: green}
+    residual: >-
+      G16 reads .env.template, not the file the running container consumed. The
+      loaded-vs-repository check ruled at D-010 is what closes that gap, and it is
+      executed by tools/pass_setup.py as PROC-001's pre-pass step rather than by the
+      gate — so the gate's green does not by itself establish the deployed instance.
+
+  - id: EX-2
+    title: The staleness monitor that annunciated without ever reading
+    register: [OF-002, D-012]
+    obligations: [B6]
+    claim: >-
+      Because the ground-side monitor annunciated GREEN then YELLOW at 10 s then RED
+      at 30 s, at exactly the dictionary's spacing, the monitor observed
+      CDH_FRAME_CNT stop advancing.
+    actually_established: >-
+      That thirty seconds of wall-clock had passed since the monitor's process
+      started. The generated monitor computed staleness from process start rather
+      than from its first successful read, and swallowed every read failure, so a
+      monitor that had never once read the counter produced a transcript
+      indistinguishable from one watching a real halt.
+    why_the_check_missed_it: >-
+      Nothing asked the monitor to prove it had ever looked. The demonstration scored
+      the annunciation sequence, which a dead monitor emits just as readily as a live
+      one, and the sequence was the whole of the evidence.
+    covering_cases:
+      - {id: 'test_staleness_monitor.TestTheDeadMonitorCannotProduceTheTranscript.test_a_monitor_that_can_never_read_stays_no_read',
+         polarity: red}
+      - {id: 'test_b6_verdict.TestTheGreenHoldControlIsEnforcedFromTheArchive.test_a_counter_that_did_not_advance_during_the_hold_fails',
+         polarity: red}
+      - {id: 'test_staleness_monitor.TestTheDeadMonitorCannotProduceTheTranscript.test_the_dead_monitor_ran_long_enough_for_red_to_have_fired',
+         polarity: red}
+    residual: >-
+      The GREEN-ENTRY control — that the monitor was restarted and observed ENTERING
+      GREEN inside the run's own window — is archived in the B6 manifest as
+      artifacts/green-entry.txt but is not re-derived from the archive by b6_verdict.
+      The control that makes every later level trustworthy is therefore the one clause
+      of the B6 verdict a reader must still take on the manifest's word.
+
+  - id: EX-3
+    title: The monitor that latched when its reads stopped working
+    register: [OF-006, D-012]
+    obligations: [B6]
+    claim: >-
+      Because the monitor annunciated a staleness LEVEL and has said nothing since,
+      the spacecraft's frame counter is in the state last annunciated, observed by a
+      working read path.
+    actually_established: >-
+      That the monitor emitted a level at some past instant. Two inferences were
+      bundled and both run one way: a level implies a read only if reads cannot fail
+      silently, and silence implies no change only if the monitor logs on every poll
+      rather than on transition. Neither held. A read path that broke after one
+      success left the last level latched and the log quiet.
+    why_the_check_missed_it: >-
+      Transition-only logging makes silence ambiguous by construction, and the
+      vocabulary had no way to say "I cannot see". D-012 supplied READ_FAULT (the
+      path worked and stopped) and NO_READ (it never worked), which is what makes the
+      two distinguishable in a transcript at all.
+    covering_cases:
+      - {id: 'test_staleness_monitor.TestARealHaltIsStillCaught.test_a_read_failure_AFTER_a_successful_read_is_a_READ_FAULT_not_staleness',
+         polarity: red}
+      - {id: 'test_staleness_monitor.TestARealHaltIsStillCaught.test_the_read_fault_annunciation_names_the_ground_segment',
+         polarity: red}
+      - {id: 'test_staleness_monitor.TestARealHaltIsStillCaught.test_staleness_across_a_read_outage_is_not_erased_by_recovery',
+         polarity: red}
+      - {id: 'test_b6_verdict.TestAReadFaultBreaksTheObservation.test_a_read_fault_in_the_transcript_fails',
+         polarity: red}
+    residual: >-
+      b6_verdict refuses a transcript containing READ_FAULT but does not refuse one
+      containing NO_READ. A monitor that never read at all is the more serious of the
+      two conditions and is the one the verdict does not currently reject.
+
+  - id: EX-4
+    title: Two negative controls that a SyntaxError satisfied
+    register: [OF-008, OF-005]
+    obligations: [B14]
+    claim: >-
+      Because the ground system's own reader, invoked against a path that does not
+      exist, emitted no PACKETS line, it returned no packets; therefore the playback
+      was bound to the named native log file rather than to the runtime databases.
+    actually_established: >-
+      That no PACKETS line appeared. Both controls built their command by joining
+      simple statements with semicolons and then appending a compound statement,
+      which is a SyntaxError — so neither control's script ever compiled and neither
+      ever ran. Both were scored on an ABSENCE (`file_bound = control_count == 0`),
+      and an absence is exactly what a program that never started produces.
+    why_the_check_missed_it: >-
+      A control scored on an absence cannot distinguish "ran and observed nothing"
+      from "never ran". The control could not have failed, which is the same as
+      saying it was not a control.
+    covering_cases:
+      # The two that carry the direction claim. Each strips the evidence that the
+      # reader ever executed while LEAVING the absence-based clause satisfied — which
+      # is the exact state B14 was in when it reported PASS.
+      - {id: 'test_b14_verdict.TestAControlThatNeverRan.test_the_of005_control_with_no_evidence_it_ever_ran',
+         polarity: red}
+      - {id: 'test_b14_verdict.TestAControlThatNeverRan.test_the_compressed_control_with_no_evidence_it_ever_ran',
+         polarity: red}
+      - {id: 'test_b14_verdict.TestAControlThatNeverRan.test_a_control_that_failed_for_a_different_reason',
+         polarity: red}
+      - {id: 'test_b14_verdict.TestThePlaybackMustHaveReadTheNativeLog.test_a_playback_that_read_the_compressed_object',
+         polarity: red}
+      - {id: 'test_b14_verdict.TestTheSourceMustHaveBeenGone.test_the_simulator_still_accepting_connections',
+         polarity: red}
+      - {id: 'test_b14_verdict.TestTheVerdictDetectsRatherThanRaises.test_every_artifact_empty_reports_and_does_not_raise',
+         polarity: red}
+      - {id: 'test_b14_verdict.TestTheArchivedEvidencePasses.test_the_committed_b14_evidence_satisfies_the_verdict',
+         polarity: green}
+      - {id: 'test_b14_verdict.TestValidVariationsAreNotFlagged.test_extra_log_noise_around_the_controls_still_passes',
+         polarity: green}
+    residual: >-
+      Covered under D-013 item 1, closing OF-012. `b14_verdict` re-derives B14 from the
+      archived bytes alone, as b6_verdict and b11_verdict do for their obligations, and
+      every control it scores must show the reader ACTUALLY RAN — a `REFUSED
+      <ExceptionType>` line only an executed reader produces. The zero-count line the
+      original controls were scored on is still required and is never sufficient by
+      itself, because an absence is not an observation. The two red cases that matter
+      remove only the evidence of execution and assert the absence clause still holds,
+      so they fail against the verdict B14 shipped with and pass against this one.
+      One residual remains: the SyntaxError transcript that diagnosed OF-008 exists
+      only as prose in this register. The artifact was overwritten before the evidence
+      harness was capturing, so the defect itself is recorded rather than archived.
+
+  - id: EX-5
+    title: Every evidence digest had stopped verifying
+    register: [OF-009, D-008]
+    obligations: [B6, B7, B10, B11, B14]
+    claim: >-
+      Because every manifest carries a sha256 per artifact, what the gate reads can be
+      shown to be what the demonstration produced.
+    actually_established: >-
+      That a digest had been written down beside a filename. Nothing recomputed it.
+      Evidence captured on Windows held CRLF, and .gitattributes' `* text=auto eol=lf`
+      meant git stored a translated copy of every text artifact while the manifest
+      recorded the digest of the untranslated bytes. On a fresh clone not one digest
+      would have verified.
+    why_the_check_missed_it: >-
+      There was no check. The digests were written and never read back, so the binding
+      the ruling relied on existed only as an intention. This is the one exhibit whose
+      defect would have been invisible to a reader rather than merely misleading:
+      the artifacts were present, readable, and no longer what they claimed to be.
+    covering_cases:
+      - {id: 'test_verify_evidence.TestTamperingIsCaught.test_a_line_ending_translation_fails',
+         polarity: red}
+      - {id: 'test_verify_evidence.TestTamperingIsCaught.test_an_edited_artifact_fails',
+         polarity: red}
+      - {id: 'test_verify_evidence.TestTamperingIsCaught.test_a_missing_artifact_fails',
+         polarity: red}
+      - {id: 'test_verify_evidence.TestVacuousPassesAreRefused.test_an_empty_evidence_root_fails',
+         polarity: red}
+      - {id: 'test_verify_evidence.TestVacuousPassesAreRefused.test_a_manifest_listing_no_artifacts_fails',
+         polarity: red}
+      - {id: 'test_verify_evidence.TestIntactEvidenceVerifies.test_an_untouched_attempt_passes',
+         polarity: green}
+    residual: >-
+      tools/verify_evidence.py now recomputes every digest on every gate run, and the
+      line-ending case is the one that matters — same text, different bytes — because
+      a check comparing content rather than bytes would pass it and miss precisely
+      what happened.
+
+  - id: EX-6
+    title: A red case caught by a crash rather than by its check
+    register: [OF-011]
+    obligations: [B4]
+    claim: >-
+      Because G11.m1 turns G11 red when an FMEA severity rating is moved outside the
+      Sec. 3 definitions, G11 detects out-of-range ratings.
+    actually_established: >-
+      That G11 does not survive the input. G11's own detection at the top of the
+      function had already found the violation and appended it to `problems`, but
+      execution continued into the R2 partition, whose risk_of() lookup raised
+      KeyError on the undefined rating before the finding could be returned. The
+      self-test scored the crash as CAUGHT.
+    why_the_check_missed_it: >-
+      The self-test's red criterion was "the check did not return true", and a check
+      that raises does not return true. Crash and detection are indistinguishable
+      under that criterion — OF-008's shape, one level down, inside the machinery
+      that certifies every other check.
+    covering_cases:
+      - {id: 'defs_generation:G11.m1', polarity: red}
+      - {id: 'defs_generation:G11.m3', polarity: red}
+    residual: >-
+      Found while building this phase's observation layer, which records
+      passed_by_exception per mutation case for exactly this reason. G11 now returns
+      its finding before deriving risk it cannot derive. One instance existed in the
+      build; the run record now reports the count, so a second cannot arrive quietly.
+
+  - id: EX-7
+    title: A validator that refused the record its own procedure ordered
+    register: [OF-010]
+    obligations: [B13]
+    admitted_with_distinction: true
+    claim: >-
+      Because the B13 completion-record suite is green across 63 two-polarity cases
+      built from the procedure definition itself, the completion-record contract is
+      the contract the procedures require.
+    actually_established: >-
+      That the contract is self-consistent about STEPS. The fixtures were generated
+      from the procedures' step list, and both defects lived in the BRANCHES — in the
+      `then:` text that tells an operator what to do next. PROC-001-S03's no-go branch
+      orders S02 re-run and S12's ARG_RANGE branch orders a re-send, while the
+      validator allowed each step exactly one entry; PROC-001-S05 and S07 hand off to
+      PROC-003 and PROC-002 with nowhere in the report to record the contingency work.
+    why_the_check_missed_it: >-
+      A generated fixture inherits the blind spot of the field it generates from.
+      Every case was derived from `steps`, so no case could exercise an obligation
+      stated in `branches`.
+    covering_cases:
+      - {id: 'test_pass_report.TestInPassReExecution.test_green_a_described_re_run_is_accepted',
+         polarity: green}
+      - {id: 'test_pass_report.TestInPassReExecution.test_red_a_second_entry_is_still_refused',
+         polarity: red}
+      - {id: 'test_pass_report.TestInPassReExecution.test_red_a_counted_attempt_that_is_never_described',
+         polarity: red}
+      - {id: 'test_pass_report.TestAPassThatInvokesAContingencyProcedure.test_red_the_invoking_step_took_a_different_branch',
+         polarity: red}
+      - {id: 'test_pass_report.TestAPassThatInvokesAContingencyProcedure.test_green_a_contingency_procedure_run_from_its_branch',
+         polarity: green}
+    distinction: >-
+      THIS EXHIBIT IS A DIFFERENT SPECIES AND IS ADMITTED SAYING SO. The other six are
+      checks that PASSED on a false proposition — they were silent, and silence is why
+      they survived. OF-010's validator FAILED, loudly, on a true record; a tool that
+      refuses something true announces itself the first time an operator meets it.
+      On that difference alone it would be a correctness defect and not an
+      evidence-chain exhibit.
+      It is admitted because of what it would have produced downstream. An operator
+      who followed PROC-001-S03, went no-go, reloaded and re-ran had exactly one
+      conforming record available: the one that reports the successful attempt and
+      omits the failed one. The contract would have manufactured a record of a pass
+      that went right the first time, from an operator doing everything correctly —
+      which is the same false evidence the other six exhibits produce, arriving by the
+      opposite route. And the framing claim above ("63 green cases, therefore the
+      contract is right") is a direction claim that failed for a locatable reason.
+      Recorded here as EX-7 with this note rather than either folded in silently or
+      left out.
+      THE STRONGEST OBJECTION TO ADMITTING IT, STATED SO THE DIRECTOR CAN RULE AGAINST
+      ME. The false record OF-010 would have produced has NO INSTANCE and never had
+      one. The campaign has not run; the only pass report in the repository is a worked
+      example. No operator was refused, no failed attempt was dropped, no pass ever read
+      as a first-time GO. The downstream consequence argued above is REASONED, not
+      MEASURED — and every other exhibit here was measured: D-009's polarity table was
+      taken from the container at five settings, the monitor was observed annunciating
+      while dead, the B14 controls were run and found never to have compiled, the
+      digests were recomputed and did not match. On the evidence standard the other six
+      meet, EX-7 is the only entry resting on an argument rather than an observation.
+      It is admitted because the direction claim about the CHECKER did occur and is
+      measurable — the 63 cases were green and the contract was incomplete — but a
+      reader should know the two halves are not equally grounded.

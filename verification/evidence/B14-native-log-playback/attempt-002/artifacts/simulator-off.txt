@@ -1,0 +1,3 @@
+TCP 7801 accepting connections: False
+HUGINN_INT state: ATTEMPTING
+last CDH_FRAME_CNT seen live: 258

@@ -1,0 +1,16 @@
+Outcome line recorded by the harness, verbatim:
+
+  green_hold=True yellow=False red=False link_live=True levels=[]
+
+From artifacts/green-hold.txt:
+
+  held 45 s (RED_S=30)
+  CDH_FRAME_CNT 150 -> 1091
+  alarms during hold: []
+  annunciations during hold: []
+
+From artifacts/halt-fidelity.txt:
+
+  interface state at the alarm: CONNECTED
+  rxcnt: 2209  txcnt: 3
+  saw YELLOW: False  saw RED: False

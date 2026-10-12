@@ -1,0 +1,20 @@
+FAIL is a statement about the subject: it did not do the thing.
+The subject did the thing. Recording FAIL would have been false.
+
+The failure was in the instrument -- the collection path the demonstration
+reads its evidence through. Two bugs were found and fixed in it before this
+record was written, and neither was the last one:
+
+  1. the transcript was selected by INDEX into `docker compose logs --tail`,
+     a window that slides as new lines arrive, so a baseline taken earlier
+     pointed past the end of a later read and yielded an empty slice;
+  2. it was then bounded by LINE COUNT while the run itself, at 20x frame
+     rate, flooded the operator log -- pushing the handful of lines the
+     demonstration cared about out from underneath the window.
+
+The original directory was DELETED rather than recorded, on the reasoning
+that a FAIL manifest would libel a working monitor. That reasoning was right
+and the action was wrong: it left no trace that the attempt had been made,
+which is the same silent absence the whole evidence discipline exists to
+prevent (ruling D-008). This record exists because the owner ruled that the
+trail must show what happened.

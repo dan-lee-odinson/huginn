@@ -1,0 +1,18 @@
+Read directly from the operator container's log during diagnosis, with
+`docker compose logs openc3-operator --since <25 minutes>`:
+
+  2026-08-05T03:34:24.804391Z  GREEN
+  2026-08-05T03:35:28.847948Z  YELLOW
+  2026-08-05T03:35:48.861499Z  RED
+
+YELLOW is 64 s after GREEN and RED is 20 s after YELLOW. Measured from the
+last change of CDH_FRAME_CNT rather than from GREEN, those are the
+dictionary's 10 s and 30 s thresholds. The monitor was correct throughout.
+
+TRANSCRIBED, NOT ARCHIVED. The raw log slice for this window was never
+captured by the demonstration, and by the time this record was written the
+container log had rotated past it -- a query bounded to 03:33-03:37 now
+returns nothing. That absence is the defect this fault is being recorded
+for: a demonstration that reads a volatile source and does not preserve the
+bytes it read cannot be re-examined, and its evidence is only as good as
+whoever was watching. The corrected harness archives the slice.

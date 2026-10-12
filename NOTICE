@@ -1,0 +1,20 @@
+HUGINN: CubeSat Mission Operations Simulator
+Copyright 2026 Dan Lee-Odinson
+
+The code is licensed under the Apache License, Version 2.0 (LICENSE). The documentation
+is licensed under the Creative Commons Attribution 4.0 International license
+(LICENSE-docs). README.md says which files fall under which.
+
+This product includes files derived from the OpenC3 COSMOS project template
+(https://github.com/OpenC3/cosmos-project, tag v7.2.1), Copyright Ball Aerospace &
+Technologies Corp. and OpenC3, Inc. They remain under OpenC3's licenses, included as
+gnd/openc3/LICENSE.md and gnd/openc3/LICENSE.txt:
+
+  gnd/openc3/compose.yaml
+  gnd/openc3/openc3-traefik/traefik.yaml
+  gnd/openc3/openc3-traefik/traefik-ssl.yaml
+  gnd/openc3/openc3-traefik/traefik-letsencrypt.yaml
+  gnd/openc3/.env.template
+  gnd/openc3/openc3-redis/users.acl.template
+
+gnd/openc3/cacert.pem is Mozilla's CA certificate data, as curl distributes it.

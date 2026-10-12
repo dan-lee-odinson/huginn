@@ -1,0 +1,5 @@
+interface state at halt onset: CONNECTED
+interface state at the alarm: CONNECTED
+rxcnt: 8645  txcnt: 0
+counter froze: True
+saw YELLOW: False  saw RED: False

@@ -1,0 +1,33 @@
+# Campaign pass P4 - housekeeping generation halt, fault (c) of HUG-EPS-004.
+#
+# FMEA FM-CDH-01: from onset no frames are generated or transmitted while the
+# spacecraft truth state continues to evolve. The ground-side staleness monitor turns
+# yellow at 10 s and red at 30 s (Dictionary note 1 - a halted counter cannot alarm
+# itself). PROC-003 governs, escalating to CMD_SYS_RESET, which clears the fault,
+# reinitialises the counters and preserves SoC (HUG-CMD-005).
+#
+# The reception gap in this pass is the evidence, and it is preserved rather than
+# filled (replay_schema.md Sec. 5).
+scenario_id: p4-hk-generation-halt
+description: Telemetry generation halts; CMD_SYS_RESET clears it and restarts the counter epoch.
+seed: 20260801
+start_epoch_utc: '2026-07-29T18:48:00Z'
+duration_s: 5760
+initial:
+  soc_pct: 65.0
+  mode: NOMINAL
+  payload_on: false
+illumination:
+  source: schedule
+  eclipse_intervals_s:
+    - [3660, 5760]
+faults:
+  - t_s: 1200
+    fault: hk_generation_halt
+commands:
+  - t_s: 120
+    mnemonic: CMD_PLD_SET_STATE
+    args: {state: 'ON'}
+  - t_s: 1320
+    mnemonic: CMD_SYS_RESET
+    args: {}

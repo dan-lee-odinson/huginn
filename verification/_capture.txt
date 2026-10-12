@@ -1,0 +1,17 @@
+
+========================================================================
+HUGINN check summary
+========================================================================
+  [   PASS] design record consistency
+            16 checks over the record's prose — 0.2s
+  [   PASS] design record consistency — self-test
+            84 two-polarity cases — 6.3s
+  [   PASS] defs generation
+            16 checks binding sources to generated views — 0.5s
+  [   PASS] defs generation — self-test
+            66 two-polarity cases — 5.0s
+  [   PASS] simulator
+            EPS, commanding, accounting and reproducibility properties — 4.6s
+========================================================================
+  5/5 suites pass in 16.5s
+========================================================================

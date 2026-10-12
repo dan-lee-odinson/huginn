@@ -1,0 +1,3 @@
+interface_state: CONNECTED
+rxcnt: 8981
+simulator_serving: True

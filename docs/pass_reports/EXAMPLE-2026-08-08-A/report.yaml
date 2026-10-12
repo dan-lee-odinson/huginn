@@ -1,0 +1,174 @@
+# WORKED EXAMPLE pass report — not a record of a flown pass.
+#
+# Kept so the Director has a filled-in form to copy rather than a blank one to interpret.
+# It deliberately shows the two cases a blank template cannot: a step that legitimately
+# did NOT apply, and a step that was MISSED and is recorded truthfully as omitted.
+#
+#   python tools/pass_report.py --template PROC-001 > report.yaml   # start here
+#   python tools/pass_report.py --validate report.yaml              # before filing
+#
+# The pass_id begins with EXAMPLE- so it can never collide with a real pass.
+
+pass_id: EXAMPLE-2026-08-08-A
+procedure: PROC-001
+executed_utc: '2026-08-08T02:28:20Z'
+
+pass_plan:
+  window_aos_utc: '2026-08-08T02:29:50Z'
+  window_los_utc: '2026-08-08T02:37:10Z'
+  predicted_soc_pct: 38
+  planned_commands: [CMD_PLD_SET_STATE ON, CMD_PLD_SET_RATE 2.0]
+
+event_timeline:
+  - {utc: '2026-08-08T02:24:50Z', event: pass plan reviewed}
+  - {utc: '2026-08-08T02:22:10Z', event: pre-pass configuration verification NO-GO, loaded build behind repository}
+  - {utc: '2026-08-08T02:24:10Z', event: generated configuration reloaded per FM-GND-04 note (e)}
+  - {utc: '2026-08-08T02:24:50Z', event: pre-pass configuration verification GO on re-run}
+  - {utc: '2026-08-08T02:29:50Z', event: AOS, frame lock}
+  - {utc: '2026-08-08T02:31:50Z', event: state-of-health complete, SoC 37.4 percent}
+  - {utc: '2026-08-08T02:33:00Z', event: payload activation WITHHELD, SoC below inhibit}
+  - {utc: '2026-08-08T02:37:10Z', event: LOS}
+
+limit_violations: []
+
+actions:
+  - {step: PROC-001-S02, action: 'ran tools/pass_setup.py: NO-GO, reloaded config, re-ran, verdict GO'}
+  - {step: PROC-001-S09, action: 'activation withheld: SoC 37.4 below the 40 percent inhibit'}
+
+completion_record:
+
+  - step: PROC-001-S01
+    role: PLAN
+    operator: Dan Lee-Odinson
+    state: completed
+    records: {predicted_soc_pct: 38, window_aos_utc: '2026-08-08T02:29:50Z',
+              window_los_utc: '2026-08-08T02:37:10Z'}
+
+  # A step this procedure ORDERED re-run inside the pass. The first run was NO-GO on
+  # the loaded-vs-repository check; FM-GND-04 note (e) says reload and re-run. The
+  # step keeps its single entry — its records are the final attempt's — and the
+  # attempt that failed is described rather than quietly dropped.
+  - step: PROC-001-S02
+    role: EPS
+    operator: Dan Lee-Odinson
+    state: completed
+    attempts: 2
+    earlier_attempts:
+      - outcome: >-
+          NO-GO. loaded_vs_repository_result FAIL: the running plugin was one commit
+          behind the repository. Reloaded the generated configuration per FM-GND-04
+          note (e) and re-ran the step.
+        records: {pass_setup_verdict: NO-GO, identity_vs_dictionary_result: PASS,
+                  loaded_vs_repository_result: FAIL, target_inventory_result: PASS}
+    records: {pass_setup_verdict: GO, identity_vs_dictionary_result: PASS,
+              loaded_vs_repository_result: PASS, target_inventory_result: PASS}
+
+  - step: PROC-001-S03
+    role: FD
+    operator: Dan Lee-Odinson
+    state: completed
+    branch: GO
+    observation: 'pass_setup.py printed Verdict: GO with all four conditions PASS'
+
+  - step: PROC-001-S04
+    role: EPS
+    operator: Dan Lee-Odinson
+    state: completed
+    records: {first_frame_utc: '2026-08-08T02:29:52Z', cdh_frame_cnt_first: 4471,
+              cdh_frame_cnt_second: 4472, staleness_annunciator_state: GREEN}
+
+  - step: PROC-001-S05
+    role: EPS
+    operator: Dan Lee-Odinson
+    state: completed
+    branch: acquired
+    observation: CDH_FRAME_CNT went 4471 to 4472 across consecutive frames, annunciator GREEN
+
+  - step: PROC-001-S06
+    role: EPS
+    operator: Dan Lee-Odinson
+    state: completed
+    records: {eps_batt_v_at_aos2: 7.31, soc_pct_at_aos2: 37.4,
+              soc_delta_vs_plan_pct: -0.6, eps_sa1_i_at_aos2: 1.70,
+              eps_sa2_i_at_aos2: 1.68, adm_eclipse_at_aos2: SUNLIT}
+
+  - step: PROC-001-S07
+    role: FD
+    operator: Dan Lee-Odinson
+    state: completed
+    branch: nominal
+    observation: >-
+      No annunciator yellow or red; SoC 37.4 above the 35 percent yellow limit and
+      EPS_BATT_I positive while sunlit
+
+  - step: PROC-001-S08
+    role: EPS
+    operator: Dan Lee-Odinson
+    state: completed
+    records: {soc_pct_at_activation_check: 37.4}
+
+  # The decision that went the other way, and the steps it made inapplicable. This is
+  # what a withheld activation looks like in the record: one decision, and four
+  # not-applicable entries whose basis is that decision's outcome.
+  - step: PROC-001-S09
+    role: FD
+    operator: Dan Lee-Odinson
+    state: completed
+    branch: withheld
+    observation: EPS_BATT_SOC read 37.4 percent, at or below the 40 percent activation inhibit
+
+  - step: PROC-001-S10
+    state: not_applicable
+    basis: PROC-001-S09 selected withheld; no activation was sent
+  - step: PROC-001-S11
+    state: not_applicable
+    basis: PROC-001-S09 selected withheld; there was no command to verify
+  - step: PROC-001-S12
+    state: not_applicable
+    basis: PROC-001-S09 selected withheld; there was no command outcome to determine
+  - step: PROC-001-S13
+    state: not_applicable
+    basis: PROC-001-S09 selected withheld; the payload was never activated
+  - step: PROC-001-S14
+    state: not_applicable
+    basis: PROC-001-S09 selected withheld; there was no rate command to verify
+
+  # The step that was MISSED. It is recorded as omitted and stays omitted: the
+  # re-execution is a completed entry in the NEXT pass's record, referenced from here.
+  - step: PROC-001-S15
+    state: omitted
+    anomaly: ANOM-001
+
+  - step: PROC-001-S16
+    role: PLAN
+    operator: Dan Lee-Odinson
+    state: completed
+    records: {observed_los_utc: '2026-08-08T02:37:08Z',
+              computed_los_utc: '2026-08-08T02:37:10Z', last_cdh_frame_cnt: 4515}
+
+  - step: PROC-001-S17
+    role: PLAN
+    operator: Dan Lee-Odinson
+    state: completed
+
+  - step: PROC-001-S18
+    role: PLAN
+    operator: Dan Lee-Odinson
+    state: completed
+    branch: omission finding
+    observation: >-
+      tools/pass_report.py named PROC-001-S15 as having no entry on the first review;
+      it is now recorded as omitted and dispositioned as ANOM-001
+
+anomalies:
+  - id: ANOM-001
+    step: PROC-001-S15
+    finding: >-
+      The LOS-2 final state snapshot was not taken. The contact ended while the operator
+      was closing out the withheld-activation decision, and no mode, SoC or load-current
+      reading was recorded for the end of the pass.
+    feasibility: >-
+      The step recurs on every pass of PROC-001, and the next contact is within 24 hours,
+      so re-execution at the next opportunity is feasible.
+    disposition: re_execution
+    re_executed_as: {pass_id: EXAMPLE-2026-08-09-A, step: PROC-001-S15}
