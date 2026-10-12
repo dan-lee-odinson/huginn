@@ -1,5 +1,7 @@
 # HUGINN: CubeSat Mission Operations Simulator
 
+[![checks](https://github.com/dan-lee-odinson/huginn/actions/workflows/checks.yml/badge.svg)](https://github.com/dan-lee-odinson/huginn/actions/workflows/checks.yml)
+
 A mission operations simulator for a fictional 6U CubeSat, by **Dan Lee-Odinson**.
 
 The spacecraft is simulated in Python, and I operate it by written procedure through a
@@ -17,7 +19,7 @@ at a console: flying a spacecraft by procedure through nominal and anomaly passe
 
 ## Status
 
-Version 0.1. The design record went through the HUG-G001 adversarial review series, which
+Version 0.1.5. The design record went through the HUG-G001 adversarial review series, which
 I closed as Director, and I flew the four-pass campaign between August and October 2026.
 
 | Pass | Record | Fault | Outcome |
@@ -27,10 +29,32 @@ I closed as Director, and I flew the four-pass campaign between August and Octob
 | PASS-3 | `2026-10-11-P3` | stuck-on load | payload shed; anomaly report AR-002 |
 | PASS-4 | `2026-10-11-P4` | housekeeping telemetry generation halt | telemetry restored; anomaly report AR-003 |
 
-`2026-08-03-P1` is my first PASS-1 attempt, kept with its recorded omission;
-`2026-09-13-P1` re-executes it. Pass reports are in `docs/pass_reports/`, anomaly reports
-in `docs/anomalies/`, and `tools/pass_report.py --validate` checks any of them against its
-procedure.
+`2026-08-03-P1` is my first PASS-1 attempt, kept as filed with its recorded omission;
+`2026-09-13-P1` re-executes it. The first attempt fails the current validator, and
+[its folder note](docs/pass_reports/2026-08-03-P1/README.md) says why. Pass reports are in
+`docs/pass_reports/`, anomaly reports in `docs/anomalies/`, and
+`tools/pass_report.py --validate` checks any of them against its procedure.
+
+## PASS-4 at the console
+
+PASS-4's fault halts housekeeping telemetry 100 s into the contact while the ground link stays
+up. These screenshots are from that pass, flown on 11 October 2026.
+
+![CmdTlmServer during the halt: the interface is still connected, and the staleness monitor has announced YELLOW and then RED](docs/images/pass4-1-halt-detected.png)
+
+The link is still connected, but no new frame has arrived. The ground staleness monitor
+announces YELLOW at 10 s and RED at 30 s, and the alarm takes me into PROC-003.
+
+![Command Sender asking for a second confirmation before it sends CMD_SYS_RESET](docs/images/pass4-2-hazardous-confirmation.png)
+
+PROC-003 has me send CMD_SYS_RESET. It is a hazardous command, so COSMOS asks for a second
+confirmation before it goes.
+
+![Packet Viewer late in the contact, with the housekeeping values in limits](docs/images/pass4-3-telemetry-flowing.png)
+
+Telemetry is flowing again, and every limit-checked value is green. The scenario's own scripted
+reset restored it 21 s before mine left the ground;
+[AR-003](docs/anomalies/AR-003-hk-generation-halt.md) has the full timeline.
 
 ## What is where
 
@@ -41,7 +65,7 @@ procedure.
 | `gnd/` | The ground segment: an OpenC3 COSMOS project and the HUGINN plugin. `gnd/RUNBOOK.md` covers setup |
 | `procedures/` | Operations procedures PROC-001 to PROC-003, generated from `defs/procedures.yaml` |
 | `campaign/` | The campaign plan |
-| `docs/` | The design record (concept brief, CONOPS, requirements, FMEA, telemetry and command dictionary), pass reports and anomaly reports |
+| `docs/` | The design record (concept brief, CONOPS, requirements, FMEA, telemetry and command dictionary), pass reports, anomaly reports and the PASS-4 screenshots |
 | `ve/`, `viewer/`, `replay/` | VÉ, the display-only mission viewer; a rendered pass; the replay package it renders |
 | `tools/` | Generators, pass setup, the simulator server and the pass-report validator |
 | `tests/` | The test suite |
@@ -63,7 +87,8 @@ cd ../..
 python tools/serve_sim.py P1_nominal
 ```
 
-Then open http://localhost:2910. `python tools/run_checks.py` runs the full check suite.
+Then open http://localhost:2910. `python tools/run_checks.py` runs the full check suite, and
+GitHub Actions runs the same suite on every push.
 
 ## How it was made
 
@@ -74,8 +99,9 @@ made it.
 Claude (Anthropic), working through Claude Code and Cowork, wrote the code, tests and
 documents under my direction. GPT (OpenAI) reviewed the design record adversarially.
 
-Commit IDs cited in the records refer to my private development archive, which this
-repository was published from.
+The verification report, evidence chain and traceability matrix each name the commit of this
+repository they were generated from. Every other commit ID in the records refers to my
+private development archive, which this repository was published from.
 
 ## License
 
@@ -87,6 +113,7 @@ repository was published from.
 | `gnd/openc3/cacert.pem` | Mozilla's CA certificate data, as curl distributes it; not relicensed |
 
 OpenC3 COSMOS itself is a dependency. It is not included here; the ground segment runs
-OpenC3's published container images.
+OpenC3's published container images. The screenshots in `docs/images/` show the OpenC3
+COSMOS interface, and OpenC3's rights in it are not relicensed.
 
 Copyright 2026 Dan Lee-Odinson.
