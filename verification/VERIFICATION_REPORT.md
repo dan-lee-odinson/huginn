@@ -15,8 +15,8 @@ first to go stale.
 
 | Register | Entries | Tail |
 |---|---|---|
-| Owner rulings | 14 | **D-014** |
-| Open findings | 15 | **OF-015** |
+| Owner rulings | 18 | **D-018** |
+| Open findings | 28 | **OF-028** |
 
 **What Phase 5 added to either register: nothing.** The Phase 5 commit `bba2e0a`
 touched ten files and neither register was among them — no ruling was needed and
@@ -35,14 +35,13 @@ on the phase that introduced it.
 
 | Field | Value |
 |---|---|
-| Release candidate | `8921e625198658da878f8e9032a6d40e59b3aab6` |
-| Subject | Phase 7R: OF-014 -- the procedures named actions and no mechanisms |
-| Tree clean when run | False |
-| Uncommitted at run time | `campaign/CAMPAIGN_PLAN.md`, `defs/procedures.yaml`, `gnd/RUNBOOK.md`, `procedures/PROC-001.md`, `procedures/PROC-002.md`, `procedures/PROC-003.md`, `tools/checkers/defs_generation.py`, `tools/gen_campaign.py` |
-| Executed (UTC) | 2026-08-10T02:43:29Z |
+| Release candidate | `fd597886cc6f6fdbf6708b2ec94d8145ce49b6c3` |
+| Subject | Label the first PASS-1 attempt, add PASS-4 console screenshots, run the checks on every push |
+| Tree clean when run | True |
+| Executed (UTC) | 2026-10-12T17:00:27Z |
 | Interpreter | Python 3.14.4 |
 | Platform | Windows-11-10.0.26200-SP0 |
-| Unit cases | 427 |
+| Unit cases | 492 |
 | Record checks | 34 |
 | Red/green mutation cases | 168 |
 | Archived demonstrations read | 8 |
