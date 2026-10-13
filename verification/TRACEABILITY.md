@@ -13,12 +13,12 @@ the same whether or not anything ran.
 
 | Field | Value |
 |---|---|
-| Commit | `26737d7e34a57125178fd29fd004fe370fea9149` |
+| Commit | `7d02ea9006341ccc35610954c3e5d6d31d28721e` |
 | Subject | Regenerate the verification report and evidence chain |
 | Tree clean at run | True |
-| Executed (UTC) | 2026-10-13T00:45:48Z |
+| Executed (UTC) | 2026-10-13T02:04:43Z |
 | Python / platform | 3.14.4 / Windows-11-10.0.26200-SP0 |
-| Cases executed | 502 tests, 34 checks, 172 red/green mutation cases |
+| Cases executed | 526 tests, 34 checks, 172 red/green mutation cases |
 | Archived demonstrations read | 8 |
 
 ## Matrix
@@ -54,8 +54,8 @@ order is not sorted, and sorting it here would silently reorder the record.
 | `HUG-CMD-007` | T | NEED-03 | 10 case(s) | 1 | PASS |
 | `HUG-OPS-001` | I | NEED-02 | 29 case(s) | 14 | PASS |
 | `HUG-OPS-002` | I | NEED-04 | 96 case(s) | 72 | PASS |
-| `HUG-OPS-003` | D | NEED-04 | — | — | **NO_RECORD** |
-| `HUG-OPS-004` | I | NEED-04 | — | — | **NO_RECORD** |
+| `HUG-OPS-003` | D | NEED-04 | 13 case(s) | 9 | PASS |
+| `HUG-OPS-004` | I | NEED-04 | 11 case(s) | 9 | PASS |
 | `HUG-UI-001` | I | NEED-04 | 3 case(s) | — | PASS |
 | `HUG-UI-002` | T/D | NEED-04 | 9 case(s) + 1 demo(s) | 6 | PASS |
 | `HUG-UI-003` | I | NEED-04 | 80 case(s) | 49 | PASS |
@@ -747,17 +747,41 @@ The case identifiers themselves, so a reader can re-run any single row.
   - `test_pass_report.TestTheWorkedExample.test_the_example_shows_all_three_states`
   - `test_pass_report.TestTheWorkedExample.test_the_example_validates`
 
-### `HUG-OPS-003` — D — **NO_RECORD**
+### `HUG-OPS-003` — D — PASS
 
 - Trace cell: `NEED-04; ASM-02`
 - Reaches a NEED: True
-- **No executed case. This is a finding, recorded below.**
+- Executed cases (13):
+  - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_a_pass_with_no_filed_record`
+  - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_a_pass_with_nothing_sent_from_the_console`
+  - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_a_record_executed_a_day_after_its_frames_arrived`
+  - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_a_reproduced_record_the_validator_refuses`
+  - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_an_operator_command_missing_from_the_log`
+  - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_no_nominal_pass`
+  - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_one_recorded_value_its_scenario_does_not_produce`
+  - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_pass_1_with_only_the_attempt_the_validator_refuses`
+  - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_two_anomaly_passes_of_one_fault_class`
+  - `test_campaign_record.TestTheCampaignAsFlownMeetsHugOps003.test_every_pass_is_reproduced_by_its_scenario_and_only_its_scenario`
+  - `test_campaign_record.TestTheCampaignAsFlownMeetsHugOps003.test_the_filed_campaign_meets_hug_ops_003`
+  - `test_campaign_record.TestTheCampaignAsFlownMeetsHugOps003.test_the_first_pass_1_attempt_and_the_example_are_not_counted`
+  - `test_campaign_record.TestTheCampaignAsFlownMeetsHugOps003.test_the_operator_commands_are_what_make_pass_3_reproduce`
 
-### `HUG-OPS-004` — I — **NO_RECORD**
+### `HUG-OPS-004` — I — PASS
 
 - Trace cell: `NEED-04`
 - Reaches a NEED: True
-- **No executed case. This is a finding, recorded below.**
+- Executed cases (11):
+  - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_a_finding_citing_an_entry_the_register_does_not_hold`
+  - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_a_finding_that_never_reached_the_register`
+  - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_a_report_filed_against_another_pass_scenario`
+  - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_a_report_missing_one_of_its_contacts`
+  - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_a_report_stating_another_fault_class`
+  - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_a_report_with_no_findings_section`
+  - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_a_report_with_no_outcome_section`
+  - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_a_report_with_no_response_section`
+  - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_an_anomaly_pass_with_no_report`
+  - `test_campaign_record.TestTheAnomalyReportsMeetHugOps004.test_each_anomaly_pass_has_its_own_report`
+  - `test_campaign_record.TestTheAnomalyReportsMeetHugOps004.test_the_filed_anomaly_reports_meet_hug_ops_004`
 
 ### `HUG-UI-001` — I — PASS
 
@@ -1097,12 +1121,9 @@ The case identifiers themselves, so a reader can re-run any single row.
 
 ## Findings
 
-Generation FAILED. Under HUG-VER-001 each of these is a failure condition, not a warning.
+None. Every requirement produces a row, reaches a NEED, names an executed case, and — where Test-verified — names a red case; every one of the 11 CONOPS identifiers is cited.
 
-| Condition | Finding |
-|---|---|
-| F2 | HUG-OPS-003 has no downstream verification reference of any kind |
-| F2 | HUG-OPS-004 has no downstream verification reference of any kind |
+**This clean result is not by itself evidence the checks work.** Every failure condition above has zero naturally occurring instances in this record, so a generator with all of them stubbed would print this same section. What makes it evidence is `--self-test`, which demonstrates each condition failing generation on a synthesized input, and which runs in the gate.
 
 ## Conditions enforced
 
