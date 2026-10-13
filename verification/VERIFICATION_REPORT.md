@@ -16,7 +16,7 @@ first to go stale.
 | Register | Entries | Tail |
 |---|---|---|
 | Owner rulings | 19 | **D-019** |
-| Open findings | 33 | **OF-033** |
+| Open findings | 34 | **OF-034** |
 
 **What Phase 5 added to either register: nothing.** The Phase 5 commit `bba2e0a`
 touched ten files and neither register was among them — no ruling was needed and
@@ -35,13 +35,13 @@ on the phase that introduced it.
 
 | Field | Value |
 |---|---|
-| Release candidate | `a7735872db7048bce03c6815eaa5c1db9e8a3cd6` |
-| Subject | Campaign record tests: the flown passes and anomaly reports tied to HUG-OPS-003 and HUG-OPS-004 (D-019) |
+| Release candidate | `a0ab26c9914a14c4ddc7cc1b6654b047ab520c99` |
+| Subject | B7 and B10 verdicts from the archive, the hazardous flag, and red cases for G2 and FM-EPS-06 (D-019) |
 | Tree clean when run | True |
-| Executed (UTC) | 2026-10-13T02:03:44Z |
+| Executed (UTC) | 2026-10-13T03:29:51Z |
 | Interpreter | Python 3.14.4 |
 | Platform | Windows-11-10.0.26200-SP0 |
-| Unit cases | 526 |
+| Unit cases | 570 |
 | Record checks | 34 |
 | Red/green mutation cases | 172 |
 | Archived demonstrations read | 8 |
