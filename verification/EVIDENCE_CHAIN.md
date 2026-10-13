@@ -15,7 +15,7 @@ direction and mean the weak one.
 
 **What the exhibits share.** An observation was scored as positive evidence for a proposition it could not support, and the check that should have caught the gap passed instead. In every case the passing result was real — the check did run and did return true — and the proposition it was read as establishing was false. The failure is never in the observation; it is in the direction the inference was allowed to run.
 
-Joined against the run at `a0ab26c9914a`, 2026-10-13T03:29:51Z.
+Joined against the run at `19c8573f93ea`, 2026-10-13T12:08:15Z.
 
 | Exhibit | Register | Covering cases | Executed | Red |
 |---|---|---|---|---|

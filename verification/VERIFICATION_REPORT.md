@@ -15,8 +15,8 @@ first to go stale.
 
 | Register | Entries | Tail |
 |---|---|---|
-| Owner rulings | 19 | **D-019** |
-| Open findings | 34 | **OF-034** |
+| Owner rulings | 20 | **D-020** |
+| Open findings | 35 | **OF-035** |
 
 **What Phase 5 added to either register: nothing.** The Phase 5 commit `bba2e0a`
 touched ten files and neither register was among them — no ruling was needed and
@@ -35,15 +35,15 @@ on the phase that introduced it.
 
 | Field | Value |
 |---|---|
-| Release candidate | `a0ab26c9914a14c4ddc7cc1b6654b047ab520c99` |
-| Subject | B7 and B10 verdicts from the archive, the hazardous flag, and red cases for G2 and FM-EPS-06 (D-019) |
+| Release candidate | `19c8573f93ea40a8b8c75b0da8373485438ab425` |
+| Subject | FMEA v0.16: FM-GND-07, D-012's queued row, ruled at D-020 |
 | Tree clean when run | True |
-| Executed (UTC) | 2026-10-13T03:29:51Z |
+| Executed (UTC) | 2026-10-13T12:08:15Z |
 | Interpreter | Python 3.14.4 |
 | Platform | Windows-11-10.0.26200-SP0 |
 | Unit cases | 570 |
 | Record checks | 34 |
-| Red/green mutation cases | 172 |
+| Red/green mutation cases | 190 |
 | Archived demonstrations read | 8 |
 
 ## The verdict vocabulary used in this report
