@@ -124,20 +124,21 @@ Four, none of them previously in the register. All want entries of their own.
 1. **The campaign plan records PASS-2 as `Commanded: no`** and justifies its contact on
    not needing commanding margin. PROC-002-S04 commands a shed whenever S03 selects
    array-string failure, which is exactly what this pass is built to produce. The pass is
-   commanded. The plan is wrong.
+   commanded. The plan is wrong. Registered as OF-019.
 
 2. **PROC-002-S02's branch criteria are both unreachable in this scenario.** It selects
    `negative beyond eclipse` on discharging-while-sunlit (physically impossible here — the
    surviving string carries 1.70 A against a 1.40 A load, so the battery charges whenever
    sunlit) or on discharge deeper than the eclipse plan predicts (no predicted profile
    exists anywhere in the build; `pass_setup.py` produces configuration verification only).
+   Registered as OF-021.
 
 3. **No predicted state-of-charge profile exists for any contact.** The only predicted
    value the build produces is the scenario's initial state of charge at MET 0, which is
    what both pass records carry in `predicted_soc_pct`. The `soc_delta_vs_plan_pct` fields
    in both records are therefore artefacts of comparing two different mission times, not
    variances. This makes PROC-002-S02's second criterion unusable and PROC-001-S06's delta
-   meaningless.
+   meaningless. Registered as OF-020.
 
 4. **No pass in the v0.1 campaign ever fires the autonomous mode ladder.** Measured:
 
@@ -150,7 +151,7 @@ Four, none of them previously in the register. All want entries of their own.
 
    LOW_POWER at 30% and SAFE at 20% are specified by HUG-EPS-003, asserted in the
    dictionary's disposition ledger, and depended on by PROC-002-S07, S08, S09 and S10.
-   Nothing in the campaign demonstrates any of it.
+   Nothing in the campaign demonstrates any of it. Registered as OF-022.
 
    Note the second row. **The operator's correct response is what removed the condition.**
    Had the shed not been sent, the ladder would have fired at MET 22822. Shedding the

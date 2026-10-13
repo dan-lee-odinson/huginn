@@ -456,15 +456,15 @@ evidence harness was capturing, so the defect itself is described but not archiv
 
 ## OF-013 — requirements the matrix reports as not established
 
-**Status: PARTLY CLOSED under D-013 items 2 and 3.** Six of the eight rows closed; the two
-that remain close when the campaign record tests land (D-019). These are the standing findings
-`verification/TRACEABILITY.md` carries, listed here so the register and the generated
-matrix cannot drift apart about what is outstanding.
+**Status: CLOSED under D-013 items 2 and 3, and D-019 selection 4.** All eight rows closed;
+the last two by the campaign record tests, `tests/test_campaign_record.py`. These were the
+standing findings `verification/TRACEABILITY.md` carried, listed here so the register and
+the generated matrix could not drift apart about what was outstanding.
 
 | Condition | Requirement | Status | Why |
 |---|---|---|---|
-| F2 | `HUG-OPS-003` | **OPEN** | The campaign was flown, 2026-08-29 to 2026-10-11; no executed case yet ties the pass records to this requirement. Closes when the campaign record tests land (D-019). |
-| F2 | `HUG-OPS-004` | **OPEN** | AR-001 to AR-003 are filed; no executed case yet checks them against this requirement. Closes when the campaign record tests land (D-019). |
+| F2 | `HUG-OPS-003` | CLOSED | `tests/test_campaign_record.py::TestTheCampaignAsFlownMeetsHugOps003`: each filed record the validator accepts is reproduced frame for frame by its campaign scenario plus its own ground command log, one nominal pass and one pass per HUG-EPS-004 fault class; red cases in `TestACampaignThatFallsShortOfHugOps003` (D-019 selection 4) |
+| F2 | `HUG-OPS-004` | CLOSED | `tests/test_campaign_record.py::TestTheAnomalyReportsMeetHugOps004`: AR-001 to AR-003, one per anomaly pass, each stating its fault class and scenario, naming the records its pass flew, with response and outcome sections, and every finding carried into the register; red cases in `TestAnAnomalyReportThatFallsShortOfHugOps004` (D-019 selection 4) |
 | F2 | `HUG-GND-004` | CLOSED | B14 demonstrates timestamped logging and export; its frozen manifest declared only `HUG-SYS-006`. Corrected by `ERR-001` and attributed by an executed case (`tests/test_b14_verdict.py::TestTheArchivedEvidencePasses`), with the archive untouched. |
 | F6 | `HUG-SYS-001` | CLOSED | `tests/test_model_red_cases.py::TestTheTwoStringsCatchTheirViolation` |
 | F6 | `HUG-EPS-001` | CLOSED | `TestEnergyBalanceCatchesItsViolation` |

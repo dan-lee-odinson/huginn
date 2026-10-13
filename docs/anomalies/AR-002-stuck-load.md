@@ -104,7 +104,7 @@ NOMINAL, charging**, with the payload off and the stuck 2.0 W still drawing.
    mapping, the scenario file and `defs/eps.yaml` all name FM-EPS-08, stuck-on load. It also
    tells the operator to expect `EPS_BATT_SOC` falling faster than the pass plan predicted.
    State of charge rose throughout the contact, a little slower than plan before the shed
-   and faster after it. Not yet in the register.
+   and faster after it. Registered as OF-024.
 
 ## 6. Evidence
 
