@@ -13,12 +13,12 @@ the same whether or not anything ran.
 
 | Field | Value |
 |---|---|
-| Commit | `d0d2373ad633dab451ee768302e2393432d2e377` |
+| Commit | `f375accb7252413586996ba115436d90c4c61fc5` |
 | Subject | Regenerate the verification report and evidence chain |
 | Tree clean at run | True |
-| Executed (UTC) | 2026-10-13T03:30:53Z |
+| Executed (UTC) | 2026-10-13T12:09:15Z |
 | Python / platform | 3.14.4 / Windows-11-10.0.26200-SP0 |
-| Cases executed | 570 tests, 34 checks, 172 red/green mutation cases |
+| Cases executed | 570 tests, 34 checks, 190 red/green mutation cases |
 | Archived demonstrations read | 8 |
 
 ## Matrix
@@ -32,12 +32,12 @@ order is not sorted, and sorting it here would silently reorder the record.
 | `HUG-SYS-002` | T | NEED-01 | 17 case(s) | 3 | PASS |
 | `HUG-SYS-003` | T | NEED-04 | 25 case(s) | 2 | PASS |
 | `HUG-SYS-004` | T | NEED-02 | 2 case(s) | 1 | PASS |
-| `HUG-SYS-005` | I/T | NEED-04 | 50 case(s) | 40 | PASS |
+| `HUG-SYS-005` | I/T | NEED-04 | 61 case(s) | 50 | PASS |
 | `HUG-SYS-006` | D | NEED-04 | 21 case(s) + 2 demo(s) | 16 | STRUCK (D-019; cases PASS) |
 | `HUG-EPS-001` | T | NEED-02 | 10 case(s) | 3 | PASS |
 | `HUG-EPS-002` | T | NEED-02 | 6 case(s) | 1 | PASS |
 | `HUG-EPS-003` | T | NEED-03 | 11 case(s) | 2 | PASS |
-| `HUG-EPS-004` | T | via HUG-SYS-005 | 27 case(s) | 21 | PASS |
+| `HUG-EPS-004` | T | via HUG-SYS-005 | 38 case(s) | 31 | PASS |
 | `HUG-EPS-005` | I | NEED-04 | 11 case(s) | 8 | PASS |
 | `HUG-GND-001` | I | NEED-04 | 60 case(s) | 32 | PASS |
 | `HUG-GND-002` | T | NEED-02 | 27 case(s) + 3 demo(s) | 7 | PASS |
@@ -152,7 +152,7 @@ The case identifiers themselves, so a reader can re-run any single row.
 
 - Trace cell: `NEED-04`
 - Reaches a NEED: True
-- Executed cases (50):
+- Executed cases (61):
   - `design_record_consistency:C15`
   - `design_record_consistency:C15.m1`
   - `design_record_consistency:C15.m10`
@@ -167,7 +167,18 @@ The case identifiers themselves, so a reader can re-run any single row.
   - `design_record_consistency:C15.m19`
   - `design_record_consistency:C15.m2`
   - `design_record_consistency:C15.m20`
+  - `design_record_consistency:C15.m21`
+  - `design_record_consistency:C15.m22`
+  - `design_record_consistency:C15.m23`
+  - `design_record_consistency:C15.m24`
+  - `design_record_consistency:C15.m25`
+  - `design_record_consistency:C15.m26`
+  - `design_record_consistency:C15.m27`
+  - `design_record_consistency:C15.m28`
+  - `design_record_consistency:C15.m29`
   - `design_record_consistency:C15.m3`
+  - `design_record_consistency:C15.m30`
+  - `design_record_consistency:C15.m31`
   - `design_record_consistency:C15.m4`
   - `design_record_consistency:C15.m5`
   - `design_record_consistency:C15.m6`
@@ -284,7 +295,7 @@ The case identifiers themselves, so a reader can re-run any single row.
 
 - Trace cell: `HUG-SYS-005; G001 F-03`
 - Reaches a NEED: True (via HUG-SYS-005)
-- Executed cases (27):
+- Executed cases (38):
   - `design_record_consistency:C15`
   - `design_record_consistency:C15.m1`
   - `design_record_consistency:C15.m10`
@@ -299,7 +310,18 @@ The case identifiers themselves, so a reader can re-run any single row.
   - `design_record_consistency:C15.m19`
   - `design_record_consistency:C15.m2`
   - `design_record_consistency:C15.m20`
+  - `design_record_consistency:C15.m21`
+  - `design_record_consistency:C15.m22`
+  - `design_record_consistency:C15.m23`
+  - `design_record_consistency:C15.m24`
+  - `design_record_consistency:C15.m25`
+  - `design_record_consistency:C15.m26`
+  - `design_record_consistency:C15.m27`
+  - `design_record_consistency:C15.m28`
+  - `design_record_consistency:C15.m29`
   - `design_record_consistency:C15.m3`
+  - `design_record_consistency:C15.m30`
+  - `design_record_consistency:C15.m31`
   - `design_record_consistency:C15.m4`
   - `design_record_consistency:C15.m5`
   - `design_record_consistency:C15.m6`
