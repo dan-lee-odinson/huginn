@@ -15,7 +15,7 @@ first to go stale.
 
 | Register | Entries | Tail |
 |---|---|---|
-| Owner rulings | 21 | **D-021** |
+| Owner rulings | 22 | **D-022** |
 | Open findings | 35 | **OF-035** |
 
 **What Phase 5 added to either register: nothing.** The Phase 5 commit `bba2e0a`
@@ -35,10 +35,10 @@ on the phase that introduced it.
 
 | Field | Value |
 |---|---|
-| Release candidate | `eae6c08e194ddaa397f9b5997e8d07a50d2d418b` |
-| Subject | Console plain text, the command read-back, the stuck-load wording and the PASS-4 re-fly scenario (D-021) |
+| Release candidate | `89631d7deec07f91962936712ce48c7d022e2613` |
+| Subject | D-022: the ground system moves to the public copy, with its stored data |
 | Tree clean when run | True |
-| Executed (UTC) | 2026-10-13T15:13:26Z |
+| Executed (UTC) | 2026-10-13T18:38:37Z |
 | Interpreter | Python 3.14.4 |
 | Platform | Windows-11-10.0.26200-SP0 |
 | Unit cases | 578 |
