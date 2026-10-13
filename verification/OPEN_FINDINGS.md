@@ -1145,6 +1145,25 @@ both: a summary under `anomalies:` in its report, and AR-003.
 
 ---
 
+## OF-034 — a failed charge taper never reaches FM-EPS-06's voltage-high alarm in the model
+
+**Status:** open. Raised while building the FM-EPS-06 red cases for HUG-G002 on 2026-10-13
+(D-019 selection 4).
+
+**Claim.** FM-EPS-06 names its detection as the `EPS_BATT_V` alarm, YH 8.3 V / RH 8.5 V, and
+dictionary note 2 makes that alarm the operational layer behind the charge taper. In the
+model the alarm cannot see a failed taper. Terminal voltage is the open-circuit voltage at
+the current state of charge (`internal_resistance_ohm: 0`), and stored energy is clamped
+at capacity, so state of charge never passes 100 % and the voltage never passes 8.2 V.
+With the taper removed, a full battery in sunlight reads 8.2 V and keeps taking 1.585 A of
+charge current. The alarm never fires. The one observable sign is `EPS_BATT_I` staying
+positive at 100 %, which is what `tests/test_charge_taper_red_cases.py` detects. With the
+taper removed, every case in `tests/test_eps_model.py` still passes, including
+`TestChargeTaper.test_the_taper_prevents_overshoot_past_full`, because the energy clamp
+alone keeps state of charge at or below 100 %.
+
+---
+
 # Errata against frozen evidence
 
 **Archived evidence is never edited.** A demonstration manifest is digested at execution

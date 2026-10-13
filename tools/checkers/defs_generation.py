@@ -1618,7 +1618,8 @@ MUTATIONS = {
     # G2 is a property of the generators, not of any source text; it is exercised by
     # every run above (each renders twice) and directly by the run-all report. No
     # source mutation can make deterministic code nondeterministic, so it carries no
-    # mutation of its own — stated here rather than left as an unexplained absence.
+    # mutation of its own. Its red cases make a generator depend on something besides
+    # its source instead, and live in tests/test_g2_determinism.py (D-019).
     "G2": [],
 }
 

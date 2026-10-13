@@ -1257,6 +1257,229 @@ def b14_verdict(playback_text, simulator_off_text, decompression_text,
     return not reasons, reasons
 
 
+# ------------------------------------------------------------------- B7 and B10 verdicts
+#
+# D-019 selection 4, "B7 and B10 result checks". B6, B11 and B14 each had a verdict that
+# re-derives the demonstration's result from its archived bytes under executed red and
+# green cases; B7 and B10 had only the result their live run wrote into the manifest. A
+# manifest that says PASS is the demonstration's word about itself. These recompute it.
+
+
+def hazardous_commands(cmd_txt):
+    """{command: True if HAZARDOUS} for one generated `cmd.txt`, read off its text.
+
+    A COMMAND line opens a block and every indented line after it belongs to that block,
+    so a HAZARDOUS line is attributed to the command it sits under, never by position.
+    """
+    out, current = {}, None
+    for line in (cmd_txt or "").splitlines():
+        m = re.match(r"^COMMAND\s+\S+\s+(\S+)", line)
+        if m:
+            current = m.group(1)
+            out[current] = False
+        elif current and re.match(r"^\s+HAZARDOUS\b", line):
+            out[current] = True
+    return out
+
+
+def hazardous_reason(cmd_txt, command):
+    """The reason text on `command`'s HAZARDOUS line, or None."""
+    current = None
+    for line in (cmd_txt or "").splitlines():
+        m = re.match(r"^COMMAND\s+\S+\s+(\S+)", line)
+        if m:
+            current = m.group(1)
+            continue
+        h = re.match(r'^\s+HAZARDOUS\s+"(.*)"\s*$', line)
+        if h and current == command:
+            return h.group(1)
+    return None
+
+
+def _json(text, label, reasons):
+    try:
+        return json.loads(text or "")
+    except (TypeError, ValueError) as exc:
+        reasons.append(f"{label} is not readable JSON ({type(exc).__name__})")
+        return None
+
+
+def b7_verdict(refusal_text, acceptance_text, control_text, effect_text, cmd_txt):
+    """B7's verdict, computed from ARCHIVED BYTES ALONE. (ok, reasons).
+
+    The two-step gate is real only if four things are each shown POSITIVELY, because a
+    dead uplink or a disconnected interface also refuses everything:
+
+      - step one was refused AS HAZARDOUS, with the reason text the generated
+        definition carries, and changed nothing;
+      - step two was the same command resent WITH the hazardous check off, accepted,
+        and moved the mode — a transition, since a mode command to the current mode
+        is a no-op (OF-004);
+      - a non-hazardous control went through WITH the hazardous check on, on the
+        same link, so the gate is selective rather than a block on everything;
+      - the link carried exactly the two accepted commands and not the refused one.
+
+    Nothing here raises: a malformed artifact is a reason, never an exception (OF-011).
+    """
+    reasons = []
+    flags = hazardous_commands(cmd_txt)
+    if not flags:
+        reasons.append("the archived cmd.txt defines no commands")
+
+    # --- step one: refused, as hazardous, for the generated definition's reason
+    refusal = _json(refusal_text, "step-one-refusal.json", reasons) or {}
+    data = refusal.get("data") or {}
+    ivars = data.get("instance_variables") or {}
+    refused_cmd = ivars.get("@cmd_name")
+    if data.get("class") != "HazardousError":
+        reasons.append(f"step one was refused as {data.get('class')!r}, not "
+                       f"HazardousError: a refusal for any other reason reads exactly "
+                       f"like a block")
+    if not refused_cmd:
+        reasons.append("the refusal names no command")
+    elif not flags.get(refused_cmd):
+        reasons.append(f"{refused_cmd} is not HAZARDOUS in the archived cmd.txt, so its "
+                       f"refusal is not the gate under test")
+    elif ivars.get("@hazardous_description") != hazardous_reason(cmd_txt, refused_cmd):
+        reasons.append("the refusal's reason is not the HAZARDOUS text the generated "
+                       "definition carries for that command")
+
+    # --- step two: the same command, resent with the check off, accepted
+    accept = _json(acceptance_text, "step-two-acceptance.json", reasons) or {}
+    result = accept.get("result") or {}
+    if accept.get("error") is not None or not result:
+        reasons.append("step two was not accepted")
+    else:
+        if result.get("cmd_name") != refused_cmd:
+            reasons.append(f"step two sent {result.get('cmd_name')!r}, not the refused "
+                           f"{refused_cmd!r}: it is not the resend of step one")
+        if str(result.get("hazardous_check")).lower() != "false":
+            reasons.append("step two did not go out with the hazardous check off, so it "
+                           "is not the confirmation step")
+
+    # --- the control: non-hazardous, unconfirmed, accepted with the check on
+    control = _json(control_text, "non-hazardous-control.json", reasons) or {}
+    cres = control.get("result") or {}
+    if control.get("error") is not None or not cres:
+        reasons.append("the non-hazardous control was not accepted: the link may "
+                       "refuse everything, and the gate cannot be told from a dead uplink")
+    else:
+        if flags.get(cres.get("cmd_name"), True):
+            reasons.append(f"the control {cres.get('cmd_name')!r} is not a "
+                           f"non-hazardous command of the archived cmd.txt")
+        if str(cres.get("hazardous_check")).lower() != "true":
+            reasons.append("the control went out with the hazardous check off, so it "
+                           "shows nothing about the gate")
+
+    # --- the effect, and the link
+    def field(label):
+        m = re.search(rf"^{re.escape(label)}\s*:\s*(\S+)", effect_text or "", re.M)
+        return m.group(1) if m else None
+
+    before, after1, after2 = (field("EPS_MODE before"), field("EPS_MODE after step one"),
+                              field("EPS_MODE after step two"))
+    if None in (before, after1, after2):
+        reasons.append("effect.txt does not record the mode before and after each step")
+    else:
+        if after1 != before:
+            reasons.append(f"the refused command changed EPS_MODE {before} -> {after1}")
+        if after2 != "SAFE":
+            reasons.append(f"after step two EPS_MODE is {after2}, not SAFE")
+        if after2 == before:
+            reasons.append("no transition: the mode before step two was already the "
+                           "mode after it (OF-004)")
+    link = re.findall(r"^interface (before|after)\s*:\s*(\S+)\s+txcnt=(\d+)",
+                      effect_text or "", re.M)
+    states = {k: (s, int(n)) for k, s, n in link}
+    if set(states) != {"before", "after"}:
+        reasons.append("effect.txt does not record the interface before and after")
+    else:
+        if states["after"][0] != "CONNECTED":
+            reasons.append(f"the interface ended {states['after'][0]}, not CONNECTED")
+        sent = states["after"][1] - states["before"][1]
+        if sent != 2:
+            reasons.append(f"the link transmitted {sent} command(s); the two accepted "
+                           f"commands and not the refused one make 2")
+    return not reasons, reasons
+
+
+def _leg(text):
+    """(verdict, {condition: PASS|FAIL}, executed, identity line) for one pre-pass leg."""
+    verdict = re.search(r"^### Verdict: \*\*(GO|NO-GO)\*\*", text or "", re.M)
+    conditions = dict((name.strip(), state) for state, name in re.findall(
+        r"^- \*\*(PASS|FAIL)\*\* — ([^:]+):", text or "", re.M))
+    executed = re.search(r"^\| Executed \| (\S+) \|", text or "", re.M)
+    identity = re.search(r"^DICTIONARY_VERSION .*$", text or "", re.M)
+    return (verdict.group(1) if verdict else None, conditions,
+            executed.group(1) if executed else None,
+            identity.group(0) if identity else None)
+
+
+#: The three conditions the pre-pass step reports, by the names it prints.
+B10_CONDITIONS = ("identity vs dictionary of record", "loaded vs repository (D-010)",
+                  "target inventory (D-009)")
+
+
+def b10_verdict(go_text, nogo_text, restored_text, liveness_text):
+    """B10's verdict, computed from ARCHIVED BYTES ALONE. (ok, reasons).
+
+    NO-GO is only evidence if it is NO-GO FOR THE RIGHT REASON from a system that was
+    answering. So the NO-GO leg must fail the loaded-vs-repository comparison and pass
+    the identity check — the perturbation is one the source digest cannot see, which is
+    what D-010 says the comparison exists for — with the instance's services running at
+    that moment. GO before and GO after bracket it, in that order, on one displayed
+    configuration identity.
+    """
+    reasons = []
+    legs = {"GO": _leg(go_text), "NO-GO": _leg(nogo_text), "restored": _leg(restored_text)}
+    for name, (verdict, conditions, _when, _ident) in legs.items():
+        missing = [c for c in B10_CONDITIONS if c not in conditions]
+        if missing:
+            reasons.append(f"the {name} leg does not report {missing}")
+        want = "NO-GO" if name == "NO-GO" else "GO"
+        if verdict != want:
+            reasons.append(f"the {name} leg's verdict is {verdict}, not {want}")
+        if name != "NO-GO" and any(s != "PASS" for s in conditions.values()):
+            reasons.append(f"the {name} leg has a failing condition")
+
+    nogo = legs["NO-GO"][1]
+    if nogo.get("loaded vs repository (D-010)") != "FAIL":
+        reasons.append("the NO-GO leg did not fail the loaded-vs-repository comparison: "
+                       "it is a NO-GO for some other reason than the perturbation")
+    elif "targets/HUGINN/" not in (nogo_text or ""):
+        reasons.append("the NO-GO leg names no HUGINN target file that differed")
+    if nogo.get("identity vs dictionary of record") != "PASS":
+        reasons.append("the NO-GO leg failed the identity check, so the perturbation is "
+                       "one the source digest could see, and the comparison is untested")
+    if nogo.get("target inventory (D-009)") != "PASS":
+        reasons.append("the NO-GO leg failed the target inventory as well")
+
+    times = [legs[k][2] for k in ("GO", "NO-GO", "restored")]
+    if None in times:
+        reasons.append("a leg records no execution time")
+    elif not times[0] < times[1] < times[2]:
+        reasons.append(f"the legs did not run GO, NO-GO, restored in that order: {times}")
+    idents = {legs[k][3] for k in legs}
+    if None in idents or len(idents) != 1:
+        reasons.append("the three legs do not display one configuration identity")
+
+    def services(label):
+        m = re.search(rf"^{re.escape(label)}:\s*(\[.*\])\s*$", liveness_text or "", re.M)
+        return re.findall(r"'([^']+)'", m.group(1)) if m else None
+
+    before, during = (services("services running before"),
+                      services("services running during NO-GO"))
+    if not during:
+        reasons.append("no service is recorded running during the NO-GO: the verdict "
+                       "cannot be told from the silence of a dead instance")
+    elif "openc3-cosmos-cmd-tlm-api" not in during:
+        reasons.append("the command and telemetry API the pre-pass step queries was not "
+                       "running during the NO-GO")
+    if before is not None and during is not None and sorted(before) != sorted(during):
+        reasons.append("the services running during the NO-GO differ from those before it")
+    return not reasons, reasons
+
+
 # ----------------------------------------------------------------------------- B11
 
 def b11_verdict(chain_text, verdict_text, refusal_text, markup_text):

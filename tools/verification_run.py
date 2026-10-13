@@ -315,8 +315,9 @@ def run_demonstrations(repo=REPO):
     demonstration; it is reading the record of one that ran at a stated time. What
     makes that record admissible NOW, in this run, is two things that ARE executed
     here: `tools/verify_evidence.py` recomputes every archived digest, and the
-    verdict suites (tests/test_b6_verdict.py, tests/test_b11_verdict.py) recompute
-    the verdict from the archived bytes. So the matrix cites the attempt AND the
+    verdict suites (tests/test_b6_verdict.py, test_b7_verdict.py, test_b10_verdict.py,
+    test_b11_verdict.py, test_b14_verdict.py) recompute each verdict from the
+    archived bytes. So the matrix cites the attempt AND the
     executed cases that re-establish it, never the attempt alone. Ruled at D-012:
     the verdict must be computable from the archived evidence alone.
 
@@ -400,8 +401,10 @@ def run_metadata(repo=REPO):
 #: root that matched nothing. Without a floor that failure renders as an empty table,
 #: which is indistinguishable from a suite that ran and verified nothing. Raise these
 #: when the suite grows; never lower one to make a run pass.
-FLOOR_TESTS = 516      # 526 with the campaign record cases (D-019); 492 at 502
-                       # (struck in place, D-019), 482 at 492 (D-018), 471 at 481
+FLOOR_TESTS = 560      # 570 with the B7/B10 verdicts, the hazardous flag, G2 and
+                       # FM-EPS-06 red cases (D-019); 516 at 526 (campaign record
+                       # cases, D-019); 492 at 502 (struck in place, D-019), 482 at 492
+                       # (D-018), 471 at 481
                        # (D-016, D-017), 455 at 465 (the pass plan), 430 at 437
                        # (D-015), 420 at 427 (D-013), 380 at 396
 FLOOR_CHECKS = 32
