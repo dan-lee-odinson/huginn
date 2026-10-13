@@ -1,5 +1,28 @@
 #!/usr/bin/env python3
-"""HUGINN design-record consistency checks, v21 (build phase; FMEA v0.15 baseline).
+"""HUGINN design-record consistency checks, v22 (build phase; FMEA v0.16 baseline).
+
+v22 CHANGES TWO CHECKS, per owner ruling D-020. FMEA v0.16 adds FM-GND-07, the row
+D-012 queued for the HUG-G002 revision set, and scopes Sec. 6 to the selection made at
+HUG-G001: the rows the campaign was planned and executed on. A row added later is
+recorded in a new Sec. 6.3 instead of the screen. C14 counted exactly 22 worksheet rows
+and C15 required the selected and excluded sets to cover every R2 worksheet row. Both
+were claims about the HUG-G001 record, and both now name it:
+  - C14: each of the 22 HUG-G001 rows is present inside a worksheet table, and rows
+    added later stand beside them. A bare count would accept a deleted HUG-G001 row as
+    soon as one row had been added, and the new red case C14.m6 is exactly that. A
+    Sec. 6.3 row needs no recognition of its own here: it names a worksheet row, and
+    one that names none is a dangling citation, which C14 already rejects.
+  - C15: the selected and excluded sets exactly partition the HUG-G001 R2 rows, and the
+    Sec. 6.3 table, parsed within the Sec. 6 bounds by the same grammar, lists exactly
+    the R2 rows outside them - each once, well formed, with a risk spelling that agrees
+    with its worksheet row.
+No other check, claim or self-test case changes. The companion baseline is Concept
+Brief v0.28, CONOPS v0.10, Requirements v0.13, FMEA v0.16, Replay Schema v0.9,
+Dictionary v0.5.
+
+Prior version header follows.
+
+HUGINN design-record consistency checks, v21 (build phase; FMEA v0.15 baseline).
 
 v21 IS A DOCUMENT-BASELINE SYNC ONLY, per owner ruling D-006. No check, no claim and no
 self-test case changes: still 16 checks and 84 cases. The FMEA advanced v0.14 -> v0.15
@@ -153,6 +176,13 @@ NUMWORD = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
 # The review-record claim the brief must carry for THIS baseline (G001-04 F-06). These
 # constants are part of the versioned check set: a future round updates them with the docs.
 REVIEW_STATE = ("seventeen adversarial review rounds complete", "all 97 findings")
+
+# The 22 FMEA worksheet rows of the HUG-G001 record: the rows the v0.1 fault set was
+# selected from and the campaign was planned and executed on (owner ruling D-020). A
+# row added later is not one of them; FMEA Sec. 6.3 records it instead of the screen.
+G001_FMEA_ROWS = tuple([f"FM-EPS-{i:02d}" for i in range(1, 12)]
+                       + [f"FM-CDH-{i:02d}" for i in range(1, 6)]
+                       + [f"FM-GND-{i:02d}" for i in range(1, 7)])
 
 
 def load(art):
@@ -682,8 +712,11 @@ def c14(text, raw):
     orphans = sorted(set(row_lines) - set(in_table) - set(excl_rows))
     dupes = sorted({i for i in in_table if in_table.count(i) > 1})
     dangling = sorted(set(everywhere) - set(in_table))
-    ok = not orphans and not dupes and not dangling and len(in_table) == 22
-    return (ok, f"rows-in-worksheet-tables={len(in_table)} orphaned-FM-row-lines={orphans} dupes={dupes} dangling-citations={dangling}")
+    # D-020: the 22 HUG-G001 rows are named, not counted - a count would accept a
+    # deleted HUG-G001 row as soon as one row had been added after the selection
+    absent = [i for i in G001_FMEA_ROWS if i not in in_table]
+    ok = not orphans and not dupes and not dangling and not absent
+    return (ok, f"rows-in-worksheet-tables={len(in_table)} HUG-G001-rows-absent={absent} orphaned-FM-row-lines={orphans} dupes={dupes} dangling-citations={dangling}")
 
 
 def c15(text, raw):
@@ -699,7 +732,7 @@ def c15(text, raw):
     m7 = re.search(r"^## 7\. ", fm, re.M)
     bounded = bool(m6 and m7 and m6.start() < m7.start())
     sec6 = fm[m6.end():m7.start()] if bounded else ""
-    fault_cells, id_rows = [], []
+    fault_cells, id_rows, post_rows = [], [], []
     for hdr, body in _md_tables(sec6.splitlines()):
         if "Injected fault" in hdr:
             fault_cells = [cs for cs in map(_cells, body) if cs and re.match(r"\([abc]\) ", cs[0])]
@@ -707,6 +740,12 @@ def c15(text, raw):
             for cs in map(_cells, body):
                 if cs and re.fullmatch(r"FM-(?:EPS|CDH|GND)-\d{2}", _strip_inline(cs[0], _fmrefs)):
                     id_rows.append(cs)
+        elif "Selection status" in hdr:
+            # D-020: Sec. 6.3, the R2 rows added after the selection. Parsed and
+            # validated exactly as the exclusion rows are: counted before validation.
+            for cs in map(_cells, body):
+                if cs and re.fullmatch(r"FM-(?:EPS|CDH|GND)-\d{2}", _strip_inline(cs[0], _fmrefs)):
+                    post_rows.append(cs)
     # G001-05 F-06 + G001-06 F-02 + G001-07 F-03 + G001-08 F-03: EVERY row whose first cell
     # RENDERS as an FM identifier counts BEFORE any other cell is validated - the table
     # parse is renderer-faithful (outer pipes optional) and so is identifier recognition
@@ -724,6 +763,17 @@ def c15(text, raw):
         else:
             malformed.append(sid)
     excl = dict(excl_raw)
+    post_ids = [_strip_inline(cs[0], _fmrefs) for cs in post_rows]
+    post_dupes = sorted({i for i in post_ids if post_ids.count(i) > 1})
+    post_malformed, post_raw = [], []
+    for cs in post_rows:
+        sid = _strip_inline(cs[0], _fmrefs)
+        rm = re.fullmatch(r"(R[123]) \(([IV]+)/([A-E])\)", cs[1]) if len(cs) >= 4 else None
+        if rm and cs[0] == sid:
+            post_raw.append((sid, (rm.group(1), rm.group(2), rm.group(3))))
+        else:
+            post_malformed.append(sid)
+    post = dict(post_raw)
     expected = [("(a) Array string output zero", "FM-EPS-01"),
                 ("(b) Stuck-on load, 2.0 W", "FM-EPS-08"),
                 ("(c) Housekeeping telemetry generation halt", "FM-CDH-01")]
@@ -745,25 +795,36 @@ def c15(text, raw):
                     ridx = next((ii for ii, c in enumerate(cs) if re.fullmatch(r"R[123]", c)), None)
                     if ridx is not None:
                         ws[_strip_inline(cs[0], _fmrefs)] = (cs[ridx], cs[ridx - 2], cs[ridx - 1])
-    r2 = {i for i, v in ws.items() if v[0] == "R2"}
+    # D-020: the partition is of the HUG-G001 R2 rows; the R2 rows outside that record
+    # are exactly the Sec. 6.3 rows. Every R2 worksheet row is in exactly one table.
+    g001 = set(G001_FMEA_ROWS)
+    r2 = {i for i, v in ws.items() if v[0] == "R2" and i in g001}
+    r2_later = {i for i, v in ws.items() if v[0] == "R2" and i not in g001}
     overlap = sorted(set(sel) & set(excl))
     missing = sorted(r2 - set(sel) - set(excl))
     extra = sorted((set(sel) | set(excl)) - r2)
-    mismatch = sorted([i for i in sel if ws.get(i) != sel[i]] + [i for i in excl if ws.get(i) != excl[i]])
+    post_missing = sorted(r2_later - set(post))
+    post_extra = sorted(set(post) - r2_later)
+    mismatch = sorted([i for i in sel if ws.get(i) != sel[i]] + [i for i in excl if ws.get(i) != excl[i]]
+                      + [i for i in post if ws.get(i) != post[i]])
     ok = (req_ok and bounded and fmea_ok and len(id_rows) == 13 and not excl_dupes and not malformed
-          and not overlap and not missing and not extra and not mismatch)
+          and not overlap and not missing and not extra and not mismatch
+          and not post_dupes and not post_malformed and not post_missing and not post_extra)
     return (ok, f"HUG-EPS-004 row clauses: {req_ok}; Sec6-bounded: {bounded}; selected rows parsed: {len(fault_cells)}/3 "
                 f"({fmea_ok}); ID-bearing exclusion rows: {len(id_rows)}/13, duplicate IDs: {excl_dupes}, malformed rows: "
-                f"{malformed}; partition errors — overlap: {overlap}, unmapped R2: {missing}, non-R2 listed: {extra}, "
-                f"sev/lik disagree: {mismatch}" if not ok
+                f"{malformed}; partition errors — overlap: {overlap}, unmapped HUG-G001 R2: {missing}, "
+                f"non-HUG-G001-R2 listed: {extra}, sev/lik disagree: {mismatch}; Sec. 6.3 — duplicate IDs: "
+                f"{post_dupes}, malformed rows: {post_malformed}, later R2 rows unlisted: {post_missing}, "
+                f"listed but not a later R2 row: {post_extra}" if not ok
             else f"the HUG-EPS-004 row (located by spelling across recognized tables; ownership not established - D0-17 "
                  f"item 2) carries all three fault clauses; Sec. 6 tables parsed WITHIN the Sec.6→Sec.7 bounds "
                  f"(G001-04 F-03) with a grammar-bounded Markdown parse — outer pipes optional (G001-07 F-03), fence-aware "
                  f"(G001-11 F-03), escaped-pipe cells intact (G001-11 F-04); renderer fidelity beyond the grammar is ratified "
                  f"debt (G001-13 ruling): 3 selected + 13 "
                  f"ID-bearing exclusion rows, counted before any cell validation — no duplicates, no malformed rows (G001-05 "
-                 f"F-06; G001-06 F-02) — exactly partition the {len(r2)} worksheet R2 rows, every exclusion cites a criterion "
-                 f"(a)-(e), sev/lik agree row-for-row (G001-04 F-02)")
+                 f"F-06; G001-06 F-02) — exactly partition the {len(r2)} HUG-G001 worksheet R2 rows, every exclusion cites "
+                 f"a criterion (a)-(e), sev/lik agree row-for-row (G001-04 F-02); the Sec. 6.3 table lists exactly the "
+                 f"{len(r2_later)} R2 row(s) added after the selection, each once and agreeing with its worksheet row (D-020)")
 
 
 def c16(text, raw):
@@ -808,8 +869,8 @@ CHECKS = [
     ("C11", "staleness normative anchors in dictionary and CONOPS", c11),
     ("C12", "terminology: forbidden phrases only in rule scope (word-bounded markers, own-fragment/enumeration-run)", c12),
     ("C13", "station name: GS-RAVENSROOST only; GS-EUSTIS absent", c13),
-    ("C14", "FMEA worksheets: 22 rows inside grammar-bounded tables; Sec. 6.2 recognized; none orphaned (line-scan scope = ratified debt)", c14),
-    ("C15", "fault set: HUG-EPS-004 row ⇄ Sec6-bounded grammar-bounded tables; count-before-validate partition of worksheet R2", c15),
+    ("C14", "FMEA worksheets: the 22 HUG-G001 rows inside grammar-bounded tables; Sec. 6.2 recognized; none orphaned (line-scan scope = ratified debt)", c14),
+    ("C15", "fault set: HUG-EPS-004 row ⇄ Sec6-bounded grammar-bounded tables; count-before-validate partition of HUG-G001 R2, Sec. 6.3 the rest", c15),
     ("C16", "identity & status: one schema identity; unconditional pld_rate; result-reason invariant; review record synced", c16),
 ]
 
@@ -1083,7 +1144,13 @@ MUTATIONS = {
                                       t, count=1, flags=re.M) + "\n[d1]: https://example.invalid/x\n"),
             # G001-11 F-03 reproduction: a WORKSHEET table relocated into a code fence -
             # the renderer shows code, the worksheet rows vanish from the rendered record
-            ("fmea", _fence_table("Failure mode (cause)"))],
+            ("fmea", _fence_table("Failure mode (cause)")),
+            # D-020: a HUG-G001 row deleted, with the row count restored by the row added
+            # after the selection. The v21 count of 22 accepted this; only the named set
+            # can see it.
+            ("fmea", lambda t: "\n".join(l for l in t.splitlines() if not l.startswith("| FM-EPS-09 ")) + "\n"),
+            # D-020: a HUG-G001 row renumbered out of the record
+            ("fmea", lambda t: t.replace("| FM-EPS-09 |", "| FM-EPS-12 |", 1))],
     "C15": [("reqs", lambda t: t.replace("(b) stuck-on load of 2.0 W;", "(b) stuck-on load of 2.5 W;", 1)),
             ("fmea", lambda t: t.replace("| (c) Housekeeping telemetry generation halt | FM-CDH-01 | R2 (II/C) | P4 | PROC-003 |\n", "", 1)
                                + "\n| (c) Housekeeping telemetry generation halt | FM-CDH-01 | R2 (II/C) | P4 | PROC-003 |\n"),
@@ -1145,7 +1212,37 @@ MUTATIONS = {
             # link destination
             ("fmea", lambda t: re.sub(r"^(\| FM-GND-02 \| R2 \(III/C\) \| \(c\) \|.*\n)",
                                       lambda m: m.group(1) + "| [FM-GND-02](https://example.invalid/x(1)y) | R2 (III/C) | (e) | Balanced-parenthesis duplicate exclusion. |\n",
-                                      t, count=1, flags=re.M))],
+                                      t, count=1, flags=re.M)),
+            # D-020 Sec. 6.3 reproductions. The row added after the selection: dropped
+            # from Sec. 6.3; replaced there by a HUG-G001 row; with a risk spelling that
+            # disagrees with its worksheet row; listed twice; listed again malformed;
+            # moved into the exclusion record instead; and the whole table fenced away or
+            # relocated outside Sec. 6.
+            ("fmea", lambda t: re.sub(r"^\| FM-GND-07 \| R2 \(II/C\) \| v0\.16.*\n", "", t, count=1, flags=re.M)),
+            ("fmea", lambda t: t.replace("| FM-GND-07 | R2 (II/C) | v0.16", "| FM-GND-04 | R2 (II/C) | v0.16", 1)),
+            ("fmea", lambda t: t.replace("| FM-GND-07 | R2 (II/C) | v0.16", "| FM-GND-07 | R2 (II/D) | v0.16", 1)),
+            # a HUG-G001 row listed in Sec. 6.3 as well as in the exclusion record
+            ("fmea", lambda t: re.sub(r"^(\| FM-GND-07 \| R2 \(II/C\) \| v0\.16.*\n)",
+                                      r"\1| FM-GND-04 | R2 (II/C) | v0.16 (D-020) | Listed here as well. |\n",
+                                      t, count=1, flags=re.M)),
+            ("fmea", lambda t: re.sub(r"^(\| FM-GND-07 \| R2 \(II/C\) \| v0\.16.*\n)", r"\1\1", t, count=1, flags=re.M)),
+            ("fmea", lambda t: re.sub(r"^(\| FM-GND-07 \| R2 \(II/C\) \| v0\.16.*\n)",
+                                      r"\1| FM-GND-07 | R2 II/C | v0.16 (D-020) | Malformed duplicate. |\n",
+                                      t, count=1, flags=re.M)),
+            # a malformed Sec. 6.3 row naming a HUG-G001 row: no other clause sees it,
+            # because a row that fails validation never enters the Sec. 6.3 mapping
+            ("fmea", lambda t: re.sub(r"^(\| FM-GND-07 \| R2 \(II/C\) \| v0\.16.*\n)",
+                                      r"\1| FM-GND-04 | R2 II/C | v0.16 (D-020) | Malformed stray row. |\n",
+                                      t, count=1, flags=re.M)),
+            ("fmea", lambda t: re.sub(r"^(\| FM-GND-02 \| R2 \(III/C\) \| \(c\) \|.*\n)",
+                                      r"\1| FM-GND-07 | R2 (II/C) | (e) | Moved out of Sec. 6.3. |\n",
+                                      re.sub(r"^\| FM-GND-07 \| R2 \(II/C\) \| v0\.16.*\n", "", t, count=1, flags=re.M),
+                                      count=1, flags=re.M)),
+            ("fmea", _fence_table("Selection status")),
+            ("fmea", _relocate_table("Selection status")),
+            # GREEN: a Sec. 6.3 status cell reworded changes no membership
+            ("fmea", lambda t: t.replace("| v0.16 (D-020) | Added after the campaign was executed;",
+                                         "| v0.16 (D-020) | Added once the campaign had been executed;", 1), "green")],
     "C16": [# G001-04 F-01 reproduction: member discriminator disagrees with the title identity
             ("schema", lambda t: t.replace('`"0.9"` for this definition', '`"0.8"` for this definition', 1)),
             # G001-04 F-07 reproduction: the conditional bound reintroduced

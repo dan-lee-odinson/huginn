@@ -176,8 +176,8 @@ findings that survived verification against the repository.*
 
 ## OF-006 — the staleness monitor can latch silently when its reads stop working
 
-**Status:** RULED at **D-012** (2026-08-06) and implemented. Retained here until the
-queued FMEA row lands in the HUG-G002 revision set.
+**Status:** CLOSED under **D-020** (2026-10-13). Ruled at D-012 (2026-08-06) and implemented;
+the queued FMEA row landed as FM-GND-07 at FMEA v0.16.
 
 OF-002 gave the monitor a `NO_READ` state so a process that has **never** read the counter
 cannot annunciate staleness. It does not cover a process that read successfully and then
@@ -216,6 +216,10 @@ read-path failure*: the ground-segment failure mode in which a monitor that has 
 successfully stops being able to and, before this fix, produced output identical to a
 monitor that had died. Detection is now the `READ_FAULT` annunciation; the row is owed
 against the FMEA in the revision set, not against this build.
+
+**Landed (D-020).** FM-GND-07, rated II/C (R2) and dispositioned DETECTED. FMEA §6.3
+records it as added after the campaign was executed, and nominates it as a v0.2 campaign
+candidate.
 
 ---
 
@@ -1161,6 +1165,26 @@ positive at 100 %, which is what `tests/test_charge_taper_red_cases.py` detects.
 taper removed, every case in `tests/test_eps_model.py` still passes, including
 `TestChargeTaper.test_the_taper_prevents_overshoot_past_full`, because the energy clamp
 alone keeps state of charge at or below 100 %.
+
+---
+
+## OF-035 — a staleness monitor whose process stops is silent, and no step checks that it is running
+
+**Status:** open. Raised while drafting FM-GND-07 for HUG-G002 on 2026-10-13 (D-020).
+
+**Claim.** The monitor writes a line only when its level changes (`frame_staleness.py`). If
+its process stops and is not restarted, it writes nothing more, and the newest staleness
+line keeps the last level it reached. PROC-001-S04 reads the newest line and expects GREEN
+at frame lock, and PROC-003 is entered on a staleness annunciation. A monitor that stopped
+while GREEN would therefore pass S04 at the next pass and leave a later halt unannunciated.
+No procedure step checks that the newest line is recent or that the monitor is running.
+This follows from the monitor's code and the procedures' text. It has not been
+demonstrated, and whether the ground system restarts a stopped microservice by itself has
+not been checked.
+
+**Why FM-GND-07 does not cover it.** FM-GND-07 is the read path failing beneath a running
+monitor, the case D-012 named. Its detection is the monitor's own annunciation, and a
+stopped process annunciates nothing.
 
 ---
 

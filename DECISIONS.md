@@ -354,6 +354,7 @@ under D-004 and find a different ruling.
 | **D-017** | *(none — three selections from options put to the Director)* | PASS-3: the predicted profile first, a load alarm routed to S03, and the change red-lined | 2026-10-11 |
 | **D-018** | *(none — three selections from options put to the Director)* | PASS-4: the staleness annunciator located and red-lined, PROC-003 entered on the alarm, the scripted reset kept | 2026-10-11 |
 | **D-019** | *(none — "Rulings: First, … 2. … 3. …", then selections from options put to the Director, and on the draft a further ruling and a constraint in his own words)* | HUG-G002 scope: the v0.1 release criteria revised, HUG-SYS-006 struck in place, the gaps and register ruled, the target set | 2026-10-12 |
+| **D-020** | *(none — four selections from options put to the Director)* | FM-GND-07: D-012's FMEA row rated and dispositioned, and §6 kept as the HUG-G001 selection | 2026-10-13 |
 
 Two of these self-labels — `D-010:` and `D-012:` — happen to equal their own register key
 rather than naming a prior entry. That is a coincidence of those two rulings arriving after
@@ -1598,3 +1599,97 @@ commands are HUMAN-origin requests through BALDUR (AESIR Constitutional Layer v0
 | OF-002, OF-004, OF-005, OF-008 and OF-009 closed as fixed; OF-013's reason restated; OF-024 ruled and left as flown; OF-029 to OF-033 registered from AR-003 §5 | `verification/OPEN_FINDINGS.md` |
 | AR-003 §5's five "Not yet in the register" notes point to their new entries | `docs/anomalies/AR-003-hk-generation-halt.md` |
 | Register row for D-019 | the numbering map in this file |
+
+---
+
+## D-020 — FM-GND-07: D-012's FMEA row rated and dispositioned, and §6 kept as the HUG-G001 selection
+
+| Field | Value |
+|---|---|
+| Date | 2026-10-13 |
+| Ruled by | Dan Lee-Odinson (Director) |
+| Prompted by | D-019 selection 4, "D-012's FMEA row": D-012 queued an FMEA row for silent monitor read-path failure for this gate without setting its content. The drafted row, FM-GND-07, was shown to the Director with its severity, likelihood and disposition left to him |
+| Status | Ruled. Acted on by the changes that follow this entry |
+| Form | Four selections from options put to the Director |
+
+### Selections — put to him as options, recorded by the labels he chose
+
+Before he chose, he was told that an R1 or R2 rating reopens the FMEA §6 fault-set
+selection: as drafted, the row passes all five screening criteria, so at II/C it would
+outrank the two III/C rows and take FM-EPS-08's slot, the stuck-load fault PASS-3 flew.
+
+**1. Severity — "II, Critical (Recommended)".** Put to him: "What severity does FM-GND-07
+carry?" He selected the option labeled "II, Critical (Recommended)", offered as the
+recommended option. As put:
+
+> A latent defeat of a detection layer: the same rating FM-GND-04 and FM-EPS-10 carry. This
+> monitor is FM-CDH-01's only detection.
+
+**2. Likelihood — "C, Occasional (Recommended)".** Put to him: "What likelihood does
+FM-GND-07 carry?" He selected the option labeled "C, Occasional (Recommended)", offered as
+the recommended option. As put:
+
+> 'Has occurred on comparable missions.' It has happened twice on this ground system (OF-002,
+> OF-006). That's the same likelihood the record gives FM-CDH-01's software hang and
+> FM-GND-04's configuration drift. With II it's R2.
+
+**3. Disposition — "DETECTED (Recommended)".** Put to him: "What disposition does FM-GND-07
+carry?" He selected the option labeled "DETECTED (Recommended)", offered as the recommended
+option. As put:
+
+> Detection and response are defined, and the response hasn't been exercised in the campaign.
+> That's accurate today: the detection is built and red-cased, and the PROC-003-S02 response
+> has never been flown.
+
+The option carried the disposition cell's text, which the row carries verbatim:
+
+> DETECTED — read-fault detection built and red-cased per D-012 (OF-006); the PROC-003-S02
+> response is defined and was not exercised in the v0.1 campaign
+
+**4. The fault set — "Keep G001 selection (Recommended)".** Put to him: "If the row is R1 or
+R2, how should §6 treat it?" He selected the option labeled "Keep G001 selection
+(Recommended)", offered as the recommended option. As put:
+
+> §6 stays the selection made at HUG-G001 from the 22 rows the campaign was planned and flown
+> on. FM-GND-07 is recorded as added after the campaign flew and is nominated as a v0.2
+> campaign candidate (REC-03). The claim that the rule 'reproduces the selected set' is scoped
+> to those 22 rows, and G11 and C15 change to match, with red cases.
+
+The option not selected, "Re-run with it in the pool", would have applied the rule as written
+to all 23 rows.
+
+### Below the seam
+
+Above this heading: the selections the Director made from options put to him, and the
+options as put. Below it: notes made in carrying them out. They are not his ruling.
+
+**The screen reading is not adjudicated.** That FM-GND-07 passes criteria (a) to (e) is the
+drafter's reading, put to him with the options. Selection 4 keeps the selection as made, so
+the reading stands as context and is not ruled.
+
+**C14 changes too.** The record checker's C14 counted exactly 22 worksheet rows. Scoping the
+rule to the 22 HUG-G001 rows required the same change there: C14 now names the 22 rows
+instead of counting them.
+
+**The nomination is recorded in §6.3.** REC-03's finding and resolution are unchanged. FMEA
+§6.3 records FM-GND-07 as nominated in addition to REC-03's three.
+
+**"Executed", not "flown", in the FMEA.** The record checker's C12 keeps the word "flown" out
+of the design record, so the FMEA says the campaign was planned and executed. The option's
+wording is quoted above as put.
+
+**OF-035, from drafting the row.** A monitor whose process stops is still silent, and no step
+checks that it is running. That falls outside the read path D-012 named, so it is registered
+as a finding rather than written into FM-GND-07.
+
+### Consequences in the repository
+
+| Change | Where |
+|---|---|
+| FM-GND-07 added to §5, rated II/C (R2) and dispositioned DETECTED; §6 scoped to the 22 HUG-G001 rows; new §6.3 records FM-GND-07 as added after the campaign and nominated as a v0.2 campaign candidate; status and changelog | `defs/fmea.yaml`, `docs/fmea.md`, as v0.16 |
+| §6.3 rendered after the roll-up, leaving §6.1 and §6.2 byte for byte as before | `tools/gen_fmea.py` |
+| G11 names the 22 HUG-G001 rows, partitions their R2 rows, and requires §6.3 to list exactly the R2 rows outside them; four red cases and one green case added | `tools/checkers/defs_generation.py` |
+| C14 names the 22 HUG-G001 rows instead of counting 22; C15 partitions the HUG-G001 R2 rows and validates §6.3 the same way it validates the exclusion record; twelve red cases and one green case added; checker v22 | `tools/checkers/design_record_consistency.py` |
+| The status line names FMEA v0.16 | `docs/concept_brief.md`, as v0.28 |
+| OF-006 closed, its queued row landed; OF-035 registered | `verification/OPEN_FINDINGS.md` |
+| Register row for D-020 | the numbering map in this file |

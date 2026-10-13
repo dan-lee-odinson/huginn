@@ -5,8 +5,8 @@ Authorized by owner ruling D-001 (DECISIONS.md, 2026-07-29) and by FMEA Sec. 9, 
 already committed the worksheet rows to structured form before build so FM identifiers
 could be referenced by checkers and scenario files.
 
-The Risk column is DERIVED here, not stored: every Risk cell in the document — the 22
-worksheet rows and the 16 risk spellings in the Sec. 6.1 and 6.2 tables — is looked up
+The Risk column is DERIVED here, not stored: every Risk cell in the document — each
+worksheet row, and each risk spelling in the Sec. 6.1, 6.2 and 6.3 tables — is looked up
 in the Sec. 3 criticality matrix from that row's severity and likelihood. A row's
 rating and its risk class cannot disagree, because the risk class is not a second
 fact. That is the D0-6 discharge for this document: the contradiction the old
@@ -152,6 +152,16 @@ def build(defs):
     w(fs["assurance_note"])
     w("")
     w(fs["rollup"])
+    w("")
+    # Sec. 6.3 (D-020): R2 rows added after the HUG-G001 selection. Rendered after the
+    # roll-up so every byte of Sec. 6.1 and 6.2 renders exactly as it did before.
+    w("### " + doc["section_6_3_heading"])
+    w("")
+    w(fs["post_selection_intro"])
+    w("")
+    out.extend(md_table(fs["post_selection_columns"], [
+        [s["row"], risk_spelling(defs, by_id[s["row"]]), s["added"], s["status"]]
+        for s in fs["post_selection"]]))
     w("")
 
     # ---- Sec. 7

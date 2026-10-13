@@ -501,24 +501,37 @@ def g18_operator_audience():
             + (f"; {len(problems)} LEAK(S): {problems[:8]}" if problems else ""))
 
 
+#: The 22 worksheet rows of the HUG-G001 record: the rows the v0.1 fault set was
+#: selected from and the campaign was planned and executed on. Frozen by owner ruling
+#: D-020. A row added to the worksheets later is not one of them; FMEA Sec. 6.3 records
+#: it instead of the Sec. 6 screen. This replaces the bare count of 22 rows, which a
+#: deleted HUG-G001 row would satisfy as soon as one row had been added.
+G001_FMEA_ROWS = tuple([f"FM-EPS-{i:02d}" for i in range(1, 12)]
+                       + [f"FM-CDH-{i:02d}" for i in range(1, 6)]
+                       + [f"FM-GND-{i:02d}" for i in range(1, 7)])
+
+
 def g11_fmea_structure():
     """FMEA source invariants, including the ones the record's own checks assert.
 
     The Risk column is not stored — it is derived from severity x likelihood through
     the Sec. 3 matrix wherever it is rendered — so a row's rating and its risk class
     cannot disagree. What remains checkable here is that the ratings are in the
-    defined sets, that the Sec. 6 tables reference rows that exist, and that the
-    selected and excluded sets exactly partition the R2 worksheet rows (the property
-    C15 asserts over the rendered document, asserted here over the source).
+    defined sets, that every HUG-G001 row is present, that the Sec. 6 tables reference
+    rows that exist, that the selected and excluded sets exactly partition the HUG-G001
+    R2 rows, and that Sec. 6.3 lists exactly the R2 rows added after the selection
+    (D-020). C15 asserts the same partition over the rendered document; this asserts
+    it over the source.
     """
     defs = hugdefs.load_fmea()
     rows = list(gen_fmea.worksheet_rows(defs).values())
     fs = defs["fault_set"]
     problems = []
 
-    if len(rows) != 22:
-        problems.append(f"{len(rows)} worksheet rows, expected 22")
     ids = [r["id"] for r in rows]
+    absent = [i for i in G001_FMEA_ROWS if i not in ids]
+    if absent:
+        problems.append(f"HUG-G001 worksheet row(s) missing: {absent}")
     if len(set(ids)) != len(ids):
         problems.append("duplicate FM identifiers")
 
@@ -549,7 +562,8 @@ def g11_fmea_structure():
 
     # Sec. 6 tables must reference rows that exist
     known = set(ids)
-    dangling = [e["row"] for e in fs["selected"] + fs["exclusions"] if e["row"] not in known]
+    dangling = [e["row"] for e in fs["selected"] + fs["exclusions"] + fs["post_selection"]
+                if e["row"] not in known]
     if dangling:
         problems.append(f"Sec. 6 references a row that does not exist: {dangling}")
 
@@ -565,17 +579,28 @@ def g11_fmea_structure():
         return False, ("ratings unusable, so derived risk was not computed: "
                        + "; ".join(problems))
 
-    # selected + excluded exactly partition the R2 worksheet rows (C15's property,
-    # asserted over the source rather than over the rendered table)
-    r2 = {r["id"] for r in rows if gen_fmea.risk_of(defs, r) == "R2"}
+    # selected + excluded exactly partition the HUG-G001 R2 rows, and Sec. 6.3 lists
+    # exactly the R2 rows added after the selection (C15's property, asserted over the
+    # source rather than over the rendered tables). Every R2 row is in exactly one.
+    r2_all = {r["id"] for r in rows if gen_fmea.risk_of(defs, r) == "R2"}
+    r2 = r2_all & set(G001_FMEA_ROWS)
+    r2_later = r2_all - set(G001_FMEA_ROWS)
     sel = {s["row"] for s in fs["selected"]}
     exc = {e["row"] for e in fs["exclusions"]}
+    post_list = [s["row"] for s in fs["post_selection"]]
+    post = set(post_list)
     if sel & exc:
         problems.append(f"row both selected and excluded: {sorted(sel & exc)}")
     if sel | exc != r2:
-        problems.append(f"selected+excluded do not partition the R2 set: "
+        problems.append(f"selected+excluded do not partition the HUG-G001 R2 set: "
                         f"missing={sorted(r2 - (sel | exc))} "
                         f"extra={sorted((sel | exc) - r2)}")
+    if len(post) != len(post_list):
+        problems.append("duplicate Sec. 6.3 rows")
+    if post != r2_later:
+        problems.append(f"Sec. 6.3 does not list exactly the R2 rows added after the "
+                        f"selection: missing={sorted(r2_later - post)} "
+                        f"extra={sorted(post - r2_later)}")
 
     # every exclusion cites one of the Sec. 6 criteria letters
     letters = {c["letter"] for c in fs["criteria"]}
@@ -585,10 +610,12 @@ def g11_fmea_structure():
         problems.append(f"exclusion cites no criterion (a)-(e): {uncited}")
 
     return (not problems,
-            f"{len(rows)} worksheet rows: ratings within the Sec. 3 definitions and "
-            f"mapped by the criticality matrix, dispositions leading their own cells, "
-            f"{len(sel)} selected + {len(exc)} excluded exactly partition the "
-            f"{len(r2)} R2 rows, every exclusion citing a criterion"
+            f"{len(rows)} worksheet rows, all {len(G001_FMEA_ROWS)} HUG-G001 rows among "
+            f"them: ratings within the Sec. 3 definitions and mapped by the criticality "
+            f"matrix, dispositions leading their own cells, {len(sel)} selected + "
+            f"{len(exc)} excluded exactly partition the {len(r2)} HUG-G001 R2 rows, every "
+            f"exclusion citing a criterion, and Sec. 6.3 lists exactly the "
+            f"{len(r2_later)} R2 row(s) added after the selection (D-020)"
             + (f"; PROBLEMS: {problems}" if problems else ""))
 
 
@@ -1459,6 +1486,25 @@ MUTATIONS = {
         # the direction a careless re-rating actually takes
         ("defs/fmea.yaml", _sub("        severity: 'II'\n        likelihood: 'D'",
                                 "        severity: 'IV'\n        likelihood: 'D'"), "red"),
+        # D-020: a HUG-G001 row renumbered out of the record. The count of rows is
+        # unchanged, so only the named HUG-G001 set can see it.
+        ("defs/fmea.yaml", _sub("      - id: FM-EPS-09\n", "      - id: FM-EPS-12\n"), "red"),
+        # D-020: a HUG-G001 row listed in Sec. 6.3 in place of the row added after the
+        # selection
+        ("defs/fmea.yaml", _sub("    - row: FM-GND-07\n      added:",
+                                "    - row: FM-GND-04\n      added:"), "red"),
+        # D-020: the added row re-rated out of R2 while Sec. 6.3 still lists it
+        ("defs/fmea.yaml", _sub("      - id: FM-GND-07\n        severity: 'II'\n        likelihood: 'C'",
+                                "      - id: FM-GND-07\n        severity: 'III'\n        likelihood: 'D'"),
+         "red"),
+        # D-020: the added row's Sec. 6.3 entry listed twice
+        ("defs/fmea.yaml", _sub("  post_selection:\n    - row: FM-GND-07\n",
+                                "  post_selection:\n    - row: FM-GND-07\n      added: 'x'\n"
+                                "      status: 'x'\n    - row: FM-GND-07\n"), "red"),
+        # GREEN: rewording a Sec. 6.3 status cell changes no membership
+        ("defs/fmea.yaml", _sub("        Added after the campaign was executed; not screened",
+                                "        Added once the campaign had been executed; not screened"),
+         "green"),
     ],
     # G12 — owner ruling D-001 item 2.
     "G12": [
