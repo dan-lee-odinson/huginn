@@ -13,12 +13,12 @@ the same whether or not anything ran.
 
 | Field | Value |
 |---|---|
-| Commit | `822c87453db1222feed3aa2a52d4b021f990ccba` |
+| Commit | `26737d7e34a57125178fd29fd004fe370fea9149` |
 | Subject | Regenerate the verification report and evidence chain |
 | Tree clean at run | True |
-| Executed (UTC) | 2026-10-12T17:02:34Z |
+| Executed (UTC) | 2026-10-13T00:45:48Z |
 | Python / platform | 3.14.4 / Windows-11-10.0.26200-SP0 |
-| Cases executed | 492 tests, 34 checks, 168 red/green mutation cases |
+| Cases executed | 502 tests, 34 checks, 172 red/green mutation cases |
 | Archived demonstrations read | 8 |
 
 ## Matrix
@@ -33,7 +33,7 @@ order is not sorted, and sorting it here would silently reorder the record.
 | `HUG-SYS-003` | T | NEED-04 | 25 case(s) | 2 | PASS |
 | `HUG-SYS-004` | T | NEED-02 | 2 case(s) | 1 | PASS |
 | `HUG-SYS-005` | I/T | NEED-04 | 50 case(s) | 40 | PASS |
-| `HUG-SYS-006` | D | NEED-04 | 21 case(s) + 2 demo(s) | 16 | PASS |
+| `HUG-SYS-006` | D | NEED-04 | 21 case(s) + 2 demo(s) | 16 | STRUCK (D-019; cases PASS) |
 | `HUG-EPS-001` | T | NEED-02 | 7 case(s) | 1 | PASS |
 | `HUG-EPS-002` | T | NEED-02 | 6 case(s) | 1 | PASS |
 | `HUG-EPS-003` | T | NEED-03 | 11 case(s) | 2 | PASS |
@@ -63,9 +63,9 @@ order is not sorted, and sorting it here would silently reorder the record.
 | `HUG-UI-005` | I | NEED-04 | 5 case(s) | — | PASS |
 | `HUG-UI-007` | T/I | NEED-04 | 24 case(s) | 6 | PASS |
 | `HUG-UI-006` | D | NEED-04 | 3 case(s) | — | PASS |
-| `HUG-VER-001` | T/I | NEED-04 | 17 case(s) | 12 | PASS |
+| `HUG-VER-001` | T/I | NEED-04 | 29 case(s) | 18 | PASS |
 | `HUG-VER-002` | T | NEED-04 | 60 case(s) | 48 | PASS |
-| `HUG-VER-003` | T | NEED-04 | 53 case(s) | 16 | PASS |
+| `HUG-VER-003` | T | NEED-04 | 55 case(s) | 17 | PASS |
 
 ## Per-requirement executed cases
 
@@ -204,8 +204,9 @@ The case identifiers themselves, so a reader can re-run any single row.
   - `test_serve_sim_start_offset.TestTheOffsetRefusesWhatItCannotServe.test_a_start_beyond_the_scenario_duration_is_refused`
   - `test_serve_sim_start_offset.TestTheOffsetRefusesWhatItCannotServe.test_a_start_exactly_at_the_duration_is_refused`
 
-### `HUG-SYS-006` — D — PASS
+### `HUG-SYS-006` — D — STRUCK (D-019; cases PASS)
 
+- Struck in place by D-019. The row, its trace and its cases are kept; it is not an obligation of this release, and its cases still ran: PASS.
 - Trace cell: `NEED-04; G001-15 F-01`
 - Reaches a NEED: True
 - Executed cases (21):
@@ -936,13 +937,17 @@ The case identifiers themselves, so a reader can re-run any single row.
 
 - Trace cell: `NEED-04; Method rule; G001 F-08; G001-02 F-03; G001-03 F-02/F-07`
 - Reaches a NEED: True
-- Executed cases (17):
+- Executed cases (29):
   - `defs_generation:G8`
   - `defs_generation:G8.m1`
   - `defs_generation:G8.m2`
   - `defs_generation:G8.m3`
   - `defs_generation:G8.m4`
   - `defs_generation:G8.m5`
+  - `defs_generation:G8.m6`
+  - `defs_generation:G8.m7`
+  - `defs_generation:G8.m8`
+  - `defs_generation:G8.m9`
   - `design_record_consistency:C2`
   - `design_record_consistency:C2.m1`
   - `design_record_consistency:C2.m2`
@@ -954,6 +959,14 @@ The case identifiers themselves, so a reader can re-run any single row.
   - `design_record_consistency:C3.m4`
   - `design_record_consistency:C3.m5`
   - `design_record_consistency:C3.m6`
+  - `test_struck_requirement.TestAStruckRowOwesNothing.test_a_struck_row_keeps_its_cases_and_shows_what_they_did`
+  - `test_struck_requirement.TestAStruckRowOwesNothing.test_a_struck_row_with_no_cases_is_not_a_finding`
+  - `test_struck_requirement.TestTheExemptionIsKeyedOnTheMarker.test_a_live_row_beside_a_struck_one_still_owes_its_cases`
+  - `test_struck_requirement.TestTheExemptionIsKeyedOnTheMarker.test_the_same_row_unstruck_with_no_cases_is_an_f2_finding`
+  - `test_struck_requirement.TestTheGeneratedViewKeepsTheText.test_a_live_row_is_its_text`
+  - `test_struck_requirement.TestTheGeneratedViewKeepsTheText.test_a_struck_row_names_its_ruling_and_keeps_its_text`
+  - `test_struck_requirement.TestTheRecordStrikesHugSys006.test_hug_sys_006_is_struck_by_d019_with_its_text_kept`
+  - `test_struck_requirement.TestTheRecordStrikesHugSys006.test_no_other_requirement_is_struck`
 
 ### `HUG-VER-002` — T — PASS
 
@@ -1025,7 +1038,7 @@ The case identifiers themselves, so a reader can re-run any single row.
 
 - Trace cell: `NEED-04`
 - Reaches a NEED: True
-- Executed cases (53):
+- Executed cases (55):
   - `test_b11_verdict.TestTheArchivedEvidenceItself.test_the_recorded_attempt_recomputes_as_pass`
   - `test_b11_verdict.TestTheChainMustBind.test_a_missing_digest`
   - `test_b11_verdict.TestTheChainMustBind.test_a_page_built_from_a_different_package`
@@ -1068,6 +1081,8 @@ The case identifiers themselves, so a reader can re-run any single row.
   - `test_evidence_attempts.TestTheRecordedOutcomeIsAuthoritative.test_instrument_fault_is_not_reported_as_a_failure_of_the_subject`
   - `test_evidence_attempts.TestTheRecordedOutcomeIsAuthoritative.test_the_registry_and_the_manifest_cannot_disagree`
   - `test_evidence_attempts.TestTheRecordedOutcomeIsAuthoritative.test_writing_a_manifest_records_the_outcome`
+  - `test_struck_requirement.TestTheReportCountsStruckApart.test_a_struck_row_is_counted_apart`
+  - `test_struck_requirement.TestWithoutAStrikeTheRowCounts.test_the_unstruck_row_is_in_force_and_not_established`
   - `test_verify_evidence.TestIntactEvidenceVerifies.test_an_untouched_attempt_passes`
   - `test_verify_evidence.TestIntactEvidenceVerifies.test_every_attempt_is_checked_not_just_the_latest`
   - `test_verify_evidence.TestIntactEvidenceVerifies.test_the_count_is_not_zero`
@@ -1100,3 +1115,5 @@ Generation FAILED. Under HUG-VER-001 each of these is a failure condition, not a
 | F4 | every parent cited in a trace cell is a requirement in the spine |
 | F5 | every row names an EXECUTED case (owner's addition; a blank is a finding) |
 | F6 | every Test-verified requirement has a demonstrated RED case (HUG-VER-002/B4) |
+
+Struck in place: `HUG-SYS-006` (D-019). A struck requirement keeps its row and its cases and is exempt from F1, F2, F5 and F6. It covers no CONOPS identifier, and no other requirement reaches a NEED through it.
