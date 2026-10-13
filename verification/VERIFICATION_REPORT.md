@@ -15,8 +15,8 @@ first to go stale.
 
 | Register | Entries | Tail |
 |---|---|---|
-| Owner rulings | 18 | **D-018** |
-| Open findings | 28 | **OF-028** |
+| Owner rulings | 19 | **D-019** |
+| Open findings | 33 | **OF-033** |
 
 **What Phase 5 added to either register: nothing.** The Phase 5 commit `bba2e0a`
 touched ten files and neither register was among them — no ruling was needed and
@@ -35,15 +35,15 @@ on the phase that introduced it.
 
 | Field | Value |
 |---|---|
-| Release candidate | `fd597886cc6f6fdbf6708b2ec94d8145ce49b6c3` |
-| Subject | Label the first PASS-1 attempt, add PASS-4 console screenshots, run the checks on every push |
+| Release candidate | `d3f627cc693918cdd875373f9b4271d4a87c0c77` |
+| Subject | Strike HUG-SYS-006 in place (D-019): the requirements view, matrix and report show it struck |
 | Tree clean when run | True |
-| Executed (UTC) | 2026-10-12T17:00:27Z |
+| Executed (UTC) | 2026-10-13T00:44:55Z |
 | Interpreter | Python 3.14.4 |
 | Platform | Windows-11-10.0.26200-SP0 |
-| Unit cases | 492 |
+| Unit cases | 502 |
 | Record checks | 34 |
-| Red/green mutation cases | 168 |
+| Red/green mutation cases | 172 |
 | Archived demonstrations read | 8 |
 
 ## The verdict vocabulary used in this report
@@ -55,17 +55,19 @@ on the phase that introduced it.
 | `INSTRUMENT_FAULT` | the observer | Cases ran and could not observe. Status **not established**. |
 | `READ_FAULT` | the observer | The read path failed mid-observation. Status **not established**. |
 | `NO_RECORD` | the run | Nothing was attempted. Status **not established**. |
+| `STRUCK` | the record | Struck in place by an owner ruling. The row and its cases are kept; it is not an obligation of this release and is not counted. |
 
 A fault is never counted as a failure of the subject and never as a pass. Ruled at D-011 and D-012; the same distinction governs here.
 
 ## Result per requirement
 
-36 of 38 requirements are established PASS by this run.
+35 of 37 requirements in force are established PASS by this run. 1 more is struck in place and not counted.
 
 | Verdict | Count | Requirements |
 |---|---|---|
-| PASS | 36 | `HUG-SYS-001`, `HUG-SYS-002`, `HUG-SYS-003`, `HUG-SYS-004`, `HUG-SYS-005`, `HUG-SYS-006` … |
+| PASS | 35 | `HUG-SYS-001`, `HUG-SYS-002`, `HUG-SYS-003`, `HUG-SYS-004`, `HUG-SYS-005`, `HUG-EPS-001` … |
 | NO_RECORD | 2 | `HUG-OPS-003`, `HUG-OPS-004` |
+| STRUCK | 1 | `HUG-SYS-006` |
 
 The full per-requirement table, with the executed case identifiers, is the
 traceability matrix at [`TRACEABILITY.md`](TRACEABILITY.md) — one artifact,
