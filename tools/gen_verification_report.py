@@ -238,6 +238,10 @@ def render_report(rows, matrix_findings, record, chain_rows_, chain_findings):
     for r in rows:
         by_verdict.setdefault(r["verdict"], []).append(r["id"])
     established = len(by_verdict.get("PASS", []))
+    # A requirement struck in place by an owner ruling (D-019) is not an obligation of
+    # the release, so it is neither established nor missing: it is counted apart.
+    struck = by_verdict.get("STRUCK", [])
+    in_force = len(rows) - len(struck)
 
     out = [
         "# HUGINN verification report (B5, HUG-VER-003)",
@@ -316,18 +320,21 @@ def render_report(rows, matrix_findings, record, chain_rows_, chain_findings):
         "| `INSTRUMENT_FAULT` | the observer | Cases ran and could not observe. Status **not established**. |",
         "| `READ_FAULT` | the observer | The read path failed mid-observation. Status **not established**. |",
         "| `NO_RECORD` | the run | Nothing was attempted. Status **not established**. |",
+        "| `STRUCK` | the record | Struck in place by an owner ruling. The row and its cases are kept; it is not an obligation of this release and is not counted. |",
         "",
         "A fault is never counted as a failure of the subject and never as a pass. "
         "Ruled at D-011 and D-012; the same distinction governs here.",
         "",
         "## Result per requirement",
         "",
-        f"{established} of {len(rows)} requirements are established PASS by this run.",
+        f"{established} of {in_force} requirements in force are established PASS by this run."
+        + (f" {len(struck)} more {'is' if len(struck) == 1 else 'are'} struck in place "
+           f"and not counted." if struck else ""),
         "",
         "| Verdict | Count | Requirements |",
         "|---|---|---|",
     ]
-    for v in ("PASS", "FAIL", "INSTRUMENT_FAULT", "READ_FAULT", "NO_RECORD"):
+    for v in ("PASS", "FAIL", "INSTRUMENT_FAULT", "READ_FAULT", "NO_RECORD", "STRUCK"):
         if by_verdict.get(v):
             ids = by_verdict[v]
             shown = ", ".join(f"`{i}`" for i in ids[:6]) + (" …" if len(ids) > 6 else "")

@@ -132,14 +132,24 @@ def build_matrix(spine, conops_defined, run_record):
     ids = [r["id"] for r in reqs]
     findings = []
 
+    # A requirement struck in place by an owner ruling (D-019) keeps its row, its trace
+    # and its cases, and stops being an obligation. So it owes nothing downstream (F2,
+    # F5, F6) and nothing upstream (F1) — and it can lend nothing either: it covers no
+    # CONOPS identifier (F3), and no live requirement reaches a NEED through it (F1).
+    # The second half is the one that matters. An exemption that only removed duties
+    # would let a struck row keep certifying the rows that lean on it.
+    struck = {r["id"]: r["struck"] for r in reqs if r.get("struck")}
+
     # --- upstream: partition each trace cell, because trace_tokens returns four kinds
     needs, parents, cited_conops = {}, {}, set()
     for r in reqs:
         toks = hugdefs.trace_tokens(r["trace"])
         needs[r["id"]] = {t for t in toks if t.startswith("NEED-")}
         parents[r["id"]] = {t for t in toks if t.startswith("HUG-")}
-        cited_conops |= {t for t in toks if CONOPS_ID.fullmatch(t)}
-    reach = _reachability(needs, parents)
+        if r["id"] not in struck:
+            cited_conops |= {t for t in toks if CONOPS_ID.fullmatch(t)}
+    reach = _reachability(needs, {r: {p for p in ps if p not in struck}
+                                  for r, ps in parents.items()})
 
     # --- downstream: what actually ran, indexed by the requirement it declared
     by_req = {}
@@ -181,10 +191,15 @@ def build_matrix(spine, conops_defined, run_record):
             verdict = "INSTRUMENT_FAULT"
         else:
             verdict = "NO_RECORD"
+        cases_verdict = verdict
+        if rid in struck:
+            verdict = "STRUCK"
 
         rows.append({
             "id": rid,
             "group": r["group"],
+            "struck": struck.get(rid),
+            "cases_verdict": cases_verdict,
             "methods": r["verification"],
             "trace": r["trace"],
             "needs": sorted(needs[rid]),
@@ -207,13 +222,15 @@ def build_matrix(spine, conops_defined, run_record):
         dupes = sorted({i for i in ids if ids.count(i) > 1})
         findings.append(("F0", f"duplicate requirement identifiers in the spine: {dupes}"))
 
+    live = [row for row in rows if not row["struck"]]
+
     # --- F1: upstream reachability
-    stranded = sorted(r["id"] for r in rows if not r["reaches_need"])
+    stranded = sorted(r["id"] for r in live if not r["reaches_need"])
     if stranded:
         findings.append(("F1", f"no acyclic path to a NEED: {stranded}"))
 
     # --- F2 / F5: downstream reference, and that it EXECUTED
-    for row in rows:
+    for row in live:
         if not row["cases"] and not row["demonstrations"]:
             findings.append(("F2", f"{row['id']} has no downstream verification "
                                    f"reference of any kind"))
@@ -244,7 +261,7 @@ def build_matrix(spine, conops_defined, run_record):
             findings.append(("F4", f"{row['id']} cites parent(s) not in the spine: {bad}"))
 
     # --- F6: a Test-verified requirement owes a demonstrated red case
-    for row in rows:
+    for row in live:
         if "T" in row["methods"] and row["cases"] and not row["red_cases"]:
             findings.append(("F6", f"{row['id']} is Test-verified and every case for it "
                                    f"is green: HUG-VER-002 accepts a passing result only "
@@ -256,7 +273,14 @@ def build_matrix(spine, conops_defined, run_record):
 def _verdict_mark(v):
     return {"PASS": "PASS", "FAIL": "**FAIL**",
             "INSTRUMENT_FAULT": "**INSTRUMENT_FAULT**",
-            "NO_RECORD": "**NO_RECORD**"}.get(v, v)
+            "NO_RECORD": "**NO_RECORD**", "STRUCK": "STRUCK"}.get(v, v)
+
+
+def _row_verdict(r):
+    """The verdict cell. A struck row names its ruling and what its cases still did."""
+    if r["struck"]:
+        return f"STRUCK ({r['struck']}; cases {_verdict_mark(r['cases_verdict'])})"
+    return _verdict_mark(r["verdict"])
 
 
 def render(rows, findings, run_record, conops_defined):
@@ -303,13 +327,17 @@ def render(rows, findings, run_record, conops_defined):
         if r["demonstrations"]:
             down += (" + " if down else "") + f"{len(r['demonstrations'])} demo(s)"
         out.append(f"| `{r['id']}` | {'/'.join(r['methods'])} | {up} | {down or '—'} | "
-                   f"{len(r['red_cases']) or '—'} | {_verdict_mark(r['verdict'])} |")
+                   f"{len(r['red_cases']) or '—'} | {_row_verdict(r)} |")
 
     out += ["", "## Per-requirement executed cases", "",
             "The case identifiers themselves, so a reader can re-run any single row.", ""]
     for r in rows:
-        out.append(f"### `{r['id']}` — {'/'.join(r['methods'])} — {_verdict_mark(r['verdict'])}")
+        out.append(f"### `{r['id']}` — {'/'.join(r['methods'])} — {_row_verdict(r)}")
         out.append("")
+        if r["struck"]:
+            out.append(f"- Struck in place by {r['struck']}. The row, its trace and its "
+                       f"cases are kept; it is not an obligation of this release, and its "
+                       f"cases still ran: {_verdict_mark(r['cases_verdict'])}.")
         out.append(f"- Trace cell: `{r['trace']}`")
         out.append(f"- Reaches a NEED: {r['reaches_need']}"
                    + (f" (via {', '.join(r['parents'])})" if not r["needs"] else ""))
@@ -344,6 +372,13 @@ def render(rows, findings, run_record, conops_defined):
                 "in the gate."]
     out += ["", "## Conditions enforced", "", "| # | Condition |", "|---|---|"]
     out += [f"| {k} | {v} |" for k, v in FAILURE_CONDITIONS.items()]
+    struck_rows = [r for r in rows if r["struck"]]
+    if struck_rows:
+        out += ["", "Struck in place: "
+                + ", ".join(f"`{r['id']}` ({r['struck']})" for r in struck_rows)
+                + ". A struck requirement keeps its row and its cases and is exempt from "
+                  "F1, F2, F5 and F6. It covers no CONOPS identifier, and no other "
+                  "requirement reaches a NEED through it."]
     out.append("")
     return "\n".join(out)
 
@@ -429,13 +464,18 @@ MUTATIONS = {
             lambda s, d, r: (_set_trace(_set_trace(s, "HUG-SYS-003", "HUG-SYS-004"),
                                         "HUG-SYS-004", "HUG-SYS-003"), d, r)),
            ("the one row that needs the chain, with its parent edge removed",
-            lambda s, d, r: (_set_trace(s, "HUG-EPS-004", "G001 F-03"), d, r))],
+            lambda s, d, r: (_set_trace(s, "HUG-EPS-004", "G001 F-03"), d, r)),
+           ("a live requirement whose only parent is a struck requirement",
+            lambda s, d, r: (_set_trace(s, "HUG-EPS-004", "HUG-SYS-006"), d, r))],
     "F2": [("a requirement with no downstream reference at all",
             lambda s, d, r: (s, d, _drop_requirement_cases(r, "HUG-CMD-002")))],
     "F3": [("a CONOPS identifier cited by nobody",
             lambda s, d, r: (_strip_conops(s, "ASM-02"), d, r)),
            ("a requirement citing a CONOPS identifier that is not defined",
-            lambda s, d, r: (_set_trace(s, "HUG-SYS-003", "NEED-04; CON-99"), d, r))],
+            lambda s, d, r: (_set_trace(s, "HUG-SYS-003", "NEED-04; CON-99"), d, r)),
+           ("a CONOPS identifier cited only by a struck requirement",
+            lambda s, d, r: (_set_trace(_strip_conops(s, "ASM-02"), "HUG-SYS-006",
+                                        "NEED-04; ASM-02; G001-15 F-01"), d, r))],
     "F4": [("a trace cell citing a parent that is not a requirement",
             lambda s, d, r: (_set_trace(s, "HUG-EPS-004", "HUG-ZZZ-999"), d, r))],
     "F5": [("a requirement whose cases were collected but never executed",

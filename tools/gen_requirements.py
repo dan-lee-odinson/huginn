@@ -14,6 +14,18 @@ import sys
 from hugdefs import console, docs_dir, emit, load_requirements, md_table
 
 
+def requirement_cell(r):
+    """A requirement's text as the document shows it.
+
+    A requirement struck in place by an owner ruling keeps its identifier and its text,
+    so every citation of it still resolves and the record of what it required stays
+    readable. The text is shown struck through, after the ruling that struck it.
+    """
+    if r.get("struck"):
+        return f"**Struck in place by {r['struck']}.** ~~{r['text']}~~"
+    return r["text"]
+
+
 def build(defs):
     doc = defs["document"]
     out = []
@@ -36,7 +48,7 @@ def build(defs):
     for group in defs["groups"]:
         w(f"## {group['id']}: {group['name']}")
         w("")
-        rows = [[r["id"], r["text"], ", ".join(r["verification"]), r["trace"]]
+        rows = [[r["id"], requirement_cell(r), ", ".join(r["verification"]), r["trace"]]
                 for r in group["requirements"]]
         out.extend(md_table(["ID", "Requirement", "Ver.", "Notes / trace"], rows))
         w("")

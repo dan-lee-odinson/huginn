@@ -400,9 +400,9 @@ def run_metadata(repo=REPO):
 #: root that matched nothing. Without a floor that failure renders as an empty table,
 #: which is indistinguishable from a suite that ran and verified nothing. Raise these
 #: when the suite grows; never lower one to make a run pass.
-FLOOR_TESTS = 482      # 492 with the entry on an annunciation (D-018); 471 at 481
-                       # (D-016, D-017), 455 at 465 (the pass plan), 430 at 437
-                       # (D-015), 420 at 427 (D-013), 380 at 396
+FLOOR_TESTS = 492      # 502 with the struck-in-place cases (D-019); 482 at 492
+                       # (D-018), 471 at 481 (D-016, D-017), 455 at 465 (the pass
+                       # plan), 430 at 437 (D-015), 420 at 427 (D-013), 380 at 396
 FLOOR_CHECKS = 32
 FLOOR_MUTATIONS = 120
 

@@ -73,6 +73,9 @@ STAGED = [
     "defs/ground.yaml", "gnd/openc3/compose.yaml",
     "gnd/openc3/.env.template", "gnd/openc3/openc3-redis/users.acl.template",
     ".gitignore",
+    # The owner-ruling register, read by G8: a requirement struck in place must name a
+    # ruling that is in it (D-019).
+    "DECISIONS.md",
 ]
 
 # Every single-file generated view is staged automatically.
@@ -272,10 +275,26 @@ def g8_requirements_structure():
     uncited = [r["id"] for r in rows if not trace_tokens(r["trace"])]
     if uncited:
         problems.append(f"trace cell yields no citation: {uncited}")
+    # A requirement struck in place names the owner ruling that struck it (D-019). The
+    # ruling must be in the register: a strike citing a ruling that does not exist would
+    # take a requirement out of the release on no authority at all.
+    struck = [r for r in rows if "struck" in r]
+    if struck:
+        register = (repo() / "DECISIONS.md").read_text(encoding="utf-8")
+        rulings = set(re.findall(r"^## (D-\d{3}) ", register, re.M))
+        for r in struck:
+            ruling = r["struck"]
+            if not isinstance(ruling, str) or not re.fullmatch(r"D-\d{3}", ruling):
+                problems.append(f"{r['id']}: struck must name a ruling as 'D-nnn', "
+                                f"not {ruling!r}")
+            elif ruling not in rulings:
+                problems.append(f"{r['id']}: struck by {ruling}, which is not a ruling "
+                                f"in DECISIONS.md")
     return (not problems,
             f"{len(rows)} requirements: identifiers unique and inside their group, "
             f"verification methods within the defined set, every trace cell yields at "
-            f"least one citation" + (f"; PROBLEMS: {problems}" if problems else ""))
+            f"least one citation, {len(struck)} struck in place, each by a ruling in "
+            f"the register" + (f"; PROBLEMS: {problems}" if problems else ""))
 
 
 def g9_config_digest():
@@ -1302,8 +1321,8 @@ MUTATIONS = {
     "G4": [
         ("defs/tlm_cmd.yaml", _sub("dictionary_version: '0.5'",
                                    "dictionary_version: '0.6'"), "red"),
-        ("defs/requirements.yaml", _sub("requirements_version: '0.12'",
-                                        "requirements_version: '0.13'"), "red"),
+        ("defs/requirements.yaml", _sub("requirements_version: '0.13'",
+                                        "requirements_version: '0.14'"), "red"),
     ],
     # G5 — the exact YAML 1.1 trap, unquoted.
     "G5": [
@@ -1347,6 +1366,16 @@ MUTATIONS = {
                                         "        trace: 'NEED-02, NEED-03'",
                                         "        verification: ['T', 'I', 'D', 'A']\n"
                                         "        trace: 'NEED-02, NEED-03'"), "green"),
+        # RED: a strike citing a ruling that is not in the register, one that is not a
+        # ruling key at all, and one that names nothing; and the ruling itself removed
+        # from the register while the strike still cites it.
+        ("defs/requirements.yaml", _sub("        struck: 'D-019'",
+                                        "        struck: 'D-999'"), "red"),
+        ("defs/requirements.yaml", _sub("        struck: 'D-019'",
+                                        "        struck: 'D19'"), "red"),
+        ("defs/requirements.yaml", _sub("        struck: 'D-019'",
+                                        "        struck: ''"), "red"),
+        ("DECISIONS.md", _sub("\n## D-019 — ", "\n## D-0l9 — "), "red"),
     ],
     # G9 — the displayed digest left stale after the source changed.
     "G9": [
@@ -1501,7 +1530,7 @@ MUTATIONS = {
          _alter_version_after("Current companion baseline — CONOPS"), "red"),
         ("docs/concept_brief.md",
          _alter_version_after("Current companion baseline — CONOPS v0.10, "
-                              "Requirements v0.12, TLM/CMD Dictionary"), "red"),
+                              "Requirements v0.13, TLM/CMD Dictionary"), "red"),
         ("docs/concept_brief.md",
          _alter_version_after("Replay Schema"), "red"),
         # RED, provenance: a cited revision that does not exist. History may be old, but
