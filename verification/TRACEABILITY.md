@@ -13,10 +13,10 @@ the same whether or not anything ran.
 
 | Field | Value |
 |---|---|
-| Commit | `e737366bb4433f609839a6e81133c13d0d94f0cd` |
+| Commit | `4f10f6840097a2985bf44cbd2f52a1462ddf12d4` |
 | Subject | Regenerate the verification report and evidence chain |
 | Tree clean at run | True |
-| Executed (UTC) | 2026-10-13T15:14:29Z |
+| Executed (UTC) | 2026-10-13T18:39:36Z |
 | Python / platform | 3.14.4 / Windows-11-10.0.26200-SP0 |
 | Cases executed | 578 tests, 36 checks, 202 red/green mutation cases |
 | Archived demonstrations read | 8 |
