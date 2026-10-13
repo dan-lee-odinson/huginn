@@ -13,12 +13,12 @@ the same whether or not anything ran.
 
 | Field | Value |
 |---|---|
-| Commit | `7d02ea9006341ccc35610954c3e5d6d31d28721e` |
+| Commit | `d0d2373ad633dab451ee768302e2393432d2e377` |
 | Subject | Regenerate the verification report and evidence chain |
 | Tree clean at run | True |
-| Executed (UTC) | 2026-10-13T02:04:43Z |
+| Executed (UTC) | 2026-10-13T03:30:53Z |
 | Python / platform | 3.14.4 / Windows-11-10.0.26200-SP0 |
-| Cases executed | 526 tests, 34 checks, 172 red/green mutation cases |
+| Cases executed | 570 tests, 34 checks, 172 red/green mutation cases |
 | Archived demonstrations read | 8 |
 
 ## Matrix
@@ -34,18 +34,18 @@ order is not sorted, and sorting it here would silently reorder the record.
 | `HUG-SYS-004` | T | NEED-02 | 2 case(s) | 1 | PASS |
 | `HUG-SYS-005` | I/T | NEED-04 | 50 case(s) | 40 | PASS |
 | `HUG-SYS-006` | D | NEED-04 | 21 case(s) + 2 demo(s) | 16 | STRUCK (D-019; cases PASS) |
-| `HUG-EPS-001` | T | NEED-02 | 7 case(s) | 1 | PASS |
+| `HUG-EPS-001` | T | NEED-02 | 10 case(s) | 3 | PASS |
 | `HUG-EPS-002` | T | NEED-02 | 6 case(s) | 1 | PASS |
 | `HUG-EPS-003` | T | NEED-03 | 11 case(s) | 2 | PASS |
 | `HUG-EPS-004` | T | via HUG-SYS-005 | 27 case(s) | 21 | PASS |
 | `HUG-EPS-005` | I | NEED-04 | 11 case(s) | 8 | PASS |
-| `HUG-GND-001` | I | NEED-04 | 55 case(s) | 29 | PASS |
+| `HUG-GND-001` | I | NEED-04 | 60 case(s) | 32 | PASS |
 | `HUG-GND-002` | T | NEED-02 | 27 case(s) + 3 demo(s) | 7 | PASS |
 | `HUG-GND-003` | T | NEED-02 | 12 case(s) | 4 | PASS |
 | `HUG-GND-004` | D | NEED-04 | 2 case(s) | — | PASS |
 | `HUG-GND-005` | T | NEED-02 | 5 case(s) | 1 | PASS |
-| `HUG-GND-006` | T | NEED-02 | 43 case(s) + 1 demo(s) | 27 | PASS |
-| `HUG-CMD-001` | T | NEED-03 | 9 case(s) + 1 demo(s) | 2 | PASS |
+| `HUG-GND-006` | T | NEED-02 | 58 case(s) + 1 demo(s) | 40 | PASS |
+| `HUG-CMD-001` | T | NEED-03 | 26 case(s) + 1 demo(s) | 17 | PASS |
 | `HUG-CMD-002` | T | NEED-03 | 7 case(s) | 4 | PASS |
 | `HUG-CMD-003` | T | NEED-02 | 8 case(s) | 3 | PASS |
 | `HUG-CMD-004` | T | NEED-03 | 5 case(s) | 2 | PASS |
@@ -239,7 +239,10 @@ The case identifiers themselves, so a reader can re-run any single row.
 
 - Trace cell: `NEED-02; HUG-SYS-001`
 - Reaches a NEED: True
-- Executed cases (7):
+- Executed cases (10):
+  - `test_charge_taper_red_cases.TestAFailedTaperIsCaught.test_a_taper_that_stops_halfway`
+  - `test_charge_taper_red_cases.TestAFailedTaperIsCaught.test_no_taper_at_all`
+  - `test_charge_taper_red_cases.TestTheTaperHoldsOnTheRealModel.test_the_real_model_tapers_to_zero_at_full`
   - `test_eps_model.TestChargeTaper.test_a_nominally_full_battery_does_not_annunciate_voltage_high`
   - `test_eps_model.TestChargeTaper.test_the_taper_prevents_overshoot_past_full`
   - `test_eps_model.TestEnergyBalance.test_efficiencies_are_the_dispositioned_values_and_are_applied`
@@ -331,7 +334,7 @@ The case identifiers themselves, so a reader can re-run any single row.
 
 - Trace cell: `NEED-04; Derive rule`
 - Reaches a NEED: True
-- Executed cases (55):
+- Executed cases (60):
   - `defs_generation:G16`
   - `defs_generation:G16.m1`
   - `defs_generation:G16.m10`
@@ -371,6 +374,11 @@ The case identifiers themselves, so a reader can re-run any single row.
   - `test_ground_targets.TestTheCleanInstanceHolds.test_the_permitted_set_exactly`
   - `test_ground_targets.TestThePermittedSetIsAnchored.test_allowed_targets_agrees_with_the_plugin`
   - `test_ground_targets.TestThePermittedSetIsAnchored.test_the_permitted_set_is_small_and_deliberate`
+  - `test_hazardous_flag.TestAFlagThatDidNotReachTheGround.test_a_hazardous_command_with_its_line_removed`
+  - `test_hazardous_flag.TestAFlagThatDidNotReachTheGround.test_a_non_hazardous_command_marked_hazardous`
+  - `test_hazardous_flag.TestAFlagThatDidNotReachTheGround.test_the_dictionary_changed_and_the_definitions_did_not`
+  - `test_hazardous_flag.TestTheGeneratedDefinitionsCarryTheFlag.test_the_committed_cmd_txt_matches_the_dictionary`
+  - `test_hazardous_flag.TestTheGeneratedDefinitionsCarryTheFlag.test_the_generator_follows_every_flag_it_is_given`
   - `test_interface.TestEncoding.test_a_real_frame_encodes_to_the_expected_size`
   - `test_interface.TestEncoding.test_a_value_outside_its_dictionary_enum_is_refused`
   - `test_interface.TestEncoding.test_enum_values_encode_to_their_dictionary_index`
@@ -466,7 +474,7 @@ The case identifiers themselves, so a reader can re-run any single row.
 
 - Trace cell: `NEED-02; G001-02 F-04`
 - Reaches a NEED: True
-- Executed cases (43):
+- Executed cases (58):
   - `defs_generation:G16`
   - `defs_generation:G16.m1`
   - `defs_generation:G16.m10`
@@ -485,6 +493,21 @@ The case identifiers themselves, so a reader can re-run any single row.
   - `defs_generation:G9`
   - `defs_generation:G9.m1`
   - `defs_generation:G9.m2`
+  - `test_b10_verdict.TestANoGoForTheWrongReason.test_the_identity_check_failed_instead`
+  - `test_b10_verdict.TestANoGoForTheWrongReason.test_the_inventory_failed_too`
+  - `test_b10_verdict.TestANoGoForTheWrongReason.test_the_nogo_leg_says_go`
+  - `test_b10_verdict.TestANoGoForTheWrongReason.test_the_nogo_names_no_target_file`
+  - `test_b10_verdict.TestANoGoForTheWrongReason.test_the_source_digest_could_see_the_perturbation`
+  - `test_b10_verdict.TestANoGoFromADeadInstance.test_no_service_running_during_the_nogo`
+  - `test_b10_verdict.TestANoGoFromADeadInstance.test_the_api_the_step_queries_was_down`
+  - `test_b10_verdict.TestANoGoFromADeadInstance.test_the_services_changed_during_the_nogo`
+  - `test_b10_verdict.TestTheArchivedEvidencePasses.test_the_committed_b10_evidence_satisfies_the_verdict`
+  - `test_b10_verdict.TestTheArchivedEvidencePasses.test_the_verdict_is_computable_from_the_archive_alone`
+  - `test_b10_verdict.TestTheLegsAroundTheNoGo.test_a_leg_missing_a_condition`
+  - `test_b10_verdict.TestTheLegsAroundTheNoGo.test_the_go_leg_has_a_failing_condition`
+  - `test_b10_verdict.TestTheLegsAroundTheNoGo.test_the_restored_leg_is_still_nogo`
+  - `test_b10_verdict.TestTheLegsAroundTheNoGo.test_the_restored_leg_ran_before_the_nogo`
+  - `test_b10_verdict.TestTheLegsAroundTheNoGo.test_the_restored_leg_shows_another_configuration`
   - `test_ground_config.TestAgreementHolds.test_compare_is_symmetric_in_what_it_names`
   - `test_ground_config.TestAgreementHolds.test_identical_sides_pass`
   - `test_ground_config.TestDriftIsCaught.test_all_three_directions_reported_together`
@@ -517,10 +540,27 @@ The case identifiers themselves, so a reader can re-run any single row.
 
 - Trace cell: `NEED-03`
 - Reaches a NEED: True
-- Executed cases (9):
+- Executed cases (26):
   - `design_record_consistency:C6`
   - `design_record_consistency:C6.m1`
   - `design_record_consistency:C6.m2`
+  - `test_b7_verdict.TestAControlThatShowsNothing.test_the_control_is_itself_hazardous`
+  - `test_b7_verdict.TestAControlThatShowsNothing.test_the_control_was_refused`
+  - `test_b7_verdict.TestAControlThatShowsNothing.test_the_control_went_out_with_the_check_off`
+  - `test_b7_verdict.TestARefusalThatIsNotTheGate.test_a_malformed_refusal_is_a_reason_not_a_crash`
+  - `test_b7_verdict.TestARefusalThatIsNotTheGate.test_refused_for_another_reason`
+  - `test_b7_verdict.TestARefusalThatIsNotTheGate.test_refused_with_a_reason_the_definition_does_not_carry`
+  - `test_b7_verdict.TestARefusalThatIsNotTheGate.test_the_definition_no_longer_marks_it_hazardous`
+  - `test_b7_verdict.TestARefusalThatIsNotTheGate.test_the_refused_command_is_not_hazardous`
+  - `test_b7_verdict.TestAResendThatIsNotTheConfirmation.test_the_resend_is_a_different_command`
+  - `test_b7_verdict.TestAResendThatIsNotTheConfirmation.test_the_resend_was_refused_too`
+  - `test_b7_verdict.TestAResendThatIsNotTheConfirmation.test_the_resend_went_out_with_the_check_on`
+  - `test_b7_verdict.TestAnEffectThatIsNotATransition.test_the_interface_ended_disconnected`
+  - `test_b7_verdict.TestAnEffectThatIsNotATransition.test_the_mode_was_already_safe`
+  - `test_b7_verdict.TestAnEffectThatIsNotATransition.test_the_refused_command_changed_the_mode`
+  - `test_b7_verdict.TestAnEffectThatIsNotATransition.test_the_refused_command_reached_the_link`
+  - `test_b7_verdict.TestTheArchivedEvidencePasses.test_the_committed_b7_evidence_satisfies_the_verdict`
+  - `test_b7_verdict.TestTheArchivedEvidencePasses.test_the_verdict_is_computable_from_the_archive_alone`
   - `test_commands.TestFiveCommandsExactly.test_opcodes_are_unique_and_dispatch_to_their_own_command`
   - `test_commands.TestFiveCommandsExactly.test_the_spacecraft_implements_exactly_the_records_command_set`
   - `test_interface.TestCommandDecoding.test_a_float_argument_decodes`
