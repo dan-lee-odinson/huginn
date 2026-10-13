@@ -1,7 +1,7 @@
 # PROC-003 — Loss of telemetry or commandability
 
 GENERATED FILE — DO NOT EDIT. Source: `defs/procedures.yaml`
-Procedures version: 0.3 · Dictionary sha256: 5e1c2750ef9e0d54…
+Procedures version: 0.4 · Dictionary sha256: 5e1c2750ef9e0d54…
 
 > Edit the source and regenerate. A hand edit here would make the document the
 > operator follows differ from the procedure `tools/pass_report.py` reviews the
@@ -181,7 +181,10 @@ spacecraft. Escalating on a ground fault sends a hazardous command to a healthy 
 
 Authorize and send CMD_SYS_RESET. It is hazardous: the ground system requires the
 two-step confirmation, and the second step is the resend that follows the caught
-refusal.
+refusal. Before you send, read the command name in Command Sender: it must say
+CMD_SYS_RESET. Command Sender opens on the last command chosen, which can be a hazardous
+one. Before you send, also note CDH_CMD_ACC_CNT and CDH_CMD_REJ_CNT as Packet Viewer
+still shows them from the last frame before the outage; PROC-003-S04 compares with them.
 
 **Open:** http://localhost:2910 - Command Sender, CMD_SYS_RESET
 
@@ -202,7 +205,7 @@ acceptance, so the first post-reset frame reads CDH_CMD_ACC_CNT = 1 and CDH_CMD_
 
 **Open:** http://localhost:2910 - Packet Viewer, CDH_CMD_ACC_CNT, CDH_CMD_REJ_CNT, EPS_BATT_SOC
 
-**You know it worked when:** The post-reset epoch: CDH_CMD_ACC_CNT reads exactly 1 and CDH_CMD_REJ_CNT exactly 0 - NOT the previous values plus one. Reset is the sole exception to counter delta arithmetic, so do not compute a delta here. State of charge is preserved across the reset.
+**You know it worked when:** The post-reset epoch: CDH_CMD_ACC_CNT reads exactly 1 and CDH_CMD_REJ_CNT exactly 0 - NOT the previous values plus one. Reset is the sole exception to counter delta arithmetic, so do not compute a delta here. State of charge is preserved across the reset. Compare with the two counters you noted before the reset: the epoch shows a reset only when they read otherwise before it. If they also read 1 and 0, the epoch cannot tell a reset from no reset, and frames resuming after your reset, at PROC-003-S05, is the evidence.
 
 **Write it down:** In your report, find the block that begins `- step: PROC-003-S04` and make it read: ```yaml - step: PROC-003-S04 role: EPS operator: YOUR NAME state: completed records: acc_cnt_post_reset: 1 rej_cnt_post_reset: 0 soc_pct_post_reset: 38.9 ``` The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
 
@@ -237,7 +240,9 @@ Determine whether telemetry has been restored.
 Establish that a verified send produced no accounting. Every received command increments
 exactly one counter by exactly one, visible no later than the next housekeeping frame;
 absence of any delta within 10 s of a verified send is the loss-of-commandability
-declaration threshold (HUG-CMD-007).
+declaration threshold (HUG-CMD-007). Before you send, read the command name in Command
+Sender: it must say the command you mean to send. Command Sender opens on the last
+command chosen, which can be a hazardous one.
 
 **Open:** http://localhost:2910 - Command Sender, then Packet Viewer for both counters
 
@@ -274,7 +279,9 @@ Determine whether the command path is lost.
 ### PROC-003-S08 — EPS Officer · on unacknowledged command
 
 Retry once within the pass. A single retry distinguishes a lost uplink frame from a lost
-command path, and costs one command slot.
+command path, and costs one command slot. Before you send, read the command name in
+Command Sender: it must say the command you mean to send. Command Sender opens on the
+last command chosen, which can be a hazardous one.
 
 **Open:** http://localhost:2910 - Command Sender
 

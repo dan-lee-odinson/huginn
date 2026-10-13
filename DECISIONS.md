@@ -355,6 +355,7 @@ under D-004 and find a different ruling.
 | **D-018** | *(none — three selections from options put to the Director)* | PASS-4: the staleness annunciator located and red-lined, PROC-003 entered on the alarm, the scripted reset kept | 2026-10-11 |
 | **D-019** | *(none — "Rulings: First, … 2. … 3. …", then selections from options put to the Director, and on the draft a further ruling and a constraint in his own words)* | HUG-G002 scope: the v0.1 release criteria revised, HUG-SYS-006 struck in place, the gaps and register ruled, the target set | 2026-10-12 |
 | **D-020** | *(none — four selections from options put to the Director)* | FM-GND-07: D-012's FMEA row rated and dispositioned, and §6 kept as the HUG-G001 selection | 2026-10-13 |
+| **D-021** | *(none — three selections from options put to the Director, and one answer in his own words)* | HUG-G002 build 5: plain console text, the command read-back, the stuck-load wording, and the PASS-4 re-fly scenario | 2026-10-13 |
 
 Two of these self-labels — `D-010:` and `D-012:` — happen to equal their own register key
 rather than naming a prior entry. That is a coincidence of those two rulings arriving after
@@ -1687,9 +1688,135 @@ as a finding rather than written into FM-GND-07.
 | Change | Where |
 |---|---|
 | FM-GND-07 added to §5, rated II/C (R2) and dispositioned DETECTED; §6 scoped to the 22 HUG-G001 rows; new §6.3 records FM-GND-07 as added after the campaign and nominated as a v0.2 campaign candidate; status and changelog | `defs/fmea.yaml`, `docs/fmea.md`, as v0.16 |
-| §6.3 rendered after the roll-up, leaving §6.1 and §6.2 byte for byte as before | `tools/gen_fmea.py` |
+| §6.3 rendered after the roll-up; the §6.1 and §6.2 tables render as before, and the §6.2 heading's wording now names the HUG-G001 rows (corrected under D-021: this row first said §6.1 and §6.2 rendered byte for byte as before) | `tools/gen_fmea.py` |
 | G11 names the 22 HUG-G001 rows, partitions their R2 rows, and requires §6.3 to list exactly the R2 rows outside them; four red cases and one green case added | `tools/checkers/defs_generation.py` |
 | C14 names the 22 HUG-G001 rows instead of counting 22; C15 partitions the HUG-G001 R2 rows and validates §6.3 the same way it validates the exclusion record; twelve red cases and one green case added; checker v22 | `tools/checkers/design_record_consistency.py` |
 | The status line names FMEA v0.16 | `docs/concept_brief.md`, as v0.28 |
 | OF-006 closed, its queued row landed; OF-035 registered | `verification/OPEN_FINDINGS.md` |
 | Register row for D-020 | the numbering map in this file |
+
+---
+
+## D-021 — HUG-G002 build 5: plain console text, the command read-back, the stuck-load wording, and the PASS-4 re-fly scenario
+
+| Field | Value |
+|---|---|
+| Date | 2026-10-13 |
+| Ruled by | Dan Lee-Odinson (Director) |
+| Prompted by | D-019 selection 7, which sends "AR-003 console issues" (OF-030, OF-031), "Stuck-load S06 (OF-023)" and "PASS-4 reset evidence" (OF-028) to be fixed and then flown in the HUG-G002 build-out. How each is fixed was put to the Director |
+| Status | Ruled. Acted on by the changes that follow this entry |
+| Form | Three selections from options put to the Director, and one answer in his own words |
+
+### What he was told before the questions
+
+That the flown records must still validate: pass reports do not record a procedure
+version, and the report checker reads the procedures as they stand, so no step name,
+record field or existing branch changes. That the procedure changes take the route D-017
+ruling 3 set: he approves them now, the re-flies use them, and Sol reviews them in this
+gate. And that D-003 item 3, "Worsening depth of discharge", had already ruled on the stuck
+load, so the procedure text is what moves.
+
+### 1. OF-031 — the Director's own words
+
+Put to him: "OF-031: how should Command Sender's descriptions become plain text?", with
+the options "Generator writes plain text (Recommended)" and "Edit the dictionary's text".
+He answered in his own words:
+
+> Generator writes plain text - the generator turns the arrow, dash, and minus sign into
+> plain characters and a new check fails any other special character. The dictionary's
+> text and its version don't change and nothing in tim_cmd.yaml changes. Claude Code
+> reinstalls the plugin before the next pass
+
+### 2. OF-030 — "Read it back before every send (Recommended)"
+
+Put to him: "OF-030: how should the procedures guard against Command Sender's leftover
+command?" He selected the option labeled "Read it back before every send (Recommended)",
+offered as the recommended option. As put:
+
+> Every step that sends a command gets one sentence: before you send, read the command
+> name in Command Sender; it must say that step's command. Command Sender opens on
+> whatever was chosen last, which can be hazardous. A new check fails any sending step
+> that's missing the sentence.
+
+The option not selected was "Only before hazardous sends".
+
+### 3. OF-023 — "Wording to match D-003 (Recommended)"
+
+Put to him: "OF-023: how should PROC-002 handle the stuck load, given D-003?" He selected
+the option labeled "Wording to match D-003 (Recommended)", offered as the recommended
+option. As put:
+
+> S05 names the comparison: after the shed, load current should fall to about 0.80 A, the
+> bus alone; about 1.20 A means a load the shed didn't remove, which is the stuck load. S06
+> stops saying the stuck load arrives with a negative battery current, and says it can
+> arrive at 'recovered'. The eps.yaml note is corrected to cite D-003.
+
+The option not selected was "Add a 'stuck load' branch".
+
+### 4. OF-028 — "Only your reset clears it (Recommended)"
+
+Put to him: "OF-028: what should the PASS-4 re-fly's scenario do?" He selected the option
+labeled "Only your reset clears it (Recommended)", offered as the recommended option. As
+put:
+
+> A copy of the scenario for the re-fly; the original stays, so the flown PASS-4 still
+> checks out. It adds one command before the halt, so the counters read 2 before it and
+> 1/0 only after a reset. It has no scripted reset: if you don't reset, telemetry stays
+> down. Replaces D-018 ruling 3 for the re-fly. PROC-003-S04 compares with the counters
+> from before the halt.
+
+The options not selected were "Keep a late safety net" and "Counters only".
+
+### Below the seam
+
+Above this heading: the Director's words, the selections he made from options put to him,
+and the options as put. Below it: notes made in carrying them out. They are not his ruling.
+
+**`tim_cmd.yaml`.** Answer 1 names `tim_cmd.yaml`. The build reads it as
+`defs/tlm_cmd.yaml`, the file the option he adapted names, and changes nothing in it.
+
+**What the generator maps.** The three characters are U+2192, the arrow, written `->`;
+U+2014, the em dash, written `-`; and U+2212, the minus sign, written `-`. They reached four
+definitions: the descriptions of CMD_SAFE_ENTER, CMD_SYS_RESET and CMD_MODE_SET, and of the
+telemetry point EPS_BATT_I, which OF-031 did not name. Comment lines, which the console does
+not display, keep their text. The configuration digest is the digest of
+`defs/tlm_cmd.yaml` and does not change. Until the plugin is reloaded, the loaded
+configuration differs from the repository's, which `tools/ground_config.py --verify`
+reports and PROC-001's pre-pass check treats as a no-go.
+
+**The new checks.** G19 holds the read-back. A step sends a command when it opens Command
+Sender, or when its action or one of its branches says to send one; a branch that routes
+to the step that sends ("Escalate to PROC-003-S03: send CMD_SYS_RESET") is not a send.
+Eight steps carry the sentence. PROC-003-S06 and -S08 resend a command the procedure does
+not name, so theirs reads "the command you mean to send". PROC-002-S08 sends
+CMD_SAFE_ENTER from a branch and carries the sentence there. G20 holds the plain text,
+over the definitions rendered from the source and every committed file of the plugin.
+
+**Two sentences beyond the options' words.** PROC-003-S03 also tells the operator to note
+the two counters before the reset: the comparison answer 4 names needs them, and no record
+field may be added. The stuck-load wording at PROC-002-S06 cites D-003, which an operator
+document may do.
+
+**The re-fly scenario is not yet in the campaign plan.**
+`sim/scenarios/P4_hk_generation_halt_refly.yaml` is in the repository with its tests.
+Pointing the PASS-4 re-fly at it in `defs/campaign.yaml` waits for the re-fly's own
+handoff, with its contact.
+
+**Corrected in D-020.** D-020's consequences table said §6.3 was rendered "leaving §6.1 and
+§6.2 byte for byte as before". The §6.2 heading's wording changed; only the two tables are
+unchanged. The row is corrected and marked, and so is the matching comment in
+`tools/gen_fmea.py`. Both were the drafter's notes, not the Director's ruling.
+
+### Consequences in the repository
+
+| Change | Where |
+|---|---|
+| The ground definitions written as plain text: three characters mapped, any other outside ASCII refused | `tools/gen_openc3_config.py`; `cmd.txt` and `tlm.txt` regenerated |
+| The read-back in every step that sends a command; the stuck-load wording at PROC-002-S05 and -S06; PROC-003-S03 and -S04 compare the reset epoch with the counters before the outage; procedures v0.4 | `defs/procedures.yaml`; `procedures/PROC-001.md` to `PROC-003.md` regenerated |
+| G19, the read-back, with five red cases and one green; G20, plain text, with four red cases and two green | `tools/checkers/defs_generation.py` |
+| The PASS-4 re-fly scenario, and eight tests holding its two properties to both polarities | `sim/scenarios/P4_hk_generation_halt_refly.yaml`, `tests/test_p4_refly_scenario.py` |
+| The test floor raised 560 → 568, with the suite at 578 | `tools/verification_run.py` |
+| The generation-profile note cites D-003 item 3 | `defs/eps.yaml` |
+| OF-023, OF-028, OF-030 and OF-031 ruled and fixed, open until flown | `verification/OPEN_FINDINGS.md` |
+| D-020's consequences row corrected and marked; the matching comment corrected | this file; `tools/gen_fmea.py` |
+| Register row for D-021 | the numbering map in this file |

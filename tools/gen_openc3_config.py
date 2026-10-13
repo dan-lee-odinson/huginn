@@ -90,6 +90,32 @@ def banner(version, digest, what):
     ]
 
 
+#: The characters the record writes that the console cannot show, and the plain text
+#: the ground configuration carries instead (D-021). Command Sender displayed every
+#: description holding one of them as a raw byte array (OF-031). The dictionary of
+#: record keeps its own text and version; only what is written for the console is
+#: plain. Any other character outside plain ASCII is refused by ``console_text``.
+CONSOLE_TEXT = {
+    "\u2192": "->",    # rightwards arrow
+    "\u2014": "-",     # em dash
+    "\u2212": "-",     # minus sign
+}
+
+
+def console_text(s):
+    """``s`` as the console can show it: the CONSOLE_TEXT characters replaced, and
+    any other character outside plain ASCII refused, so it can never reach a
+    definition the console renders as bytes."""
+    out = "".join(CONSOLE_TEXT.get(ch, ch) for ch in s)
+    bad = sorted({ch for ch in out if ord(ch) > 127})
+    if bad:
+        raise ValueError(
+            f"record string carries {', '.join(f'U+{ord(c):04X}' for c in bad)}, which "
+            f"the console cannot display and CONSOLE_TEXT does not map: {s!r}. Add the "
+            f"character to CONSOLE_TEXT or change the source text.")
+    return out
+
+
 def qstr(s):
     """A quoted OpenC3 string. Refuses rather than emits a broken definition.
 
@@ -98,12 +124,16 @@ def qstr(s):
     everything after it, producing a config that loads with wrong content instead
     of failing. No record string contains one today; this makes that a checked
     property of generation rather than a standing assumption.
+
+    The string is also put in console text (``console_text``): every quoted string
+    in the generated definitions passes through here, so none can carry a character
+    the console shows as bytes.
     """
     if '"' in s:
         raise ValueError(
             f"record string contains a double quote, which OpenC3 config syntax "
             f"cannot carry: {s!r}. Resolve with the owner before generating.")
-    return f'"{s}"'
+    return f'"{console_text(s)}"'
 
 
 def openc3_type(entry):

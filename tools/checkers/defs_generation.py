@@ -501,6 +501,114 @@ def g18_operator_audience():
             + (f"; {len(problems)} LEAK(S): {problems[:8]}" if problems else ""))
 
 
+#: The sentence every command send carries (D-021, OF-030). Command Sender opens on the
+#: last command anyone chose, so a step that says which command to send is not enough:
+#: on PASS-4 it opened on CMD_MODE_SET, the command sent by mistake on an earlier pass,
+#: and the operator caught it with the clock running.
+READBACK = "Before you send, read the command name in Command Sender: it must say "
+_SEND = re.compile(r"\b[Ss]end\b[^.]{0,40}?\b(CMD_[A-Z_]+)")
+_STEP_REF = re.compile(r"\bPROC-\d{3}-S\d{2}\b")
+_CMD = re.compile(r"\bCMD_[A-Z_]+\b")
+
+
+def _sent_here(text):
+    """The commands ``text`` tells the operator to send in this step.
+
+    A send that follows a step reference in the same text is a route to the step that
+    sends it ("Escalate to PROC-003-S03: send CMD_SYS_RESET"), and that step carries
+    its own read-back.
+    """
+    sent = []
+    for m in _SEND.finditer(text or ""):
+        if not _STEP_REF.search(text[:m.start()]):
+            sent.append(m.group(1))
+    return sent
+
+
+def g19_command_readback():
+    """Every step that sends a command has the operator read the command back first.
+
+    A step sends a command when it opens Command Sender, or when its action or one of
+    its branches tells the operator to send one. For each command it sends, the
+    read-back sentence naming that command must be in the step's action or in the
+    branch that sends it. A step that opens Command Sender without naming the command
+    (a resend of whatever went unanswered) carries the sentence for "the command you
+    mean to send".
+    """
+    procs = hugdefs.load_procedures()
+    problems, counted = [], 0
+    for proc in procs["procedures"]:
+        for step in proc["steps"]:
+            sid = step["id"]
+            opened = str((step.get("mechanism") or {}).get("open", ""))
+            action = str(step.get("action", ""))
+            fields = {"action": action}
+            for b in (step.get("decision") or {}).get("branches", []):
+                fields[f"branch {b['outcome']!r}"] = str(b.get("then", ""))
+            sends = {}
+            for where, text in fields.items():
+                for cmd in _sent_here(text):
+                    sends.setdefault(cmd, []).append(where)
+            in_sender = "Command Sender" in opened
+            if in_sender:
+                for cmd in _CMD.findall(opened):
+                    sends.setdefault(cmd, [])
+            if not sends and not in_sender:
+                continue
+            counted += 1
+            if not sends:
+                if READBACK + "the command you mean to send." not in action:
+                    problems.append(f"{sid} opens Command Sender without the read-back")
+                continue
+            for cmd, wheres in sorted(sends.items()):
+                sentence = READBACK + cmd + "."
+                if sentence not in action and not any(sentence in fields[w] for w in wheres):
+                    problems.append(f"{sid} sends {cmd} without the read-back naming it")
+    return (not problems,
+            f"{counted} steps send a command, and each has the operator read the command "
+            f"name in Command Sender before sending"
+            + (f"; PROBLEMS: {problems}" if problems else ""))
+
+
+def g20_console_plain_text():
+    """The ground definitions are text the console can display (D-021, OF-031).
+
+    Command Sender showed every description that held an arrow, a dash or a minus
+    sign as an array of bytes. The generator now writes those three as plain text and
+    refuses any other character outside ASCII. This renders the definitions from the
+    source and reads every generated file of the plugin, and fails on any definition
+    line, in either, that still carries one. Comment lines are not displayed and are
+    not checked.
+    """
+    problems = []
+    tlm = hugdefs.load_tlm_cmd()
+    version, digest = gen_openc3_config.source_digest()
+    try:
+        rendered = {"cmd.txt (rendered)": gen_openc3_config.build_cmd(tlm, version, digest),
+                    "tlm.txt (rendered)": gen_openc3_config.build_tlm(tlm, version, digest)}
+    except ValueError as exc:
+        rendered = {}
+        problems.append(f"the generator refuses the source: {exc}")
+    # Every file in the plugin as committed, listed from disk rather than from the
+    # generator: asking the generator for its file list would render again, and a
+    # refused source would then end this check in an exception instead of a finding.
+    root = gen_openc3_config.repo()
+    files = {path.relative_to(root).as_posix(): path.read_text(encoding="utf-8").splitlines()
+             for path in sorted(gen_openc3_config.plugin_dir().rglob("*")) if path.is_file()}
+    for name, lines in list(rendered.items()) + list(files.items()):
+        for n, line in enumerate(lines, 1):
+            if line.lstrip().startswith("#"):
+                continue
+            bad = sorted({c for c in line if ord(c) > 127})
+            if bad:
+                problems.append(f"{name}:{n} carries "
+                                + ", ".join(f"U+{ord(c):04X}" for c in bad))
+    return (not problems,
+            f"{len(files)} generated plugin files and the rendered definitions carry "
+            f"only plain text outside comments"
+            + (f"; PROBLEMS: {problems[:6]}" if problems else ""))
+
+
 #: The 22 worksheet rows of the HUG-G001 record: the rows the v0.1 fault set was
 #: selected from and the campaign was planned and executed on. Frozen by owner ruling
 #: D-020. A row added to the worksheets later is not one of them; FMEA Sec. 6.3 records
@@ -1220,6 +1328,10 @@ CHECKS = [
      g17_procedure_executability),
     ("G18", "operator documents address the operator and nobody else (OF-015)",
      g18_operator_audience),
+    ("G19", "every command send has the operator read the command back first (D-021)",
+     g19_command_readback),
+    ("G20", "the ground definitions are plain text the console can display (D-021)",
+     g20_console_plain_text),
     ("G16", "ground deployment matches its pin: version, ports, project, no secrets",
      g16_ground_deployment_pin),
 ]
@@ -1293,6 +1405,8 @@ def _alter_version_after(anchor, bump=1):
 CHECK_VERIFIES = {
     "G17": ("HUG-OPS-001",),
     "G18": ("HUG-OPS-001",),
+    "G19": ("HUG-OPS-001",),
+    "G20": ("HUG-GND-001",),
     "G1": (),
     "G2": (),
     "G3": ("HUG-UI-003",),
@@ -1467,6 +1581,72 @@ MUTATIONS = {
         # A bare ruling citation is what the rule explicitly permits.
         ("procedures/PROC-001.md",
          _sub("a mismatch is a no-go.", "a mismatch is a no-go (D-010)."), "green"),
+    ],
+    # G19 — the read-back before every command send (D-021, OF-030).
+    "G19": [
+        # the hazardous reset sent with no read-back
+        ("defs/procedures.yaml",
+         _sub("          caught refusal.\n"
+              "          Before you send, read the command name in Command Sender: it must say\n"
+              "          CMD_SYS_RESET. Command Sender opens on the last command chosen, which can be a\n"
+              "          hazardous one.\n", "          caught refusal.\n"), "red"),
+        # a read-back naming another command than the one the step sends
+        ("defs/procedures.yaml",
+         _sub("          cannot immediately re-trip.\n"
+              "          Before you send, read the command name in Command Sender: it must say\n"
+              "          CMD_MODE_SET.",
+              "          cannot immediately re-trip.\n"
+              "          Before you send, read the command name in Command Sender: it must say\n"
+              "          CMD_SAFE_ENTER."), "red"),
+        # a send made from a decision branch, with its read-back removed
+        ("defs/procedures.yaml",
+         _sub("                the caught refusal, never a bypass called on its own.\n"
+              "                Before you send, read the command name in Command Sender: it must say\n"
+              "                CMD_SAFE_ENTER. Command Sender opens on the last command chosen, which can be a\n"
+              "                hazardous one.\n",
+              "                the caught refusal, never a bypass called on its own.\n"), "red"),
+        # a step that opens Command Sender for a resend, with its read-back removed
+        ("defs/procedures.yaml",
+         _sub("          from a lost command path, and costs one command slot.\n"
+              "          Before you send, read the command name in Command Sender: it must say the\n"
+              "          command you mean to send. Command Sender opens on the last command chosen,\n"
+              "          which can be a hazardous one.\n",
+              "          from a lost command path, and costs one command slot.\n"), "red"),
+        # a route to the reset step turned into a send made here, with no read-back
+        ("defs/procedures.yaml",
+         _sub("                Escalate to PROC-003-S03: send CMD_SYS_RESET under two-step\n"
+              "                confirmation. Verify by the post-reset counter epoch at PROC-003-S04,\n"
+              "                not by delta.\n",
+              "                Send CMD_SYS_RESET under two-step confirmation and verify it by the\n"
+              "                post-reset counter epoch, not by delta.\n"), "red"),
+        # GREEN: a route to the step that sends is not itself a send
+        ("defs/procedures.yaml",
+         _sub("                Escalate to PROC-003-S03: send CMD_SYS_RESET under two-step",
+              "                Escalate at once to PROC-003-S03: send CMD_SYS_RESET under two-step"),
+         "green"),
+    ],
+    # G20 — the ground definitions are plain text (D-021, OF-031).
+    "G20": [
+        # a character the console shows as bytes, in a generated description
+        ("gnd/openc3/plugins/openc3-cosmos-huginn/targets/HUGINN/cmd_tlm/cmd.txt",
+         _sub('"EPS_MODE -> SAFE; payload shed"', '"EPS_MODE \u2192 SAFE; payload shed"'),
+         "red"),
+        ("gnd/openc3/plugins/openc3-cosmos-huginn/targets/HUGINN/cmd_tlm/tlm.txt",
+         _sub("(+charge / -discharge)", "(+charge / \u2212discharge)"), "red"),
+        # a source description with a character the generator does not map: refused
+        ("defs/tlm_cmd.yaml", _sub("      Sets PLD_RATE\n", "      Sets PLD_RATE (\u2264 10 Hz)\n"),
+         "red"),
+        # a character outside plain text in a source value that reaches a definition
+        # without being quoted (a STATE member), so only the rendered scan can see it
+        ("defs/tlm_cmd.yaml", _sub("enum_values: ['OFF', 'ON']", "enum_values: ['OFF', 'ON\u2192']"),
+         "red"),
+        # GREEN: a character the generator maps is fine in the source
+        ("defs/tlm_cmd.yaml",
+         _sub("      Sets PLD_RATE\n", "      Sets PLD_RATE \u2192 payload sampling\n"), "green"),
+        # GREEN: comment lines are not displayed and are not checked
+        ("gnd/openc3/plugins/openc3-cosmos-huginn/targets/HUGINN/cmd_tlm/cmd.txt",
+         _sub("# HUGINN commands \u2014 the 5 v0.1 commands",
+              "# HUGINN commands \u2264 the 5 v0.1 commands"), "green"),
     ],
     # G11 — FMEA source invariants.
     "G11": [

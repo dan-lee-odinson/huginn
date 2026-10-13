@@ -18,7 +18,7 @@
 # step whose unhappy branch has no stated observation is one an operator cannot execute
 # under stress, which is the only time it is read.
 
-procedures_version: '0.3'
+procedures_version: '0.4'
 
 #: The roles the CONOPS names. One operator wears all three in v0.1; they are named
 #: separately because procedures assign steps to roles, and separating them on paper is
@@ -562,7 +562,11 @@ procedures:
         repeatable: true
         role: EPS
         when: commanding window
-        action: Send CMD_PLD_SET_STATE with state ON.
+        action: >-
+          Send CMD_PLD_SET_STATE with state ON.
+          Before you send, read the command name in Command Sender: it must say
+          CMD_PLD_SET_STATE. Command Sender opens on the last command chosen, which can be a
+          hazardous one.
         checks: []
         records: [command_sent_utc]
         applicability: Applicable when PROC-001-S09 selected the authorized branch.
@@ -675,6 +679,9 @@ procedures:
         action: >-
           Set the payload sampling rate with CMD_PLD_SET_RATE, in the dictionary range
           0.1 to 10 Hz.
+          Before you send, read the command name in Command Sender: it must say
+          CMD_PLD_SET_RATE. Command Sender opens on the last command chosen, which can be a
+          hazardous one.
         checks: []
         records: [commanded_rate_hz]
         applicability: Applicable when PROC-001-S12 selected the accepted branch.
@@ -1030,6 +1037,9 @@ procedures:
         action: >-
           Shed the payload: send CMD_PLD_SET_STATE with state OFF. This is the only load
           the ground can shed.
+          Before you send, read the command name in Command Sender: it must say
+          CMD_PLD_SET_STATE. Command Sender opens on the last command chosen, which can be a
+          hazardous one.
         checks: []
         records: [shed_command_utc]
         applicability: >-
@@ -1040,9 +1050,12 @@ procedures:
         mechanism:
           open: 'http://localhost:2910 - Packet Viewer, PLD_STATE and EPS_LOAD_I'
           expect: >-
-            PLD_STATE reads OFF and EPS_LOAD_I drops by roughly the payload load, within one
-            frame. Read EPS_LOAD_I BEFORE the send too - the drop is the evidence, and a drop
-            needs a before.
+            PLD_STATE reads OFF and EPS_LOAD_I drops by roughly the payload load, about
+            0.60 A, within one frame. Read EPS_LOAD_I BEFORE the send too - the drop is the
+            evidence, and a drop needs a before. With the payload off, EPS_LOAD_I should
+            settle near 0.80 A, the bus alone. A reading well above that, about 1.20 A for a
+            stuck 2.0 W load, means a load the shed did not remove: that is the stuck load,
+            and the battery current at PROC-002-S06 will not show it.
           record_to: |-
             In your report, find the block that begins `- step: PROC-002-S05` and make it read:
 
@@ -1097,13 +1110,15 @@ procedures:
                 EPS_BATT_I is at or above zero across three or more consecutive frames
                 while sunlit.
               then: >-
-                Continue to PROC-002-S09. The stuck-load case reaches here with the
-                balance still negative and is handled by the next branch.
+                Continue to PROC-002-S09. A stuck load can also arrive here: on this
+                spacecraft the battery current turns positive after the shed even with a
+                stuck load drawing, and the load shows only in EPS_LOAD_I at
+                PROC-002-S05. Its effect is a deeper discharge through the next eclipse,
+                not a negative balance now (D-003).
             - outcome: still negative
               observation: >-
                 EPS_BATT_I remains negative across three or more consecutive frames
-                after the shed was verified — the load did not go away when the payload
-                did, which is the stuck-load presentation.
+                after the shed was verified: shedding did not restore the balance.
               then: Continue to PROC-002-S07.
 
       - id: PROC-002-S07
@@ -1176,6 +1191,9 @@ procedures:
                 Send CMD_SAFE_ENTER. It is hazardous: the ground system requires the
                 two-step confirmation, and the second step is the resend that follows
                 the caught refusal, never a bypass called on its own.
+                Before you send, read the command name in Command Sender: it must say
+                CMD_SAFE_ENTER. Command Sender opens on the last command chosen, which can be a
+                hazardous one.
             - outcome: ladder holds
               observation: >-
                 EPS_MODE has entered LOW_POWER or SAFE autonomously and EPS_BATT_SOC has
@@ -1210,6 +1228,9 @@ procedures:
           ground act and is gated on the recovery floor for the target mode, not on the
           autonomous entry threshold — the floors sit above the entries so a recovery
           cannot immediately re-trip.
+          Before you send, read the command name in Command Sender: it must say
+          CMD_MODE_SET. Command Sender opens on the last command chosen, which can be a
+          hazardous one.
         checks: [EPS_BATT_SOC, EPS_MODE]
         applicability: >-
           Applicable when the spacecraft is in LOW_POWER or SAFE. Not applicable when
@@ -1420,6 +1441,12 @@ procedures:
           Authorize and send CMD_SYS_RESET. It is hazardous: the ground system requires
           the two-step confirmation, and the second step is the resend that follows the
           caught refusal.
+          Before you send, read the command name in Command Sender: it must say
+          CMD_SYS_RESET. Command Sender opens on the last command chosen, which can be a
+          hazardous one.
+          Before you send, also note CDH_CMD_ACC_CNT and CDH_CMD_REJ_CNT as Packet Viewer
+          still shows them from the last frame before the outage; PROC-003-S04 compares
+          with them.
         checks: []
         records: [reset_command_utc]
         applicability: Applicable when PROC-003-S02 selected the spacecraft-side branch.
@@ -1431,7 +1458,10 @@ procedures:
             The post-reset epoch: CDH_CMD_ACC_CNT reads exactly 1 and CDH_CMD_REJ_CNT exactly 0
             - NOT the previous values plus one. Reset is the sole exception to counter delta
             arithmetic, so do not compute a delta here. State of charge is preserved across the
-            reset.
+            reset. Compare with the two counters you noted before the reset: the epoch shows a
+            reset only when they read otherwise before it. If they also read 1 and 0, the epoch
+            cannot tell a reset from no reset, and frames resuming after your reset, at
+            PROC-003-S05, is the evidence.
           record_to: |-
             In your report, find the block that begins `- step: PROC-003-S04` and make it read:
 
@@ -1533,6 +1563,9 @@ procedures:
           increments exactly one counter by exactly one, visible no later than the next
           housekeeping frame; absence of any delta within 10 s of a verified send is the
           loss-of-commandability declaration threshold (HUG-CMD-007).
+          Before you send, read the command name in Command Sender: it must say the
+          command you mean to send. Command Sender opens on the last command chosen,
+          which can be a hazardous one.
         checks: [CDH_CMD_ACC_CNT, CDH_CMD_REJ_CNT, CDH_FRAME_CNT]
         records: [send_utc, acc_cnt_at_send, rej_cnt_at_send, elapsed_s]
         applicability: Applicable on the command presentation.
@@ -1604,6 +1637,9 @@ procedures:
         action: >-
           Retry once within the pass. A single retry distinguishes a lost uplink frame
           from a lost command path, and costs one command slot.
+          Before you send, read the command name in Command Sender: it must say the
+          command you mean to send. Command Sender opens on the last command chosen,
+          which can be a hazardous one.
         checks: [CDH_CMD_ACC_CNT, CDH_CMD_REJ_CNT]
         records: [retry_utc, retry_outcome]
         applicability: Applicable when PROC-003-S07 selected the not-accounted branch.

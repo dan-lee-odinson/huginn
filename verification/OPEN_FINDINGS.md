@@ -935,8 +935,9 @@ campaign does not actually contain.
 
 ## OF-023 — PROC-002-S06 expects the stuck load to arrive still negative; in v0.1 it never does
 
-**Status:** open, defect in a gated procedure. Raised while planning PASS-3 on 2026-10-11.
-Does not block PASS-3: S06 can be completed truthfully.
+**Status:** RULED at **D-021** (2026-10-13) and fixed at procedures v0.4; open until PASS-3 is
+re-flown on it. A defect in a gated procedure, raised while planning PASS-3 on 2026-10-11.
+Did not block PASS-3: S06 could be completed truthfully.
 
 **Claim.** PROC-002-S06's `recovered` outcome says *"The stuck-load case reaches here with the
 balance still negative and is handled by the next branch"*, and its `still negative` outcome
@@ -963,6 +964,12 @@ open — is the owner's question already raised there.
 
 **Shape.** The same family as OF-018 and OF-022 — a behavior stated in the record that no pass
 in the campaign can show.
+
+**Ruled (D-021).** The question was already settled: D-003 item 3 reads FM-EPS-08's trend as the
+worsening depth of discharge, with the model unchanged. The procedure text moved to match.
+PROC-002-S05 names the readings, about 0.80 A for the bus alone and about 1.20 A with the stuck
+2.0 W load, and S06 no longer says the stuck load arrives with a negative balance. The note in
+`defs/eps.yaml` now cites D-003.
 
 ---
 
@@ -1073,7 +1080,8 @@ goes GREEN, YELLOW, then RED as designed.
 
 ## OF-028 — in PASS-4 the post-reset counter epoch is the same as the counters before the halt
 
-**Status:** open. Raised while planning PASS-4 on 2026-10-11. Does not block PASS-4.
+**Status:** RULED at **D-021** (2026-10-13) and fixed; open until PASS-4 is re-flown on the
+fix. Raised while planning PASS-4 on 2026-10-11. Did not block PASS-4.
 
 **Claim.** PROC-003-S04 verifies CMD_SYS_RESET by its post-reset epoch,
 `CDH_CMD_ACC_CNT = 1` and `CDH_CMD_REJ_CNT = 0`. In `P4_hk_generation_halt` the only command
@@ -1088,6 +1096,12 @@ MET 1260   ACC 1   REJ 0   CDH_FRAME_CNT 1201   first frame after the reset
 The epoch check passes whether or not a reset happened. The reset's real evidence in this pass is
 frames resuming (PROC-003-S05) and the ground command log. The scenario's own scripted reset at
 MET 1320 then resets the counters again, to the same values.
+
+**Ruled (D-021).** The re-fly runs on `P4_hk_generation_halt_refly`, a copy with one more
+command accepted before the halt, so the counters read ACC 2, REJ 0 there, and with no
+scripted reset, so only the operator's reset clears the halt. PROC-003-S03 has the operator
+note the counters before the reset, and S04 compares the epoch with them. The original
+scenario is unchanged, so the flown PASS-4 record still reproduces from it.
 
 ---
 
@@ -1106,7 +1120,9 @@ outside the repository.
 ## OF-030 — Command Sender reopens on the last packet selected, including a hazardous one
 
 **Status:** open. Raised from PASS-4 on 2026-10-11 (AR-003 §5, finding 2); registered under
-D-019 on 2026-10-12. Fixed and flown in the HUG-G002 build-out (D-019 selection 7).
+D-019 on 2026-10-12. RULED at **D-021** (2026-10-13) and fixed at procedures v0.4: every step
+that sends a command has the operator read its name in Command Sender first (check G19). Open
+until flown in the HUG-G002 build-out (D-019 selection 7).
 
 **Claim.** On PASS-4 Command Sender opened on `CMD_MODE_SET`, held from an earlier session:
 the packet sent by mistake on `2026-08-03-P1` (ANOM-001). The operator caught it with the
@@ -1118,7 +1134,9 @@ packet Command Sender holds before a hazardous command is sent.
 ## OF-031 — two hazardous commands' descriptions display as raw bytes in Command Sender
 
 **Status:** open. Raised from PASS-4 on 2026-10-11 (AR-003 §5, finding 3); registered under
-D-019 on 2026-10-12. Fixed and flown in the HUG-G002 build-out (D-019 selection 7).
+D-019 on 2026-10-12. RULED at **D-021** (2026-10-13) and fixed in the generator: the ground
+definitions carry plain text, and any other character outside ASCII is refused (check G20).
+Open until flown in the HUG-G002 build-out (D-019 selection 7), after the plugin is reloaded.
 
 **Claim.** Command Sender displayed the descriptions of `CMD_SYS_RESET` and `CMD_MODE_SET`
 as `{"json_class":"String","raw":[...]}` arrays of numbers. The generated `cmd.txt`

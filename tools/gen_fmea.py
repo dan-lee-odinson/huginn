@@ -154,7 +154,8 @@ def build(defs):
     w(fs["rollup"])
     w("")
     # Sec. 6.3 (D-020): R2 rows added after the HUG-G001 selection. Rendered after the
-    # roll-up so every byte of Sec. 6.1 and 6.2 renders exactly as it did before.
+    # roll-up, so the Sec. 6.1 and 6.2 tables render as they did before; the Sec. 6.2
+    # heading's wording comes from the source and now names the HUG-G001 rows.
     w("### " + doc["section_6_3_heading"])
     w("")
     w(fs["post_selection_intro"])

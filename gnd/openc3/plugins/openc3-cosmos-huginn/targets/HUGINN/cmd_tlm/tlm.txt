@@ -19,7 +19,7 @@ TELEMETRY HUGINN HK BIG_ENDIAN "Housekeeping telemetry, 1 Hz, 16 points in dicti
   APPEND_ITEM EPS_BATT_V 32 FLOAT "Battery voltage (2S Li-ion)"
     UNITS Volts V
     LIMITS DEFAULT 1 ENABLED 6.8 7.2 8.3 8.5
-  APPEND_ITEM EPS_BATT_I 32 FLOAT "Battery current (+charge / −discharge)"
+  APPEND_ITEM EPS_BATT_I 32 FLOAT "Battery current (+charge / -discharge)"
     UNITS Amps A
     LIMITS DEFAULT 1 ENABLED -2.5 -2 2 2.5
   APPEND_ITEM EPS_BATT_SOC 32 FLOAT "Battery state of charge"

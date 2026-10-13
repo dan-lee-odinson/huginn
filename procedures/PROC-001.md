@@ -1,7 +1,7 @@
 # PROC-001 — Nominal activation pass
 
 GENERATED FILE — DO NOT EDIT. Source: `defs/procedures.yaml`
-Procedures version: 0.3 · Dictionary sha256: 5e1c2750ef9e0d54…
+Procedures version: 0.4 · Dictionary sha256: 5e1c2750ef9e0d54…
 
 > Edit the source and regenerate. A hand edit here would make the document the
 > operator follows differ from the procedure `tools/pass_report.py` reviews the
@@ -333,7 +333,9 @@ Authorize or withhold the payload activation.
 
 ### PROC-001-S10 — EPS Officer · commanding window
 
-Send CMD_PLD_SET_STATE with state ON.
+Send CMD_PLD_SET_STATE with state ON. Before you send, read the command name in Command
+Sender: it must say CMD_PLD_SET_STATE. Command Sender opens on the last command chosen,
+which can be a hazardous one.
 
 **Open:** http://localhost:2910 - Command Sender, target HUGINN, command CMD_PLD_SET_STATE
 
@@ -390,7 +392,9 @@ Determine the outcome of the command.
 ### PROC-001-S13 — EPS Officer · commanding window
 
 Set the payload sampling rate with CMD_PLD_SET_RATE, in the dictionary range 0.1 to 10
-Hz.
+Hz. Before you send, read the command name in Command Sender: it must say
+CMD_PLD_SET_RATE. Command Sender opens on the last command chosen, which can be a
+hazardous one.
 
 **Open:** http://localhost:2910 - Command Sender, command CMD_PLD_SET_RATE
 

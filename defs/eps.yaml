@@ -81,14 +81,13 @@ model:
   # plain reading of "17 W peak combined" with no profile stated is a flat sunlit
   # value, which is what this models.
   #
-  # OPEN QUESTION TO THE OWNER, raised with the orbit options: FMEA FM-EPS-08 states
-  # that with the stuck load the "energy-negative trend persists even after payload
-  # shed". Under a flat profile at the representative ~64% sunlit fraction it does
-  # not - the orbit average stays positive, and only the depth of discharge worsens.
-  # A cosine-incidence profile lowers average generation and changes that. Both the
-  # profile and the sunlit fraction it multiplies depend on the orbit being pinned,
-  # so the two decisions belong together. `cosine` is implemented and selectable
-  # here; nothing else in the model changes if the owner rules for it.
+  # RULED AT D-003 ITEM 3 (2026-07-29), "Worsening depth of discharge". FMEA FM-EPS-08
+  # states that with the stuck load the "energy-negative trend persists even after
+  # payload shed". Under this flat profile at the representative ~64% sunlit fraction
+  # it does not - the orbit average stays positive, and only the depth of discharge
+  # worsens - and the ruling reads the row that way, so the profile stays flat and no
+  # ratified value changes. `cosine` is implemented and selectable here; choosing it
+  # would reopen that ruling. PROC-002-S05 and -S06 follow the same reading (D-021).
 
   ocv_curve_soc_pct_to_v:
     # Open-circuit terminal voltage of the 2S Li-ion pack against state of charge,

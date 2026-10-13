@@ -20,15 +20,15 @@ COMMAND HUGINN CMD_PLD_SET_RATE BIG_ENDIAN "Sets PLD_RATE"
   APPEND_ID_PARAMETER OPCODE 16 UINT 2 2 2 "Opcode"
   APPEND_PARAMETER RATE 32 FLOAT 0.1 10 0.1 "rate"
 
-COMMAND HUGINN CMD_SAFE_ENTER BIG_ENDIAN "EPS_MODE → SAFE; payload shed"
+COMMAND HUGINN CMD_SAFE_ENTER BIG_ENDIAN "EPS_MODE -> SAFE; payload shed"
   HAZARDOUS "Two-step confirmation required (Dictionary Sec. 2; B7, FM-CDH-04)"
   APPEND_ID_PARAMETER OPCODE 16 UINT 3 3 3 "Opcode"
 
-COMMAND HUGINN CMD_SYS_RESET BIG_ENDIAN "Clears stale-telemetry fault; reinitializes command counters to zero and then applies its own acceptance, so the first post-reset frame reads CDH_CMD_ACC_CNT = 1 / CDH_CMD_REJ_CNT = 0 — that epoch IS the reset acknowledgement; preserves SoC (HUG-CMD-005)"
+COMMAND HUGINN CMD_SYS_RESET BIG_ENDIAN "Clears stale-telemetry fault; reinitializes command counters to zero and then applies its own acceptance, so the first post-reset frame reads CDH_CMD_ACC_CNT = 1 / CDH_CMD_REJ_CNT = 0 - that epoch IS the reset acknowledgement; preserves SoC (HUG-CMD-005)"
   HAZARDOUS "Two-step confirmation required (Dictionary Sec. 2; B7, FM-CDH-04)"
   APPEND_ID_PARAMETER OPCODE 16 UINT 4 4 4 "Opcode"
 
-COMMAND HUGINN CMD_MODE_SET BIG_ENDIAN "EPS_MODE → target. Transition to LOW_POWER sheds the payload load (consistent with HUG-EPS-003); transition to NOMINAL does not re-enable the payload (re-activation via CMD_PLD_SET_STATE, subject to its inhibits)"
+COMMAND HUGINN CMD_MODE_SET BIG_ENDIAN "EPS_MODE -> target. Transition to LOW_POWER sheds the payload load (consistent with HUG-EPS-003); transition to NOMINAL does not re-enable the payload (re-activation via CMD_PLD_SET_STATE, subject to its inhibits)"
   HAZARDOUS "Two-step confirmation required (Dictionary Sec. 2; B7, FM-CDH-04)"
   APPEND_ID_PARAMETER OPCODE 16 UINT 5 5 5 "Opcode"
   APPEND_PARAMETER TARGET 8 UINT 0 1 0 "target"

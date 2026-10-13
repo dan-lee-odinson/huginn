@@ -1,7 +1,7 @@
 # PROC-002 — Low-battery and limit response
 
 GENERATED FILE — DO NOT EDIT. Source: `defs/procedures.yaml`
-Procedures version: 0.3 · Dictionary sha256: 5e1c2750ef9e0d54…
+Procedures version: 0.4 · Dictionary sha256: 5e1c2750ef9e0d54…
 
 > Edit the source and regenerate. A hand edit here would make the document the
 > operator follows differ from the procedure `tools/pass_report.py` reviews the
@@ -200,7 +200,9 @@ Identify the cause among the two the record anticipates.
 ### PROC-002-S04 — EPS Officer · on negative trend or load alarm
 
 Shed the payload: send CMD_PLD_SET_STATE with state OFF. This is the only load the
-ground can shed.
+ground can shed. Before you send, read the command name in Command Sender: it must say
+CMD_PLD_SET_STATE. Command Sender opens on the last command chosen, which can be a
+hazardous one.
 
 **Open:** http://localhost:2910 - Command Sender, CMD_PLD_SET_STATE, state OFF
 
@@ -218,7 +220,7 @@ Verify the shed by counter delta and affected point.
 
 **Open:** http://localhost:2910 - Packet Viewer, PLD_STATE and EPS_LOAD_I
 
-**You know it worked when:** PLD_STATE reads OFF and EPS_LOAD_I drops by roughly the payload load, within one frame. Read EPS_LOAD_I BEFORE the send too - the drop is the evidence, and a drop needs a before.
+**You know it worked when:** PLD_STATE reads OFF and EPS_LOAD_I drops by roughly the payload load, about 0.60 A, within one frame. Read EPS_LOAD_I BEFORE the send too - the drop is the evidence, and a drop needs a before. With the payload off, EPS_LOAD_I should settle near 0.80 A, the bus alone. A reading well above that, about 1.20 A for a stuck 2.0 W load, means a load the shed did not remove: that is the stuck load, and the battery current at PROC-002-S06 will not show it.
 
 **Write it down:** In your report, find the block that begins `- step: PROC-002-S05` and make it read: ```yaml - step: PROC-002-S05 role: EPS operator: YOUR NAME state: completed records: pld_state_after_shed: OFF load_i_after_shed: 0.62 ``` The values above are EXAMPLES showing the shape. Replace each with what you actually observed.
 
@@ -243,8 +245,8 @@ Determine whether shedding restored a non-negative balance.
 
 | Outcome | The observation that selects it | Then |
 |---|---|---|
-| `recovered` | EPS_BATT_I is at or above zero across three or more consecutive frames while sunlit. | Continue to PROC-002-S09. The stuck-load case reaches here with the balance still negative and is handled by the next branch. |
-| `still negative` | EPS_BATT_I remains negative across three or more consecutive frames after the shed was verified — the load did not go away when the payload did, which is the stuck-load presentation. | Continue to PROC-002-S07. |
+| `recovered` | EPS_BATT_I is at or above zero across three or more consecutive frames while sunlit. | Continue to PROC-002-S09. A stuck load can also arrive here: on this spacecraft the battery current turns positive after the shed even with a stuck load drawing, and the load shows only in EPS_LOAD_I at PROC-002-S05. Its effect is a deeper discharge through the next eclipse, not a negative balance now (D-003). |
+| `still negative` | EPS_BATT_I remains negative across three or more consecutive frames after the shed was verified: shedding did not restore the balance. | Continue to PROC-002-S07. |
 
 > A completed entry for this step must record **which branch was taken and the observation that selected it**. An omitted entry must record that no observation was made and no branch was selected — those are different facts and the record keeps them apart (HUG-OPS-002).
 
@@ -281,7 +283,7 @@ Determine whether the spacecraft must be safed by command.
 
 | Outcome | The observation that selects it | Then |
 |---|---|---|
-| `safe by command` | EPS_BATT_SOC at or below 20 % with the ladder not yet in SAFE, or EPS_BUS_V outside 4.75 to 5.25 V. | Send CMD_SAFE_ENTER. It is hazardous: the ground system requires the two-step confirmation, and the second step is the resend that follows the caught refusal, never a bypass called on its own. |
+| `safe by command` | EPS_BATT_SOC at or below 20 % with the ladder not yet in SAFE, or EPS_BUS_V outside 4.75 to 5.25 V. | Send CMD_SAFE_ENTER. It is hazardous: the ground system requires the two-step confirmation, and the second step is the resend that follows the caught refusal, never a bypass called on its own. Before you send, read the command name in Command Sender: it must say CMD_SAFE_ENTER. Command Sender opens on the last command chosen, which can be a hazardous one. |
 | `ladder holds` | EPS_MODE has entered LOW_POWER or SAFE autonomously and EPS_BATT_SOC has stopped falling across three or more consecutive frames. | Continue to PROC-002-S09. |
 
 > A completed entry for this step must record **which branch was taken and the observation that selected it**. An omitted entry must record that no observation was made and no branch was selected — those are different facts and the record keeps them apart (HUG-OPS-002).
@@ -291,6 +293,8 @@ Determine whether the spacecraft must be safed by command.
 Recover the commanded mode. Recovery from LOW_POWER or SAFE is a deliberate ground act
 and is gated on the recovery floor for the target mode, not on the autonomous entry
 threshold — the floors sit above the entries so a recovery cannot immediately re-trip.
+Before you send, read the command name in Command Sender: it must say CMD_MODE_SET.
+Command Sender opens on the last command chosen, which can be a hazardous one.
 
 **Open:** http://localhost:2910 - Command Sender, CMD_MODE_SET
 
