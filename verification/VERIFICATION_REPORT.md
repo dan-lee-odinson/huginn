@@ -15,7 +15,7 @@ first to go stale.
 
 | Register | Entries | Tail |
 |---|---|---|
-| Owner rulings | 20 | **D-020** |
+| Owner rulings | 21 | **D-021** |
 | Open findings | 35 | **OF-035** |
 
 **What Phase 5 added to either register: nothing.** The Phase 5 commit `bba2e0a`
@@ -35,15 +35,15 @@ on the phase that introduced it.
 
 | Field | Value |
 |---|---|
-| Release candidate | `19c8573f93ea40a8b8c75b0da8373485438ab425` |
-| Subject | FMEA v0.16: FM-GND-07, D-012's queued row, ruled at D-020 |
+| Release candidate | `eae6c08e194ddaa397f9b5997e8d07a50d2d418b` |
+| Subject | Console plain text, the command read-back, the stuck-load wording and the PASS-4 re-fly scenario (D-021) |
 | Tree clean when run | True |
-| Executed (UTC) | 2026-10-13T12:08:15Z |
+| Executed (UTC) | 2026-10-13T15:13:26Z |
 | Interpreter | Python 3.14.4 |
 | Platform | Windows-11-10.0.26200-SP0 |
-| Unit cases | 570 |
-| Record checks | 34 |
-| Red/green mutation cases | 190 |
+| Unit cases | 578 |
+| Record checks | 36 |
+| Red/green mutation cases | 202 |
 | Archived demonstrations read | 8 |
 
 ## The verdict vocabulary used in this report
