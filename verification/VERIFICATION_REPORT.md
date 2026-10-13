@@ -35,13 +35,13 @@ on the phase that introduced it.
 
 | Field | Value |
 |---|---|
-| Release candidate | `d3f627cc693918cdd875373f9b4271d4a87c0c77` |
-| Subject | Strike HUG-SYS-006 in place (D-019): the requirements view, matrix and report show it struck |
+| Release candidate | `a7735872db7048bce03c6815eaa5c1db9e8a3cd6` |
+| Subject | Campaign record tests: the flown passes and anomaly reports tied to HUG-OPS-003 and HUG-OPS-004 (D-019) |
 | Tree clean when run | True |
-| Executed (UTC) | 2026-10-13T00:44:55Z |
+| Executed (UTC) | 2026-10-13T02:03:44Z |
 | Interpreter | Python 3.14.4 |
 | Platform | Windows-11-10.0.26200-SP0 |
-| Unit cases | 502 |
+| Unit cases | 526 |
 | Record checks | 34 |
 | Red/green mutation cases | 172 |
 | Archived demonstrations read | 8 |
@@ -61,12 +61,11 @@ A fault is never counted as a failure of the subject and never as a pass. Ruled 
 
 ## Result per requirement
 
-35 of 37 requirements in force are established PASS by this run. 1 more is struck in place and not counted.
+37 of 37 requirements in force are established PASS by this run. 1 more is struck in place and not counted.
 
 | Verdict | Count | Requirements |
 |---|---|---|
-| PASS | 35 | `HUG-SYS-001`, `HUG-SYS-002`, `HUG-SYS-003`, `HUG-SYS-004`, `HUG-SYS-005`, `HUG-EPS-001` … |
-| NO_RECORD | 2 | `HUG-OPS-003`, `HUG-OPS-004` |
+| PASS | 37 | `HUG-SYS-001`, `HUG-SYS-002`, `HUG-SYS-003`, `HUG-SYS-004`, `HUG-SYS-005`, `HUG-EPS-001` … |
 | STRUCK | 1 | `HUG-SYS-006` |
 
 The full per-requirement table, with the executed case identifiers, is the
@@ -92,12 +91,7 @@ the archived bytes.
 
 ## Findings
 
-2 open finding(s). Each is recorded rather than resolved; none is a silent gap.
-
-| Source | Condition | Finding |
-|---|---|---|
-| matrix | F2 | HUG-OPS-003 has no downstream verification reference of any kind |
-| matrix | F2 | HUG-OPS-004 has no downstream verification reference of any kind |
+None.
 
 ## What a clean section here would and would not mean
 
