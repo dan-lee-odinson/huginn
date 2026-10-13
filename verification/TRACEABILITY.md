@@ -13,12 +13,12 @@ the same whether or not anything ran.
 
 | Field | Value |
 |---|---|
-| Commit | `f375accb7252413586996ba115436d90c4c61fc5` |
+| Commit | `e737366bb4433f609839a6e81133c13d0d94f0cd` |
 | Subject | Regenerate the verification report and evidence chain |
 | Tree clean at run | True |
-| Executed (UTC) | 2026-10-13T12:09:15Z |
+| Executed (UTC) | 2026-10-13T15:14:29Z |
 | Python / platform | 3.14.4 / Windows-11-10.0.26200-SP0 |
-| Cases executed | 570 tests, 34 checks, 190 red/green mutation cases |
+| Cases executed | 578 tests, 36 checks, 202 red/green mutation cases |
 | Archived demonstrations read | 8 |
 
 ## Matrix
@@ -37,9 +37,9 @@ order is not sorted, and sorting it here would silently reorder the record.
 | `HUG-EPS-001` | T | NEED-02 | 10 case(s) | 3 | PASS |
 | `HUG-EPS-002` | T | NEED-02 | 6 case(s) | 1 | PASS |
 | `HUG-EPS-003` | T | NEED-03 | 11 case(s) | 2 | PASS |
-| `HUG-EPS-004` | T | via HUG-SYS-005 | 38 case(s) | 31 | PASS |
+| `HUG-EPS-004` | T | via HUG-SYS-005 | 46 case(s) | 35 | PASS |
 | `HUG-EPS-005` | I | NEED-04 | 11 case(s) | 8 | PASS |
-| `HUG-GND-001` | I | NEED-04 | 60 case(s) | 32 | PASS |
+| `HUG-GND-001` | I | NEED-04 | 67 case(s) | 36 | PASS |
 | `HUG-GND-002` | T | NEED-02 | 27 case(s) + 3 demo(s) | 7 | PASS |
 | `HUG-GND-003` | T | NEED-02 | 12 case(s) | 4 | PASS |
 | `HUG-GND-004` | D | NEED-04 | 2 case(s) | — | PASS |
@@ -49,10 +49,10 @@ order is not sorted, and sorting it here would silently reorder the record.
 | `HUG-CMD-002` | T | NEED-03 | 7 case(s) | 4 | PASS |
 | `HUG-CMD-003` | T | NEED-02 | 8 case(s) | 3 | PASS |
 | `HUG-CMD-004` | T | NEED-03 | 5 case(s) | 2 | PASS |
-| `HUG-CMD-005` | T | NEED-03 | 7 case(s) | 2 | PASS |
+| `HUG-CMD-005` | T | NEED-03 | 15 case(s) | 6 | PASS |
 | `HUG-CMD-006` | T | NEED-03 | 7 case(s) | 1 | PASS |
 | `HUG-CMD-007` | T | NEED-03 | 10 case(s) | 1 | PASS |
-| `HUG-OPS-001` | I | NEED-02 | 29 case(s) | 14 | PASS |
+| `HUG-OPS-001` | I | NEED-02 | 36 case(s) | 19 | PASS |
 | `HUG-OPS-002` | I | NEED-04 | 96 case(s) | 72 | PASS |
 | `HUG-OPS-003` | D | NEED-04 | 13 case(s) | 9 | PASS |
 | `HUG-OPS-004` | I | NEED-04 | 11 case(s) | 9 | PASS |
@@ -295,7 +295,7 @@ The case identifiers themselves, so a reader can re-run any single row.
 
 - Trace cell: `HUG-SYS-005; G001 F-03`
 - Reaches a NEED: True (via HUG-SYS-005)
-- Executed cases (38):
+- Executed cases (46):
   - `design_record_consistency:C15`
   - `design_record_consistency:C15.m1`
   - `design_record_consistency:C15.m10`
@@ -334,6 +334,14 @@ The case identifiers themselves, so a reader can re-run any single row.
   - `test_eps_model.TestLimitsCatchTheirFaultCases.test_array_string_failure_is_visible_as_string_asymmetry`
   - `test_eps_model.TestLimitsCatchTheirFaultCases.test_stuck_load_crosses_load_current_yellow_before_red`
   - `test_eps_model.TestLimitsCatchTheirFaultCases.test_the_generation_halt_preserves_the_gap_and_the_truth_state`
+  - `test_p4_refly_scenario.TestTheFirstFlightsScenarioFailsBoth.test_the_flown_scenario_epoch_shows_nothing`
+  - `test_p4_refly_scenario.TestTheFirstFlightsScenarioFailsBoth.test_the_flown_scenario_recovers_on_its_own`
+  - `test_p4_refly_scenario.TestTheFirstFlightsScenarioFailsBoth.test_the_refly_with_a_late_scripted_reset`
+  - `test_p4_refly_scenario.TestTheFirstFlightsScenarioFailsBoth.test_the_refly_without_its_extra_command`
+  - `test_p4_refly_scenario.TestTheReflyScenario.test_an_operator_reset_restores_telemetry_at_the_epoch`
+  - `test_p4_refly_scenario.TestTheReflyScenario.test_it_differs_from_the_flown_scenario_in_two_places_only`
+  - `test_p4_refly_scenario.TestTheReflyScenario.test_only_an_operator_reset_restores_telemetry`
+  - `test_p4_refly_scenario.TestTheReflyScenario.test_the_reset_epoch_differs_from_the_counters_before_the_halt`
 
 ### `HUG-EPS-005` — I — PASS
 
@@ -356,7 +364,7 @@ The case identifiers themselves, so a reader can re-run any single row.
 
 - Trace cell: `NEED-04; Derive rule`
 - Reaches a NEED: True
-- Executed cases (60):
+- Executed cases (67):
   - `defs_generation:G16`
   - `defs_generation:G16.m1`
   - `defs_generation:G16.m10`
@@ -372,6 +380,13 @@ The case identifiers themselves, so a reader can re-run any single row.
   - `defs_generation:G16.m7`
   - `defs_generation:G16.m8`
   - `defs_generation:G16.m9`
+  - `defs_generation:G20`
+  - `defs_generation:G20.m1`
+  - `defs_generation:G20.m2`
+  - `defs_generation:G20.m3`
+  - `defs_generation:G20.m4`
+  - `defs_generation:G20.m5`
+  - `defs_generation:G20.m6`
   - `defs_generation:G7`
   - `defs_generation:G7.m1`
   - `defs_generation:G7.m2`
@@ -634,7 +649,7 @@ The case identifiers themselves, so a reader can re-run any single row.
 
 - Trace cell: `NEED-03; G001 F-04`
 - Reaches a NEED: True
-- Executed cases (7):
+- Executed cases (15):
   - `test_accounting.TestResetEpochIsTheSoleException.test_reset_clears_the_latched_generation_halt`
   - `test_accounting.TestResetEpochIsTheSoleException.test_reset_is_the_only_command_that_breaks_delta_arithmetic`
   - `test_accounting.TestResetEpochIsTheSoleException.test_reset_preserves_state_of_charge`
@@ -642,6 +657,14 @@ The case identifiers themselves, so a reader can re-run any single row.
   - `test_model_red_cases.TestThePredicatesHoldOnTheRealModel.test_every_property_is_silent_on_the_real_model`
   - `test_model_red_cases.TestTheResetEpochCatchesItsViolation.test_a_reset_that_does_not_zero_the_counters_is_caught`
   - `test_model_red_cases.TestTheResetEpochCatchesItsViolation.test_a_reset_that_zeroes_without_its_own_accept_is_caught`
+  - `test_p4_refly_scenario.TestTheFirstFlightsScenarioFailsBoth.test_the_flown_scenario_epoch_shows_nothing`
+  - `test_p4_refly_scenario.TestTheFirstFlightsScenarioFailsBoth.test_the_flown_scenario_recovers_on_its_own`
+  - `test_p4_refly_scenario.TestTheFirstFlightsScenarioFailsBoth.test_the_refly_with_a_late_scripted_reset`
+  - `test_p4_refly_scenario.TestTheFirstFlightsScenarioFailsBoth.test_the_refly_without_its_extra_command`
+  - `test_p4_refly_scenario.TestTheReflyScenario.test_an_operator_reset_restores_telemetry_at_the_epoch`
+  - `test_p4_refly_scenario.TestTheReflyScenario.test_it_differs_from_the_flown_scenario_in_two_places_only`
+  - `test_p4_refly_scenario.TestTheReflyScenario.test_only_an_operator_reset_restores_telemetry`
+  - `test_p4_refly_scenario.TestTheReflyScenario.test_the_reset_epoch_differs_from_the_counters_before_the_halt`
 
 ### `HUG-CMD-006` — T — PASS
 
@@ -676,7 +699,7 @@ The case identifiers themselves, so a reader can re-run any single row.
 
 - Trace cell: `NEED-02; FMEA REC-02; G001-07 F-01`
 - Reaches a NEED: True
-- Executed cases (29):
+- Executed cases (36):
   - `defs_generation:G17`
   - `defs_generation:G17.m1`
   - `defs_generation:G17.m2`
@@ -691,6 +714,13 @@ The case identifiers themselves, so a reader can re-run any single row.
   - `defs_generation:G18.m4`
   - `defs_generation:G18.m5`
   - `defs_generation:G18.m6`
+  - `defs_generation:G19`
+  - `defs_generation:G19.m1`
+  - `defs_generation:G19.m2`
+  - `defs_generation:G19.m3`
+  - `defs_generation:G19.m4`
+  - `defs_generation:G19.m5`
+  - `defs_generation:G19.m6`
   - `test_pass_report.TestAPassThatInvokesAContingencyProcedure.test_green_a_contingency_procedure_run_from_its_branch`
   - `test_pass_report.TestAPassThatInvokesAContingencyProcedure.test_red_an_unknown_contingency_procedure`
   - `test_pass_report.TestAPassThatInvokesAContingencyProcedure.test_red_invoked_from_a_step_that_does_not_exist`
