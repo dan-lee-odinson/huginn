@@ -356,6 +356,7 @@ under D-004 and find a different ruling.
 | **D-019** | *(none — "Rulings: First, … 2. … 3. …", then selections from options put to the Director, and on the draft a further ruling and a constraint in his own words)* | HUG-G002 scope: the v0.1 release criteria revised, HUG-SYS-006 struck in place, the gaps and register ruled, the target set | 2026-10-12 |
 | **D-020** | *(none — four selections from options put to the Director)* | FM-GND-07: D-012's FMEA row rated and dispositioned, and §6 kept as the HUG-G001 selection | 2026-10-13 |
 | **D-021** | *(none — three selections from options put to the Director, and one answer in his own words)* | HUG-G002 build 5: plain console text, the command read-back, the stuck-load wording, and the PASS-4 re-fly scenario | 2026-10-13 |
+| **D-022** | *(none — one selection from options put to the Director)* | The ground system moves to the public copy, with its stored data | 2026-10-13 |
 
 Two of these self-labels — `D-010:` and `D-012:` — happen to equal their own register key
 rather than naming a prior entry. That is a coincidence of those two rulings arriving after
@@ -1820,3 +1821,59 @@ unchanged. The row is corrected and marked, and so is the matching comment in
 | OF-023, OF-028, OF-030 and OF-031 ruled and fixed, open until flown | `verification/OPEN_FINDINGS.md` |
 | D-020's consequences row corrected and marked; the matching comment corrected | this file; `tools/gen_fmea.py` |
 | Register row for D-021 | the numbering map in this file |
+
+---
+
+## D-022 — the ground system moves to the public copy, with its stored data
+
+| Field | Value |
+|---|---|
+| Date | 2026-10-13 |
+| Ruled by | Dan Lee-Odinson (Director) |
+| Prompted by | Build 5's step 10, the plugin reload D-021 answer 1 assigns to Claude Code. It could not run as written: the ground system on the Director's machine runs from the private archive's `gnd/openc3` folder, where its credentials are, and its containers read the plugin from the archive's copy. Claude Code stopped before the step and reported it |
+| Status | Ruled. Acted on by the ground move that follows this entry, on the Director's machine; in the repository, only this entry changes |
+| Form | One selection from options put to the Director |
+
+### Selection — "Move it, keep its data (Recommended)"
+
+Put to him: "How should the ground system move to the public copy?" He selected the option
+labeled "Move it, keep its data (Recommended)", offered as the recommended option. As put:
+
+> Claude Code copies the archive's credentials file into huginn-public, where git ignores it;
+> it's never printed or committed, and the archive keeps its own copy. It recreates the same
+> ground system from huginn-public, so the stored logs, users and settings carry over, then
+> reloads the plugin and verifies it. I update your preflight's folder line to huginn-public.
+
+The options not selected were "Move it, start fresh" and "Do it with the re-fly handoff".
+Before he chose, he was told that editing the archive's plugin files was not offered,
+because the archive is frozen by his ruling of 12 October 2026.
+
+### Below the seam
+
+Above this heading: the selection the Director made from options put to him, and the option
+as put. Below it: notes made in carrying it out. They are not his ruling.
+
+**Three items, not one file.** The option names "the archive's credentials file". The
+ground system's generated, git-ignored state is three items: `gnd/openc3/.env`;
+`gnd/openc3/openc3-redis/users.acl`, the Redis users, mounted into Redis; and
+`gnd/openc3/plugins/DEFAULT/`, COSMOS's local-mode record of the installed plugin. All three
+are copied, so the same ground system comes up. None is printed or committed.
+
+**What carries over, and what stays.** The compose project name, `huginn`, and its named
+volumes are the same, so their stored data carries over. The archive keeps its own copies
+and is not otherwise changed. The compose file, the Redis and Traefik configuration and the
+two templates are byte-identical in the two folders; `cacert.pem` differs only in line
+endings in the archive's working copy. The plugin's source differs in three files: the
+gemspec's license line, changed at the public release, and the two console definitions
+build 5 regenerated. The reload builds the gem from the public copy's source.
+
+**The preflight.** `HUGINN_PREFLIGHT_CHECK.md` is part of the Director's operator kit,
+outside the repository. Cowork updates its folder line to the public copy.
+
+### Consequences
+
+| Change | Where |
+|---|---|
+| The three items copied from the archive's `gnd/openc3` to the public copy's; the ground system recreated from the public copy, with the same project name and volumes; the plugin reloaded and the loaded configuration verified | the ground system on the Director's machine |
+| The pre-pass checklist's folder line points at the public copy | the Director's operator kit, outside the repository |
+| Register row for D-022 | the numbering map in this file |
