@@ -15,8 +15,8 @@ first to go stale.
 
 | Register | Entries | Tail |
 |---|---|---|
-| Owner rulings | 22 | **D-022** |
-| Open findings | 35 | **OF-035** |
+| Owner rulings | 23 | **D-023** |
+| Open findings | 37 | **OF-037** |
 
 **What Phase 5 added to either register: nothing.** The Phase 5 commit `bba2e0a`
 touched ten files and neither register was among them — no ruling was needed and
@@ -35,13 +35,13 @@ on the phase that introduced it.
 
 | Field | Value |
 |---|---|
-| Release candidate | `89631d7deec07f91962936712ce48c7d022e2613` |
-| Subject | D-022: the ground system moves to the public copy, with its stored data |
+| Release candidate | `72ae384ee1a59c4c4bc563ffc19d012191d72625` |
+| Subject | Re-flies of PASS-3 and PASS-4 in the campaign plan; G20 skips build output (D-023) |
 | Tree clean when run | True |
-| Executed (UTC) | 2026-10-13T18:38:37Z |
+| Executed (UTC) | 2026-10-14T03:48:21Z |
 | Interpreter | Python 3.14.4 |
 | Platform | Windows-11-10.0.26200-SP0 |
-| Unit cases | 578 |
+| Unit cases | 590 |
 | Record checks | 36 |
 | Red/green mutation cases | 202 |
 | Archived demonstrations read | 8 |
