@@ -28,6 +28,14 @@ evidence. Each campaign pass must show at least one. (In PASS-4 the operator's
 CMD_SYS_RESET has no visible effect: the scenario's own reset had already cleared the halt,
 and the post-reset epoch equals the counters before it. That is OF-028.)
 
+RE-FLIES. A pass may list re-flies in defs/campaign.yaml (D-019 selection 7, D-021). A
+re-fly flies its pass's fault, and tools/gen_campaign.py refuses one whose scenario does
+not. Its scenario is one more candidate a record is replayed against, and a record it
+reproduces counts toward the re-fly's pass. The PASS-3 re-fly flies the pass's own
+scenario; the PASS-4 re-fly flies a copy in which only the operator's reset clears the
+halt. A scenario claimed by two passes would leave a record's pass undecided, and is
+refused.
+
 WHAT THE RECORD CANNOT SHOW. "On the operator's scheduled availability" is a fact about
 the operator's calendar. What a record does carry is when it says the pass was executed,
 and the ground's receipt times say when its frames arrived. The first must come before the
@@ -79,6 +87,18 @@ def fault_classes():
 
 def load_campaign(repo=REPO):
     return yaml.safe_load((repo / "defs" / "campaign.yaml").read_text(encoding="utf-8"))
+
+
+def scenario_passes(campaign):
+    """{scenario: pass id} for every scenario the campaign flies, its re-flies included."""
+    out = {}
+    for p in campaign["passes"]:
+        for name in [p["scenario"]] + [r["scenario"] for r in p.get("reflies") or []]:
+            if out.get(name, p["id"]) != p["id"]:
+                raise ValueError(f"{name} is flown by both {out[name]} and {p['id']}: a "
+                                 f"record it reproduces would count toward either")
+            out[name] = p["id"]
+    return out
 
 
 def _commands(path):
@@ -216,7 +236,7 @@ def _utc(text):
 
 def classify(records, campaign, repo=REPO):
     """Each record with what the record itself establishes about it."""
-    scenarios = [p["scenario"] for p in campaign["passes"]]
+    scenarios = list(scenario_passes(campaign))
     out = []
     for rec in records:
         ok, findings = pass_report.validate(rec["report"])
@@ -251,11 +271,13 @@ def ops003_problems(campaign, classified, classes):
         problems.append(f"the anomaly passes cover fault classes {sorted(defined)}; "
                         f"HUG-EPS-004 defines {classes}, one pass each")
 
+    owner = scenario_passes(campaign)
     for p in passes:
-        flown = [c for c in classified if c["counted"] and c["scenario"] == p["scenario"]]
+        flown = [c for c in classified if c["counted"] and owner.get(c["scenario"]) == p["id"]]
         if not flown:
             problems.append(f"{p['id']} ({p['scenario']}) has no record the validator "
-                            f"accepts whose telemetry its scenario reproduces")
+                            f"accepts whose telemetry its scenario, or a re-fly's, "
+                            f"reproduces")
             continue
         if not any(c["record"]["commands"] for c in flown):
             problems.append(f"{p['id']}'s records log no command from the console: "
@@ -274,6 +296,7 @@ def ops003_problems(campaign, classified, classes):
 def ops004_problems(campaign, classified, reports, register):
     """HUG-OPS-004, from the anomaly reports, the records and the register."""
     problems = []
+    owner = scenario_passes(campaign)
     for p in (q for q in campaign["passes"] if q["fault_class"] != "none"):
         source = f"sim/scenarios/{p['scenario']}.yaml"
         mine = [r for r in reports if source in r["fields"].get("Scenario", "")]
@@ -288,9 +311,10 @@ def ops004_problems(campaign, classified, reports, register):
         if not code or not ar["fields"].get("Fault class", "").startswith(code.group(0)):
             problems.append(f"{tag}'s fault class does not state {p['id']}'s, "
                             f"{p['fault_class'].split(' ')[0]}")
-        # The records it reports on are the ones the telemetry says flew this pass.
+        # The records it reports on are the ones the telemetry says flew this pass,
+        # its re-flies included.
         flown = sorted(c["id"] for c in classified
-                       if c["counted"] and c["scenario"] == p["scenario"])
+                       if c["counted"] and owner.get(c["scenario"]) == p["id"])
         named = sorted(re.findall(r"`(\d{4}-\d{2}-\d{2}-P\w+)`",
                                   ar["fields"].get("Contact", "")
                                   + ar["fields"].get("Contacts", "")))
@@ -331,7 +355,7 @@ def main():
     except (AttributeError, OSError):  # pragma: no cover
         pass
     campaign, classified, p3, p4 = evaluate()
-    by_scenario = {p["scenario"]: p["id"] for p in campaign["passes"]}
+    by_scenario = scenario_passes(campaign)
     for c in classified:
         if c["counted"]:
             print(f"[COUNTED] {c['id']}: {by_scenario[c['scenario']]}, reproduced by "

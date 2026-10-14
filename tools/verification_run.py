@@ -401,7 +401,9 @@ def run_metadata(repo=REPO):
 #: root that matched nothing. Without a floor that failure renders as an empty table,
 #: which is indistinguishable from a suite that ran and verified nothing. Raise these
 #: when the suite grows; never lower one to make a run pass.
-FLOOR_TESTS = 568      # 578 with the PASS-4 re-fly scenario's cases (D-021); 560 at
+FLOOR_TESTS = 580      # 590 with the re-flies' campaign record cases and G20's
+                       # build-output cases (OF-037); 568 at 578
+                       # with the PASS-4 re-fly scenario's cases (D-021); 560 at
                        # 570 with the B7/B10 verdicts, the hazardous flag, G2 and
                        # FM-EPS-06 red cases (D-019); 516 at 526 (campaign record
                        # cases, D-019); 492 at 502 (struck in place, D-019), 482 at 492

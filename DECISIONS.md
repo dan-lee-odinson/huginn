@@ -357,6 +357,7 @@ under D-004 and find a different ruling.
 | **D-020** | *(none — four selections from options put to the Director)* | FM-GND-07: D-012's FMEA row rated and dispositioned, and §6 kept as the HUG-G001 selection | 2026-10-13 |
 | **D-021** | *(none — three selections from options put to the Director, and one answer in his own words)* | HUG-G002 build 5: plain console text, the command read-back, the stuck-load wording, and the PASS-4 re-fly scenario | 2026-10-13 |
 | **D-022** | *(none — one selection from options put to the Director)* | The ground system moves to the public copy, with its stored data | 2026-10-13 |
+| **D-023** | *(none — one selection from options put to the Director)* | G20 skips build output, fixed in HUG-G002 build 6 | 2026-10-14 |
 
 Two of these self-labels — `D-010:` and `D-012:` — happen to equal their own register key
 rather than naming a prior entry. That is a coincidence of those two rulings arriving after
@@ -1877,3 +1878,53 @@ outside the repository. Cowork updates its folder line to the public copy.
 | The three items copied from the archive's `gnd/openc3` to the public copy's; the ground system recreated from the public copy, with the same project name and volumes; the plugin reloaded and the loaded configuration verified | the ground system on the Director's machine |
 | The pre-pass checklist's folder line points at the public copy | the Director's operator kit, outside the repository |
 | Register row for D-022 | the numbering map in this file |
+
+---
+
+## D-023 — G20 skips build output, fixed in HUG-G002 build 6
+
+| Field | Value |
+|---|---|
+| Date | 2026-10-14 |
+| Ruled by | Dan Lee-Odinson (Director) |
+| Prompted by | Build 6's gate, run on the Director's machine before its first commit. Check G20 failed reading the gem the D-022 reload built in the plugin folder, while every committed plugin file was clean (OF-037). Claude Code stopped, committed nothing, and reported it |
+| Status | Ruled. Acted on by build 6 |
+| Form | One selection from options put to the Director |
+
+### Selection — "Fix G20 in build 6 (Recommended)"
+
+Put to him: how to handle the G20 failure that stopped build 6. He selected the option
+labeled "Fix G20 in build 6 (Recommended)", offered as the recommended option. As put:
+
+> I send a revised build 6 zip that also fixes G20, so it skips build output the same way
+> the other check does, with tests and a finding recorded. Claude Code discards what it
+> placed and places the new files. The built plugin file stays where it is, and the gate
+> passes with it there, now and after every future reload.
+
+The option not selected was "Move the file, fix later".
+
+### Below the seam
+
+Above this heading: the selection the Director made from options put to him, and the option
+as put. Below it: notes made in carrying it out. They are not his ruling.
+
+**"The other check."** It is G12, the sentinel scan, in the same checker. G12 and G20 now
+list a directory's files through one rule, `source_files()`, which skips compiled bytecode
+and built gems by name. Build output is skipped by name rather than by whatever fails to
+decode, so a file that is not build output and cannot be read as text is still a failure.
+
+**"After every future reload."** The runbook's first reload command builds the gem in the
+plugin folder each time, under the same name, so every reload leaves the file G20 now skips.
+
+**What else build 6 carries.** The PASS-3 and PASS-4 re-flies in the campaign plan, and
+OF-036 with the runbook fix, as in the first build 6 handoff and unchanged.
+
+### Consequences
+
+| Change | Where |
+|---|---|
+| G12 and G20 list a directory's files through one rule that skips build output by name | `tools/checkers/defs_generation.py` |
+| Four cases holding both sides: build output skipped, everything else in the plugin folder still read | `tests/test_g20_build_output.py` |
+| OF-037 registered and fixed, open until the gate passes on the Director's machine with the gem in place | `verification/OPEN_FINDINGS.md` |
+| The test floor raised 568 → 580, with the suite at 590 | `tools/verification_run.py` |
+| Register row for D-023 | the numbering map in this file |

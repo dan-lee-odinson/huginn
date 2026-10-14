@@ -592,9 +592,10 @@ def g20_console_plain_text():
     # Every file in the plugin as committed, listed from disk rather than from the
     # generator: asking the generator for its file list would render again, and a
     # refused source would then end this check in an exception instead of a finding.
+    # The gem a reload builds beside them is build output, skipped as G12 skips it.
     root = gen_openc3_config.repo()
     files = {path.relative_to(root).as_posix(): path.read_text(encoding="utf-8").splitlines()
-             for path in sorted(gen_openc3_config.plugin_dir().rglob("*")) if path.is_file()}
+             for path in source_files(gen_openc3_config.plugin_dir())}
     for name, lines in list(rendered.items()) + list(files.items()):
         for n, line in enumerate(lines, 1):
             if line.lstrip().startswith("#"):
@@ -767,13 +768,7 @@ def g12_sentinel_never_a_threshold():
             if not target.is_dir():
                 uncovered.append(view)
                 continue
-            # Compiled bytecode and other build droppings are not generated views.
-            # Skipping them by name rather than by "whatever fails to decode" keeps an
-            # undecodable file that SHOULD have been scanned a visible failure.
-            files = sorted(f for f in target.rglob("*")
-                           if f.is_file()
-                           and "__pycache__" not in f.parts
-                           and f.suffix not in (".pyc", ".pyo", ".gem"))
+            files = source_files(target)
         else:
             if not target.is_file():
                 uncovered.append(view)
@@ -1338,6 +1333,24 @@ CHECKS = [
 
 
 # ------------------------------------------------------------------------- helpers
+
+#: Files a check that walks a directory skips: compiled bytecode, and the gem the
+#: runbook's reload builds inside the plugin folder (OF-037). The repository ignores
+#: all of them, and they appear whenever Python runs or the plugin is rebuilt.
+BUILD_OUTPUT_SUFFIXES = (".pyc", ".pyo", ".gem")
+
+
+def source_files(directory):
+    """Every file under `directory` except build output, sorted.
+
+    Build output is skipped by name, not by "whatever fails to decode", so an
+    undecodable file that SHOULD have been read stays a visible failure.
+    """
+    return sorted(f for f in directory.rglob("*")
+                  if f.is_file()
+                  and "__pycache__" not in f.parts
+                  and f.suffix not in BUILD_OUTPUT_SUFFIXES)
+
 
 def _devnull():
     return "NUL" if sys.platform == "win32" else "/dev/null"

@@ -1206,6 +1206,49 @@ stopped process annunciates nothing.
 
 ---
 
+## OF-036 — the runbook's plugin-load command fails in Git Bash
+
+**Status:** open. Raised on 2026-10-13, reloading the plugin after the ground system moved
+to the public copy (D-022). Fixed in `gnd/RUNBOOK.md`; open until the command next runs as
+written.
+
+**Claim.** The runbook's third reload command, `docker compose exec -T
+openc3-cosmos-cmd-tlm-api ruby /openc3/bin/openc3cli load
+/plugins/openc3-cosmos-huginn/openc3-cosmos-huginn-0.5.gem DEFAULT`, never reached the
+container when run in Git Bash. Git Bash rewrites an argument that begins with `/` into a
+Windows path, so ruby was handed a script path the container does not have. The first two
+commands ran: their container paths sit inside a longer argument that does not begin with
+`/`. Run again with `MSYS_NO_PATHCONV=1`, which turns the rewriting off, the same command
+loaded the plugin, and `tools/ground_config.py --verify` passed after it.
+
+**Fixed.** The runbook's third command now begins `MSYS_NO_PATHCONV=1`, with one paragraph
+saying why. No other runbook command passes a container path as an argument of its own.
+
+---
+
+## OF-037 — G20 reads the gem a plugin reload leaves in the plugin folder
+
+**Status:** RULED at **D-023** (2026-10-14) and fixed. Raised the same day by the gate run on
+the operator's machine for HUG-G002 build 6; open until the gate passes there with the built
+gem in place.
+
+**Claim.** G20 lists the plugin's files from disk, every file under
+`gnd/openc3/plugins/openc3-cosmos-huginn/`, and reads each one as text. The runbook's first
+reload command builds `openc3-cosmos-huginn-0.5.gem` in that folder, and the repository
+ignores it. After the reload of 2026-10-13 (D-022) the gem was there, and G20 failed with
+`UnicodeDecodeError: 'utf-8' codec can't decode byte 0x8b in position 513` while the seven
+committed plugin files were clean. CI checks out a fresh copy, which has no gem, and passed.
+G12, in the same checker, already skipped build output by name. G20, written at D-021, did
+not.
+
+**Fixed.** One rule, `source_files()` in `tools/checkers/defs_generation.py`, now lists a
+directory's files for both checks and skips compiled bytecode and built gems by name.
+Four cases in `tests/test_g20_build_output.py` hold both sides: build output beside the
+plugin files is skipped, any other file there is still read, and one that cannot be read
+as text still fails.
+
+---
+
 # Errata against frozen evidence
 
 **Archived evidence is never edited.** A demonstration manifest is digested at execution

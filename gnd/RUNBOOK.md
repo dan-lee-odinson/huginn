@@ -144,8 +144,14 @@ Destroy the plugin instance and load the gem fresh:
 cd gnd/openc3
 docker compose exec -T openc3-cosmos-cmd-tlm-api sh -c "cd /plugins/openc3-cosmos-huginn && gem build openc3-cosmos-huginn.gemspec"
 docker compose exec -T openc3-cosmos-cmd-tlm-api ruby -e 'require "openc3"; require "openc3/models/plugin_model"; m = OpenC3::PluginModel.get(name: "openc3-cosmos-huginn-0.5.gem__0", scope: "DEFAULT"); OpenC3::PluginModel.from_json(m, scope: "DEFAULT").destroy'
-docker compose exec -T openc3-cosmos-cmd-tlm-api ruby /openc3/bin/openc3cli load /plugins/openc3-cosmos-huginn/openc3-cosmos-huginn-0.5.gem DEFAULT
+MSYS_NO_PATHCONV=1 docker compose exec -T openc3-cosmos-cmd-tlm-api ruby /openc3/bin/openc3cli load /plugins/openc3-cosmos-huginn/openc3-cosmos-huginn-0.5.gem DEFAULT
 ```
+
+Keep `MSYS_NO_PATHCONV=1` at the start of the third command. In Git Bash, an argument
+that begins with `/` is rewritten into a Windows path, so without it ruby is handed a
+path the container does not have and the load never runs. Bash elsewhere treats it as an
+ordinary environment setting. The first two commands are unaffected: their container
+paths sit inside a longer argument.
 
 This recreates the target, the interface and all seven microservices. Native telemetry
 and command logs live under `/data/logs/` in the buckets volume and are **not** touched.

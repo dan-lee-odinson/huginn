@@ -53,6 +53,14 @@ At 1 Hz every contact in the computed week clears the telemetry bar by two order
 magnitude, so that tier admits all of them. That is the ruling working as written, not a
 check too weak to discriminate -- and `--self-test` drives a sub-frame contact through it
 to show the tier can say no.
+
+RE-FLIES (D-019 selection 7, D-021). A pass may list re-flies: the same pass flown again
+on a change its first flight led to. A re-fly is held to the rules its pass is held to,
+and to one more. Its contact must be in the computed week and, if the pass is commanded,
+usable for commanding. And its scenario must carry exactly the faults of the pass's
+scenario, read from both files: a re-fly flies its pass's fault, and a scenario with any
+other fault would be a different pass under the pass's name. A re-fly is not counted as a
+pass, so the HUG-OPS-003 checks below see the same four.
 """
 import argparse
 import difflib
@@ -69,6 +77,7 @@ import hugdefs                                                       # noqa: E40
 from sim.orbit import Orbit                                          # noqa: E402
 
 OUT = REPO / "campaign" / "CAMPAIGN_PLAN.md"
+SCENARIOS = REPO / "sim" / "scenarios"
 
 #: `AOS + 2 min`, `LOS - 2 min`, `AOS`, `LOS`. The grammar PROC-001 actually uses.
 OFFSET = re.compile(r"^\s*(AOS|LOS)\s*(?:([+-])\s*(\d+(?:\.\d+)?)\s*(min|s))?\s*$")
@@ -191,6 +200,40 @@ def computed_week(campaign=None):
     return orbit.contact_windows(seconds), wk
 
 
+def scenario_faults(name):
+    """A scenario's `faults` list as its file holds it, or None if there is no such file."""
+    path = SCENARIOS / f"{name}.yaml"
+    if not path.is_file():
+        return None
+    return yaml.safe_load(path.read_text(encoding="utf-8")).get("faults") or []
+
+
+def reflies(p, contacts, findings):
+    """The pass's re-flies with their contacts, each held to its pass's rules."""
+    out = []
+    for r in p.get("reflies") or []:
+        label = f"{p['id']} re-fly"
+        idx = r["contact_index"]
+        if not 1 <= idx <= len(contacts):
+            findings.append((label, f"contact_index {idx} is outside the computed "
+                                    f"week (1..{len(contacts)})"))
+            continue
+        c = contacts[idx - 1]
+        if p.get("commanded") and not c["commanding"]:
+            findings.append(
+                (label, f"is commanded like its pass, on contact {idx}, which is NOT "
+                        f"usable for commanding: {c['arithmetic']}"))
+        mine, theirs = scenario_faults(r["scenario"]), scenario_faults(p["scenario"])
+        if mine is None:
+            findings.append((label, f"names sim/scenarios/{r['scenario']}.yaml, which "
+                                    f"does not exist"))
+        elif mine != theirs:
+            findings.append((label, f"flies {r['scenario']}, whose faults are not "
+                                    f"{p['scenario']}'s: a re-fly flies its pass's fault"))
+        out.append({"refly": r, "contact": c})
+    return out
+
+
 def build(campaign=None):
     campaign = campaign or hugdefs._load("campaign.yaml")
     d = derivation()
@@ -220,7 +263,8 @@ def build(campaign=None):
                           f"NOT usable for commanding: {c['arithmetic']}"))
         if p.get("activities") and not p.get("commanded"):
             findings.append((p["id"], "lists activities but is not marked commanded"))
-        passes.append({"pass": p, "contact": c})
+        passes.append({"pass": p, "contact": c,
+                       "reflies": reflies(p, contacts, findings)})
 
     # HUG-OPS-003: at least one nominal and three anomaly passes, one per fault class.
     nominal = [x for x in passes if x["pass"]["fault_class"] == "none"]
@@ -252,6 +296,14 @@ def render(model):
         "Four passes: one nominal and three exercising a different fault each. Each names",
         "the procedure to follow, the contact to fly it on, and what to watch for.",
         "",
+    ]
+    reflown = [x["pass"]["id"] for x in model["passes"] if x["reflies"]]
+    if reflown:
+        out += [f"{' and '.join(reflown)} {'is' if len(reflown) == 1 else 'are'} flown "
+                f"again, each on the changes its first flight led to. A re-fly is listed "
+                f"under its pass and flies the same fault.",
+                ""]
+    out += [
         "## D-014 — the inputs, read from the record",
         "",
         "| Quantity | Value | Read from |",
@@ -353,6 +405,22 @@ def render(model):
         out += [f"- {' '.join(o.split())}" for o in p["observe"]]
         out += ["", "**Why this contact.** " + " ".join(p["why_this_contact"].split()),
                 ""]
+        for x in entry["reflies"]:
+            r, rc = x["refly"], x["contact"]
+            out += ["#### Re-fly", "",
+                    "| Field | Value |", "|---|---|",
+                    f"| Procedure | `{p['procedure']}` |",
+                    f"| Scenario | `sim/scenarios/{r['scenario']}.yaml` |",
+                    f"| Contact | {rc['index']} — {rc['duration_s']:.0f} s "
+                    f"({rc['duration_s'] / 60:.2f} min), commanding "
+                    f"{'ALLOWED' if rc['commanding'] else 'NOT allowed'} |",
+                    f"| Commanded | {'yes' if p.get('commanded') else 'no'} |",
+                    "",
+                    "**What the re-fly flies.** " + " ".join(r["flies"].split()), "",
+                    "**What the operator should observe.**", ""]
+            out += [f"- {' '.join(o.split())}" for o in r["observe"]]
+            out += ["", "**Why this contact.** " + " ".join(r["why_this_contact"].split()),
+                    ""]
 
     out += ["## Findings", ""]
     if model["findings"]:
@@ -437,12 +505,31 @@ def self_test():
     check("a pass pointing at a contact outside the computed week",
           any("outside the computed week" in f[1] for f in build(bad5)["findings"]))
 
+    # The re-fly rules. Each is one edit to PASS-4's re-fly.
+    def refly_finding(campaign, text):
+        return any(a == "PASS-4 re-fly" and text in b for a, b in build(campaign)["findings"])
+
+    bad6 = copy.deepcopy(base)
+    bad6["passes"][3]["reflies"][0]["contact_index"] = shortest_idx
+    check("a re-fly of a commanded pass on a contact not usable for commanding",
+          refly_finding(bad6, "NOT usable for commanding"))
+
+    bad7 = copy.deepcopy(base)
+    bad7["passes"][3]["reflies"][0]["scenario"] = "P3_stuck_load"
+    check("a re-fly whose scenario carries another pass's fault",
+          refly_finding(bad7, "a re-fly flies its pass's fault"))
+
+    bad8 = copy.deepcopy(base)
+    bad8["passes"][3]["reflies"][0]["scenario"] = "P4_no_such_scenario"
+    check("a re-fly naming a scenario that does not exist",
+          refly_finding(bad8, "which does not exist"))
+
     # The plan as it stands must be clean.
     live = build(base)
     check("the committed plan reports no finding", not live["findings"],
           f"{len(live['passes'])} passes")
 
-    total = 11
+    total = 14
     print(f"\nSELF-TEST RESULT: {total - len(failed)}/{total} cases correct"
           + (f"; FAILED: {failed}" if failed
              else " — D-014 decides, and a plan that violates it is refused"))

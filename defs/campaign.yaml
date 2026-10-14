@@ -18,6 +18,13 @@
 # The fault classes are the three the record already carries as scenarios, one
 # per EPS fault in HUG-EPS-004: (a) array-string loss, (b) stuck-on load,
 # (c) housekeeping generation halt.
+#
+# RE-FLIES. A pass whose first flight led to a change is flown again on that change,
+# and the re-fly is listed under its pass (D-019 selection 7, D-021). A re-fly flies its
+# pass's fault: its scenario carries exactly the faults of the pass's scenario, and the
+# generator refuses one that does not. A re-fly is not a fifth pass. The campaign is
+# still one nominal pass and three anomaly passes, and a re-fly's record counts toward
+# its pass (tools/campaign_record.py).
 # =============================================================================
 
 campaign_version: '0.1'
@@ -111,6 +118,27 @@ passes:
     why_this_contact: >-
       Long enough to carry commanding under D-014 AND to show the yellow-before-red
       ordering, which needs the trend to develop inside the contact.
+    reflies:
+      - scenario: P3_stuck_load
+        contact_index: 9
+        flies: >-
+          The stuck load again, on the same scenario, under procedure wording that now
+          matches it (D-021): PROC-002-S05 compares the load current after the shed with
+          the bus alone, and PROC-002-S06 says a stuck load can reach `recovered`. Every
+          send has you read the command name in Command Sender first.
+        observe:
+          - EPS_LOAD_I stepping up at the fault, past its YELLOW limit and short of its
+            RED.
+          - Command Sender reading CMD_PLD_SET_STATE before you send the shed.
+          - After the shed, PLD_STATE OFF and CDH_CMD_ACC_CNT up by exactly one, and
+            EPS_LOAD_I settling well above the bus alone. That is the stuck load, as
+            PROC-002-S05 describes it.
+          - EPS_BATT_I positive before and after the shed and EPS_BATT_SOC rising across
+            the contact, so PROC-002-S06 takes `recovered` (D-003).
+        why_this_contact: >-
+          The contact PASS-3 first flew. Flown from the same start, the fault comes at the
+          same point in the contact, so the re-fly compares directly with the first
+          flight.
 
   - id: PASS-4
     title: Housekeeping generation halt
@@ -142,3 +170,29 @@ passes:
       Long enough for the 30 s RED threshold to be reached AND for a reset and its
       recovery to be observed afterwards, which is the longest sequence any pass in
       this campaign has to fit.
+    reflies:
+      - scenario: P4_hk_generation_halt_refly
+        contact_index: 2
+        flies: >-
+          The halt again, on a copy of PASS-4's scenario in which only your reset clears
+          it (D-021). One more command is accepted before the halt, so the counters before
+          it differ from the reset's epoch, and there is no scripted reset. Command Sender
+          shows CMD_SYS_RESET's description as plain text, and every send has you read the
+          command name first.
+        observe:
+          - CDH_CMD_ACC_CNT 2 and CDH_CMD_REJ_CNT 0 in the last frame before the halt.
+            Note them at PROC-003-S03.
+          - CDH_FRAME_CNT ceasing to advance while the interface stays CONNECTED, the
+            staleness annunciator going YELLOW at 10 s and RED at 30 s, and no NO_READ or
+            READ_FAULT.
+          - No frame at all until your CMD_SYS_RESET. Nothing in the scenario clears the
+            halt, and without a reset telemetry stays down to loss of signal.
+          - Command Sender reading CMD_SYS_RESET, its description in plain text, before
+            the two-step confirmation.
+          - After the reset, CDH_CMD_ACC_CNT 1 and CDH_CMD_REJ_CNT 0, which differ from the
+            counters you noted. At PROC-003-S04 that difference is the evidence the reset
+            happened.
+        why_this_contact: >-
+          The contact PASS-4 first flew. Flown from the same start, the halt comes at the
+          same point in the contact, and the rest of the contact holds the alarm, your
+          reset and the recovery, with no scripted reset to beat.

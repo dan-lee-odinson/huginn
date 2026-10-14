@@ -14,11 +14,16 @@ register.
 
 The heaviest step, replaying every filed record against every campaign scenario, runs
 once per process. A red case that changes a record replays only that record.
+
+A re-fly's record does not exist until the re-fly is flown. Its cases relabel a filed
+record as one the re-fly's scenario reproduced, which is one edit from the record as
+filed, and what they hold is where such a record counts.
 """
 import copy
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "tools"))
@@ -46,6 +51,15 @@ def reclassify(b, record_id, change):
             rec = c["record"]
             change(rec)
             b["classified"][i] = cr.classify([rec], b["campaign"])[0]
+            return b
+    raise KeyError(record_id)
+
+
+def relabel(b, record_id, scenario):
+    """Treat one counted record as reproduced by `scenario`: what a re-fly's record is."""
+    for c in b["classified"]:
+        if c["id"] == record_id:
+            c["scenario"], c["scenarios"] = scenario, [scenario]
             return b
     raise KeyError(record_id)
 
@@ -86,6 +100,36 @@ class TestTheCampaignAsFlownMeetsHugOps003(unittest.TestCase):
         self.assertFalse(by_id["2026-08-03-P1"]["counted"])
         self.assertIsNone(by_id["EXAMPLE-2026-08-08-A"]["record"]["telemetry"])
         self.assertFalse(by_id["EXAMPLE-2026-08-08-A"]["counted"])
+
+    def test_each_scenario_counts_toward_one_pass_re_flies_included(self):
+        self.assertEqual(cr.scenario_passes(base()["campaign"]), {
+            "P1_nominal": "PASS-1",
+            "P2_array_string_loss": "PASS-2",
+            "P3_stuck_load": "PASS-3",
+            "P4_hk_generation_halt": "PASS-4",
+            "P4_hk_generation_halt_refly": "PASS-4",
+        })
+
+    def test_every_scenario_the_campaign_flies_is_a_candidate(self):
+        rec = next(c["record"] for c in base()["classified"] if c["id"] == "2026-10-11-P4")
+        with mock.patch.object(cr, "replay", return_value=(False, "")) as replay:
+            cr.classify([rec], base()["campaign"])
+        self.assertEqual({call.args[0] for call in replay.call_args_list},
+                         set(cr.scenario_passes(base()["campaign"])))
+
+    def test_the_pass_4_re_fly_scenario_reproduces_no_filed_record(self):
+        """Its extra command shows in the first frame the first flight received."""
+        rec = next(c["record"] for c in base()["classified"] if c["id"] == "2026-10-11-P4")
+        ok, detail = cr.replay("P4_hk_generation_halt_refly", rec)
+        self.assertFalse(ok)
+        self.assertIn("diverges at MET 1102", detail)
+        self.assertNotIn("P4_hk_generation_halt_refly",
+                         [s for c in base()["classified"] for s in c["scenarios"]])
+
+    def test_a_re_fly_record_counts_toward_its_pass(self):
+        """PASS-4 met by a record of its re-fly alone."""
+        b = relabel(base(), "2026-10-11-P4", "P4_hk_generation_halt_refly")
+        self.assertEqual(ops003(b), [])
 
     def test_the_operator_commands_are_what_make_pass_3_reproduce(self):
         """Without its logged shed, the scenario stops matching at the shed's frame."""
@@ -146,6 +190,17 @@ class TestACampaignThatFallsShortOfHugOps003(unittest.TestCase):
         b = reclassify(base(), "2026-10-11-P4", lambda rec: rec["commands"].clear())
         self.assertProblem(b, "PASS-4's records log no command from the console")
 
+    def test_a_re_fly_record_whose_re_fly_is_not_in_the_campaign(self):
+        b = relabel(base(), "2026-10-11-P4", "P4_hk_generation_halt_refly")
+        b["campaign"]["passes"][3]["reflies"] = []
+        self.assertProblem(b, "PASS-4 (P4_hk_generation_halt) has no record")
+
+    def test_a_scenario_claimed_by_two_passes(self):
+        campaign = base()["campaign"]
+        campaign["passes"][2]["reflies"][0]["scenario"] = "P4_hk_generation_halt_refly"
+        with self.assertRaisesRegex(ValueError, "flown by both PASS-3 and PASS-4"):
+            cr.scenario_passes(campaign)
+
     def test_a_record_executed_a_day_after_its_frames_arrived(self):
         def late(rec):
             rec["report"]["executed_utc"] = "2026-10-12T16:58:41Z"
@@ -160,6 +215,10 @@ class TestTheAnomalyReportsMeetHugOps004(unittest.TestCase):
 
     def test_the_filed_anomaly_reports_meet_hug_ops_004(self):
         self.assertEqual(ops004(base()), [])
+
+    def test_a_re_fly_record_is_one_its_pass_report_names(self):
+        b = relabel(base(), "2026-10-11-P4", "P4_hk_generation_halt_refly")
+        self.assertEqual(ops004(b), [])
 
     def test_each_anomaly_pass_has_its_own_report(self):
         reports = {r["id"]: r["fields"]["Scenario"].split("`")[1] for r in base()["reports"]}
@@ -200,6 +259,12 @@ class TestAnAnomalyReportThatFallsShortOfHugOps004(unittest.TestCase):
         f = ar(b, "AR-001")["fields"]
         f["Contacts"] = f["Contacts"].replace("`2026-09-20-P2b` (response)", "")
         self.assertProblem(b, "AR-001 names contacts ['2026-09-20-P2a']")
+
+    def test_a_report_missing_its_pass_re_fly_record(self):
+        b = relabel(base(), "2026-10-11-P4", "P4_hk_generation_halt_refly")
+        f = ar(b, "AR-003")["fields"]
+        f["Contact"] = f["Contact"].replace("`2026-10-11-P4`", "")
+        self.assertProblem(b, "the records that flew PASS-4 are ['2026-10-11-P4']")
 
     def test_a_report_with_no_response_section(self):
         b = base()

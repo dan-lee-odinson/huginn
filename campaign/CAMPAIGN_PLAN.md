@@ -6,6 +6,8 @@
 Four passes: one nominal and three exercising a different fault each. Each names
 the procedure to follow, the contact to fly it on, and what to watch for.
 
+PASS-3 and PASS-4 are flown again, each on the changes its first flight led to. A re-fly is listed under its pass and flies the same fault.
+
 ## D-014 — the inputs, read from the record
 
 | Quantity | Value | Read from |
@@ -142,6 +144,26 @@ pinned element set. Every row decided by the arithmetic above.
 
 **Why this contact.** Long enough to carry commanding under D-014 AND to show the yellow-before-red ordering, which needs the trend to develop inside the contact.
 
+#### Re-fly
+
+| Field | Value |
+|---|---|
+| Procedure | `PROC-002` |
+| Scenario | `sim/scenarios/P3_stuck_load.yaml` |
+| Contact | 9 — 430 s (7.17 min), commanding ALLOWED |
+| Commanded | yes |
+
+**What the re-fly flies.** The stuck load again, on the same scenario, under procedure wording that now matches it (D-021): PROC-002-S05 compares the load current after the shed with the bus alone, and PROC-002-S06 says a stuck load can reach `recovered`. Every send has you read the command name in Command Sender first.
+
+**What the operator should observe.**
+
+- EPS_LOAD_I stepping up at the fault, past its YELLOW limit and short of its RED.
+- Command Sender reading CMD_PLD_SET_STATE before you send the shed.
+- After the shed, PLD_STATE OFF and CDH_CMD_ACC_CNT up by exactly one, and EPS_LOAD_I settling well above the bus alone. That is the stuck load, as PROC-002-S05 describes it.
+- EPS_BATT_I positive before and after the shed and EPS_BATT_SOC rising across the contact, so PROC-002-S06 takes `recovered` (D-003).
+
+**Why this contact.** The contact PASS-3 first flew. Flown from the same start, the fault comes at the same point in the contact, so the re-fly compares directly with the first flight.
+
 ### PASS-4 — Housekeeping generation halt
 
 | Field | Value |
@@ -167,6 +189,27 @@ pinned element set. Every row decided by the arithmetic above.
 - After CMD_SYS_RESET, the post-reset counter epoch ACC = 1, REJ = 0 — the sole exception to delta arithmetic (HUG-CMD-005) — and CDH_FRAME_CNT advancing again.
 
 **Why this contact.** Long enough for the 30 s RED threshold to be reached AND for a reset and its recovery to be observed afterwards, which is the longest sequence any pass in this campaign has to fit.
+
+#### Re-fly
+
+| Field | Value |
+|---|---|
+| Procedure | `PROC-003` |
+| Scenario | `sim/scenarios/P4_hk_generation_halt_refly.yaml` |
+| Contact | 2 — 430 s (7.17 min), commanding ALLOWED |
+| Commanded | yes |
+
+**What the re-fly flies.** The halt again, on a copy of PASS-4's scenario in which only your reset clears it (D-021). One more command is accepted before the halt, so the counters before it differ from the reset's epoch, and there is no scripted reset. Command Sender shows CMD_SYS_RESET's description as plain text, and every send has you read the command name first.
+
+**What the operator should observe.**
+
+- CDH_CMD_ACC_CNT 2 and CDH_CMD_REJ_CNT 0 in the last frame before the halt. Note them at PROC-003-S03.
+- CDH_FRAME_CNT ceasing to advance while the interface stays CONNECTED, the staleness annunciator going YELLOW at 10 s and RED at 30 s, and no NO_READ or READ_FAULT.
+- No frame at all until your CMD_SYS_RESET. Nothing in the scenario clears the halt, and without a reset telemetry stays down to loss of signal.
+- Command Sender reading CMD_SYS_RESET, its description in plain text, before the two-step confirmation.
+- After the reset, CDH_CMD_ACC_CNT 1 and CDH_CMD_REJ_CNT 0, which differ from the counters you noted. At PROC-003-S04 that difference is the evidence the reset happened.
+
+**Why this contact.** The contact PASS-4 first flew. Flown from the same start, the halt comes at the same point in the contact, and the rest of the contact holds the alarm, your reset and the recovery, with no scripted reset to beat.
 
 ## Findings
 
