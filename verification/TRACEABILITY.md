@@ -13,12 +13,12 @@ the same whether or not anything ran.
 
 | Field | Value |
 |---|---|
-| Commit | `4f10f6840097a2985bf44cbd2f52a1462ddf12d4` |
+| Commit | `d1c6cf5b8d3f4cb83a73ac455f09204c580b7f49` |
 | Subject | Regenerate the verification report and evidence chain |
 | Tree clean at run | True |
-| Executed (UTC) | 2026-10-13T18:39:36Z |
+| Executed (UTC) | 2026-10-14T03:53:24Z |
 | Python / platform | 3.14.4 / Windows-11-10.0.26200-SP0 |
-| Cases executed | 578 tests, 36 checks, 202 red/green mutation cases |
+| Cases executed | 590 tests, 36 checks, 202 red/green mutation cases |
 | Archived demonstrations read | 8 |
 
 ## Matrix
@@ -39,7 +39,7 @@ order is not sorted, and sorting it here would silently reorder the record.
 | `HUG-EPS-003` | T | NEED-03 | 11 case(s) | 2 | PASS |
 | `HUG-EPS-004` | T | via HUG-SYS-005 | 46 case(s) | 35 | PASS |
 | `HUG-EPS-005` | I | NEED-04 | 11 case(s) | 8 | PASS |
-| `HUG-GND-001` | I | NEED-04 | 67 case(s) | 36 | PASS |
+| `HUG-GND-001` | I | NEED-04 | 71 case(s) | 38 | PASS |
 | `HUG-GND-002` | T | NEED-02 | 27 case(s) + 3 demo(s) | 7 | PASS |
 | `HUG-GND-003` | T | NEED-02 | 12 case(s) | 4 | PASS |
 | `HUG-GND-004` | D | NEED-04 | 2 case(s) | — | PASS |
@@ -54,8 +54,8 @@ order is not sorted, and sorting it here would silently reorder the record.
 | `HUG-CMD-007` | T | NEED-03 | 10 case(s) | 1 | PASS |
 | `HUG-OPS-001` | I | NEED-02 | 36 case(s) | 19 | PASS |
 | `HUG-OPS-002` | I | NEED-04 | 96 case(s) | 72 | PASS |
-| `HUG-OPS-003` | D | NEED-04 | 13 case(s) | 9 | PASS |
-| `HUG-OPS-004` | I | NEED-04 | 11 case(s) | 9 | PASS |
+| `HUG-OPS-003` | D | NEED-04 | 19 case(s) | 11 | PASS |
+| `HUG-OPS-004` | I | NEED-04 | 13 case(s) | 10 | PASS |
 | `HUG-UI-001` | I | NEED-04 | 3 case(s) | — | PASS |
 | `HUG-UI-002` | T/D | NEED-04 | 9 case(s) + 1 demo(s) | 6 | PASS |
 | `HUG-UI-003` | I | NEED-04 | 80 case(s) | 49 | PASS |
@@ -364,7 +364,7 @@ The case identifiers themselves, so a reader can re-run any single row.
 
 - Trace cell: `NEED-04; Derive rule`
 - Reaches a NEED: True
-- Executed cases (67):
+- Executed cases (71):
   - `defs_generation:G16`
   - `defs_generation:G16.m1`
   - `defs_generation:G16.m10`
@@ -400,6 +400,10 @@ The case identifiers themselves, so a reader can re-run any single row.
   - `design_record_consistency:C5.m2`
   - `design_record_consistency:C5.m3`
   - `design_record_consistency:C5.m4`
+  - `test_g20_build_output.TestBuildOutputIsSkipped.test_compiled_bytecode_is_skipped`
+  - `test_g20_build_output.TestBuildOutputIsSkipped.test_the_gem_a_reload_builds_is_skipped`
+  - `test_g20_build_output.TestEverythingElseIsStillRead.test_a_file_that_is_not_text_and_not_build_output`
+  - `test_g20_build_output.TestEverythingElseIsStillRead.test_a_text_file_with_a_character_the_console_cannot_show`
   - `test_ground_targets.TestAnIncompleteInstanceIsAlsoCaught.test_an_empty_instance_does_not_pass`
   - `test_ground_targets.TestAnIncompleteInstanceIsAlsoCaught.test_both_directions_are_reported_together`
   - `test_ground_targets.TestAnIncompleteInstanceIsAlsoCaught.test_huginn_missing_does_not_pass`
@@ -843,35 +847,43 @@ The case identifiers themselves, so a reader can re-run any single row.
 
 - Trace cell: `NEED-04; ASM-02`
 - Reaches a NEED: True
-- Executed cases (13):
+- Executed cases (19):
   - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_a_pass_with_no_filed_record`
   - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_a_pass_with_nothing_sent_from_the_console`
+  - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_a_re_fly_record_whose_re_fly_is_not_in_the_campaign`
   - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_a_record_executed_a_day_after_its_frames_arrived`
   - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_a_reproduced_record_the_validator_refuses`
+  - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_a_scenario_claimed_by_two_passes`
   - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_an_operator_command_missing_from_the_log`
   - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_no_nominal_pass`
   - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_one_recorded_value_its_scenario_does_not_produce`
   - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_pass_1_with_only_the_attempt_the_validator_refuses`
   - `test_campaign_record.TestACampaignThatFallsShortOfHugOps003.test_two_anomaly_passes_of_one_fault_class`
+  - `test_campaign_record.TestTheCampaignAsFlownMeetsHugOps003.test_a_re_fly_record_counts_toward_its_pass`
+  - `test_campaign_record.TestTheCampaignAsFlownMeetsHugOps003.test_each_scenario_counts_toward_one_pass_re_flies_included`
   - `test_campaign_record.TestTheCampaignAsFlownMeetsHugOps003.test_every_pass_is_reproduced_by_its_scenario_and_only_its_scenario`
+  - `test_campaign_record.TestTheCampaignAsFlownMeetsHugOps003.test_every_scenario_the_campaign_flies_is_a_candidate`
   - `test_campaign_record.TestTheCampaignAsFlownMeetsHugOps003.test_the_filed_campaign_meets_hug_ops_003`
   - `test_campaign_record.TestTheCampaignAsFlownMeetsHugOps003.test_the_first_pass_1_attempt_and_the_example_are_not_counted`
   - `test_campaign_record.TestTheCampaignAsFlownMeetsHugOps003.test_the_operator_commands_are_what_make_pass_3_reproduce`
+  - `test_campaign_record.TestTheCampaignAsFlownMeetsHugOps003.test_the_pass_4_re_fly_scenario_reproduces_no_filed_record`
 
 ### `HUG-OPS-004` — I — PASS
 
 - Trace cell: `NEED-04`
 - Reaches a NEED: True
-- Executed cases (11):
+- Executed cases (13):
   - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_a_finding_citing_an_entry_the_register_does_not_hold`
   - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_a_finding_that_never_reached_the_register`
   - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_a_report_filed_against_another_pass_scenario`
+  - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_a_report_missing_its_pass_re_fly_record`
   - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_a_report_missing_one_of_its_contacts`
   - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_a_report_stating_another_fault_class`
   - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_a_report_with_no_findings_section`
   - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_a_report_with_no_outcome_section`
   - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_a_report_with_no_response_section`
   - `test_campaign_record.TestAnAnomalyReportThatFallsShortOfHugOps004.test_an_anomaly_pass_with_no_report`
+  - `test_campaign_record.TestTheAnomalyReportsMeetHugOps004.test_a_re_fly_record_is_one_its_pass_report_names`
   - `test_campaign_record.TestTheAnomalyReportsMeetHugOps004.test_each_anomaly_pass_has_its_own_report`
   - `test_campaign_record.TestTheAnomalyReportsMeetHugOps004.test_the_filed_anomaly_reports_meet_hug_ops_004`
 
